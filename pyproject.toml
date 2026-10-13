@@ -1,0 +1,20 @@
+[project]
+name = "marketsentinel"
+version = "0.1.0"
+description = "Surveillance and investigation for prediction markets"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["ruff", "pytest", "pre-commit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
