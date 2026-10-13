@@ -1,0 +1,65 @@
+{
+  "account_ids": [
+    "acct_0469",
+    "acct_0470",
+    "acct_0471",
+    "acct_0472",
+    "acct_0473",
+    "acct_0474"
+  ],
+  "description": "Funding-linked accounts buy the winning outcome in the final hours.",
+  "expected_detection": {
+    "detector": "pre_resolution_coordination",
+    "flag_accounts": [
+      "acct_0469",
+      "acct_0470",
+      "acct_0471",
+      "acct_0472",
+      "acct_0473",
+      "acct_0474"
+    ],
+    "flag_market": "mkt_011",
+    "min_cluster_size": 6,
+    "shared_funding_sources": [
+      "wallet_12b78271f76f",
+      "wallet_21b641e4c3a3"
+    ],
+    "signals": [
+      "concentrated_buying_final_6h",
+      "same_outcome_direction",
+      "shared_funding_source",
+      "recent_signup"
+    ]
+  },
+  "market_ids": [
+    "mkt_011"
+  ],
+  "name": "pre_resolution_coordination",
+  "seed": 42,
+  "trade_ids": [
+    "t_019598",
+    "t_019600",
+    "t_019601",
+    "t_019604",
+    "t_019606",
+    "t_019607",
+    "t_019609",
+    "t_019611",
+    "t_019613",
+    "t_019614",
+    "t_019615",
+    "t_019618",
+    "t_019619",
+    "t_019623",
+    "t_019624",
+    "t_019625"
+  ],
+  "transfer_ids": [
+    "x_000553",
+    "x_000554",
+    "x_000555",
+    "x_000556",
+    "x_000557",
+    "x_000558"
+  ]
+}
