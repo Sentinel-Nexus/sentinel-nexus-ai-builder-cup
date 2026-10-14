@@ -1,342 +1,59 @@
-{"account_id": "acct_0002", "device_id": "dev_22bd3388", "funding_source": "wallet_0cdf2e85cb21", "ip_block": "71.83.90.0/24", "signup_date": "2025-12-25T09:56:15Z"}
-{"account_id": "acct_0003", "device_id": "dev_53ac2ab9", "funding_source": "cex_gamma", "ip_block": "114.151.65.0/24", "signup_date": "2025-12-27T01:02:03Z"}
-{"account_id": "acct_0005", "device_id": "dev_1190f938", "funding_source": "wallet_0a4ea6d964a3", "ip_block": "73.189.145.0/24", "signup_date": "2026-02-07T21:08:37Z"}
-{"account_id": "acct_0006", "device_id": "dev_05379ff6", "funding_source": "cex_delta", "ip_block": "73.242.208.0/24", "signup_date": "2025-12-13T08:38:14Z"}
-{"account_id": "acct_0007", "device_id": "dev_37cc863b", "funding_source": "cex_echo", "ip_block": "115.248.246.0/24", "signup_date": "2026-02-09T00:29:59Z"}
-{"account_id": "acct_0008", "device_id": "dev_f6b751f7", "funding_source": "wallet_c71d1d5206ab", "ip_block": "43.21.157.0/24", "signup_date": "2026-02-13T17:41:25Z"}
-{"account_id": "acct_0011", "device_id": "dev_c5c14eb4", "funding_source": "cex_kilo", "ip_block": "59.48.49.0/24", "signup_date": "2026-01-25T00:53:20Z"}
-{"account_id": "acct_0012", "device_id": "dev_90e0f4a0", "funding_source": "wallet_886158e25888", "ip_block": "175.204.169.0/24", "signup_date": "2026-01-09T13:17:47Z"}
-{"account_id": "acct_0013", "device_id": "dev_a5c5650c", "funding_source": "cex_gamma", "ip_block": "182.248.109.0/24", "signup_date": "2026-02-14T00:14:05Z"}
-{"account_id": "acct_0014", "device_id": "dev_5cb85aed", "funding_source": "cex_hotel", "ip_block": "84.107.220.0/24", "signup_date": "2026-02-03T15:47:12Z"}
-{"account_id": "acct_0015", "device_id": "dev_859131d2", "funding_source": "wallet_9dac45241ea6", "ip_block": "49.118.196.0/24", "signup_date": "2026-02-12T17:42:37Z"}
-{"account_id": "acct_0018", "device_id": "dev_ab0e664e", "funding_source": "cex_alpha", "ip_block": "71.83.90.0/24", "signup_date": "2026-01-15T11:42:07Z"}
-{"account_id": "acct_0020", "device_id": "dev_8441aefd", "funding_source": "wallet_3dc915eabb27", "ip_block": "56.237.25.0/24", "signup_date": "2026-02-04T19:21:40Z"}
-{"account_id": "acct_0022", "device_id": "dev_17d2582e", "funding_source": "cex_gamma", "ip_block": "105.75.220.0/24", "signup_date": "2026-02-02T06:15:36Z"}
-{"account_id": "acct_0023", "device_id": "dev_5e781fd7", "funding_source": "cex_india", "ip_block": "95.238.212.0/24", "signup_date": "2026-01-01T22:30:57Z"}
-{"account_id": "acct_0024", "device_id": "dev_b3ee4d3b", "funding_source": "cex_echo", "ip_block": "59.48.49.0/24", "signup_date": "2025-12-24T15:01:54Z"}
-{"account_id": "acct_0027", "device_id": "dev_fb02bebb", "funding_source": "cex_delta", "ip_block": "95.142.35.0/24", "signup_date": "2025-12-28T15:53:32Z"}
-{"account_id": "acct_0028", "device_id": "dev_039f3a25", "funding_source": "wallet_46392067bdac", "ip_block": "25.123.40.0/24", "signup_date": "2025-12-06T02:18:50Z"}
-{"account_id": "acct_0029", "device_id": "dev_b289f224", "funding_source": "wallet_de53a34b6cf6", "ip_block": "29.121.142.0/24", "signup_date": "2026-02-07T18:01:51Z"}
-{"account_id": "acct_0030", "device_id": "dev_92f5df7b", "funding_source": "cex_hotel", "ip_block": "50.97.151.0/24", "signup_date": "2026-01-10T15:24:45Z"}
-{"account_id": "acct_0032", "device_id": "dev_93b7a886", "funding_source": "cex_alpha", "ip_block": "87.199.214.0/24", "signup_date": "2025-12-15T15:43:49Z"}
-{"account_id": "acct_0033", "device_id": "dev_15ce6a66", "funding_source": "wallet_8edd1e52d770", "ip_block": "78.202.67.0/24", "signup_date": "2026-02-08T19:11:52Z"}
-{"account_id": "acct_0034", "device_id": "dev_61607459", "funding_source": "cex_hotel", "ip_block": "184.89.154.0/24", "signup_date": "2025-12-28T18:16:57Z"}
-{"account_id": "acct_0035", "device_id": "dev_9efba58b", "funding_source": "cex_lima", "ip_block": "114.61.126.0/24", "signup_date": "2025-12-10T22:20:40Z"}
-{"account_id": "acct_0036", "device_id": "dev_43bfd931", "funding_source": "cex_coin", "ip_block": "26.105.215.0/24", "signup_date": "2025-12-23T14:06:31Z"}
-{"account_id": "acct_0040", "device_id": "dev_8b6870b5", "funding_source": "cex_coin", "ip_block": "60.97.229.0/24", "signup_date": "2026-02-21T18:10:07Z"}
-{"account_id": "acct_0041", "device_id": "dev_2a79ea68", "funding_source": "wallet_bfbb9854ce4e", "ip_block": "22.1.170.0/24", "signup_date": "2026-02-14T04:21:32Z"}
-{"account_id": "acct_0042", "device_id": "dev_77fc9703", "funding_source": "cex_lima", "ip_block": "83.107.175.0/24", "signup_date": "2026-01-07T05:25:06Z"}
-{"account_id": "acct_0043", "device_id": "dev_7e695d0d", "funding_source": "cex_juliet", "ip_block": "114.0.155.0/24", "signup_date": "2025-12-05T14:05:57Z"}
-{"account_id": "acct_0044", "device_id": "dev_9a8cfa3c", "funding_source": "cex_bravo", "ip_block": "135.14.199.0/24", "signup_date": "2025-12-22T14:28:36Z"}
-{"account_id": "acct_0045", "device_id": "dev_054f92ff", "funding_source": "wallet_d248ac1aa554", "ip_block": "149.0.165.0/24", "signup_date": "2025-12-26T06:08:37Z"}
-{"account_id": "acct_0047", "device_id": "dev_95d82980", "funding_source": "cex_hotel", "ip_block": "132.37.233.0/24", "signup_date": "2026-02-27T05:09:33Z"}
-{"account_id": "acct_0048", "device_id": "dev_5553b2fe", "funding_source": "cex_bravo", "ip_block": "116.12.91.0/24", "signup_date": "2026-02-17T04:42:12Z"}
-{"account_id": "acct_0050", "device_id": "dev_05379ff6", "funding_source": "cex_foxtrot", "ip_block": "121.35.169.0/24", "signup_date": "2025-12-12T10:23:26Z"}
-{"account_id": "acct_0053", "device_id": "dev_8c99a894", "funding_source": "cex_echo", "ip_block": "210.217.112.0/24", "signup_date": "2026-01-10T10:19:50Z"}
-{"account_id": "acct_0054", "device_id": "dev_f920264c", "funding_source": "cex_delta", "ip_block": "43.21.157.0/24", "signup_date": "2026-02-03T21:07:51Z"}
-{"account_id": "acct_0056", "device_id": "dev_1e1242e3", "funding_source": "cex_coin", "ip_block": "208.66.134.0/24", "signup_date": "2026-01-15T20:29:27Z"}
-{"account_id": "acct_0058", "device_id": "dev_25074181", "funding_source": "cex_juliet", "ip_block": "26.206.173.0/24", "signup_date": "2026-01-16T17:48:01Z"}
-{"account_id": "acct_0061", "device_id": "dev_7d5911c6", "funding_source": "wallet_89e07250ee18", "ip_block": "199.170.210.0/24", "signup_date": "2026-01-14T14:10:38Z"}
-{"account_id": "acct_0063", "device_id": "dev_3bcabf85", "funding_source": "wallet_0b2c69288e92", "ip_block": "117.99.196.0/24", "signup_date": "2025-12-30T15:15:39Z"}
-{"account_id": "acct_0064", "device_id": "dev_cfb87e6f", "funding_source": "cex_kilo", "ip_block": "82.236.127.0/24", "signup_date": "2026-02-11T07:34:13Z"}
-{"account_id": "acct_0065", "device_id": "dev_097a1e10", "funding_source": "cex_juliet", "ip_block": "28.16.169.0/24", "signup_date": "2025-12-31T21:06:30Z"}
-{"account_id": "acct_0066", "device_id": "dev_70b7e868", "funding_source": "cex_hotel", "ip_block": "60.97.229.0/24", "signup_date": "2025-12-03T09:09:02Z"}
-{"account_id": "acct_0068", "device_id": "dev_b15516bc", "funding_source": "cex_bravo", "ip_block": "149.41.70.0/24", "signup_date": "2026-02-16T15:48:46Z"}
-{"account_id": "acct_0069", "device_id": "dev_5110b492", "funding_source": "cex_hotel", "ip_block": "50.191.82.0/24", "signup_date": "2026-02-18T12:20:50Z"}
-{"account_id": "acct_0071", "device_id": "dev_1933918c", "funding_source": "wallet_df61b4323070", "ip_block": "115.248.246.0/24", "signup_date": "2025-12-11T01:05:44Z"}
-{"account_id": "acct_0074", "device_id": "dev_14374509", "funding_source": "cex_gamma", "ip_block": "148.109.135.0/24", "signup_date": "2026-01-26T18:34:27Z"}
-{"account_id": "acct_0077", "device_id": "dev_711533f3", "funding_source": "wallet_966bfcd6bdca", "ip_block": "60.215.194.0/24", "signup_date": "2025-12-28T22:10:23Z"}
-{"account_id": "acct_0079", "device_id": "dev_61a11729", "funding_source": "cex_juliet", "ip_block": "52.226.218.0/24", "signup_date": "2025-12-28T15:05:03Z"}
-{"account_id": "acct_0083", "device_id": "dev_e7457704", "funding_source": "cex_alpha", "ip_block": "212.164.238.0/24", "signup_date": "2025-12-29T19:17:42Z"}
-{"account_id": "acct_0084", "device_id": "dev_5553b2fe", "funding_source": "wallet_e8dd1712fb16", "ip_block": "181.209.167.0/24", "signup_date": "2025-12-28T13:26:18Z"}
-{"account_id": "acct_0086", "device_id": "dev_d499da99", "funding_source": "cex_hotel", "ip_block": "52.226.218.0/24", "signup_date": "2026-02-27T01:32:58Z"}
-{"account_id": "acct_0087", "device_id": "dev_56b60afc", "funding_source": "wallet_f68077e490c7", "ip_block": "78.202.67.0/24", "signup_date": "2025-12-08T18:38:47Z"}
-{"account_id": "acct_0088", "device_id": "dev_b966442a", "funding_source": "cex_gamma", "ip_block": "110.10.194.0/24", "signup_date": "2026-02-27T01:18:09Z"}
-{"account_id": "acct_0089", "device_id": "dev_ca6a2224", "funding_source": "cex_echo", "ip_block": "142.171.47.0/24", "signup_date": "2026-01-19T06:59:46Z"}
-{"account_id": "acct_0090", "device_id": "dev_bfbf397b", "funding_source": "cex_juliet", "ip_block": "18.59.133.0/24", "signup_date": "2026-01-05T07:00:54Z"}
-{"account_id": "acct_0092", "device_id": "dev_9c2e58de", "funding_source": "cex_bravo", "ip_block": "68.101.75.0/24", "signup_date": "2026-01-28T04:28:20Z"}
-{"account_id": "acct_0093", "device_id": "dev_4d5c55c7", "funding_source": "cex_bravo", "ip_block": "50.191.82.0/24", "signup_date": "2025-12-14T13:55:06Z"}
-{"account_id": "acct_0094", "device_id": "dev_7e1ca5a1", "funding_source": "cex_delta", "ip_block": "26.206.173.0/24", "signup_date": "2026-02-19T20:28:48Z"}
-{"account_id": "acct_0096", "device_id": "dev_be055787", "funding_source": "wallet_6a35e2aa7a5d", "ip_block": "56.237.25.0/24", "signup_date": "2026-01-29T22:37:52Z"}
-{"account_id": "acct_0097", "device_id": "dev_f065c817", "funding_source": "wallet_b0b608601833", "ip_block": "124.226.109.0/24", "signup_date": "2026-01-04T08:20:40Z"}
-{"account_id": "acct_0099", "device_id": "dev_a5135ea0", "funding_source": "cex_gamma", "ip_block": "179.220.181.0/24", "signup_date": "2025-12-26T19:54:14Z"}
-{"account_id": "acct_0100", "device_id": "dev_d2fe2fde", "funding_source": "cex_kilo", "ip_block": "86.222.80.0/24", "signup_date": "2025-12-21T02:08:54Z"}
-{"account_id": "acct_0101", "device_id": "dev_5560db22", "funding_source": "cex_coin", "ip_block": "28.34.120.0/24", "signup_date": "2026-02-10T19:52:21Z"}
-{"account_id": "acct_0102", "device_id": "dev_c3e15a85", "funding_source": "cex_juliet", "ip_block": "91.37.4.0/24", "signup_date": "2025-12-21T10:27:17Z"}
-{"account_id": "acct_0103", "device_id": "dev_25c61c45", "funding_source": "wallet_00b9989240ac", "ip_block": "46.216.93.0/24", "signup_date": "2025-12-26T22:54:49Z"}
-{"account_id": "acct_0104", "device_id": "dev_8a4b8f7c", "funding_source": "cex_coin", "ip_block": "127.1.134.0/24", "signup_date": "2025-12-11T21:26:27Z"}
-{"account_id": "acct_0105", "device_id": "dev_5bb5c40c", "funding_source": "wallet_96bf3ce915e7", "ip_block": "53.194.1.0/24", "signup_date": "2025-12-31T03:20:46Z"}
-{"account_id": "acct_0106", "device_id": "dev_20733f6d", "funding_source": "wallet_1d1886ad8a8c", "ip_block": "117.99.196.0/24", "signup_date": "2026-02-07T02:38:13Z"}
-{"account_id": "acct_0111", "device_id": "dev_10d08d11", "funding_source": "cex_juliet", "ip_block": "95.238.212.0/24", "signup_date": "2026-01-27T23:26:44Z"}
-{"account_id": "acct_0114", "device_id": "dev_370bc063", "funding_source": "cex_delta", "ip_block": "142.171.47.0/24", "signup_date": "2026-01-08T05:50:14Z"}
-{"account_id": "acct_0115", "device_id": "dev_bac7e2b9", "funding_source": "cex_gamma", "ip_block": "167.4.153.0/24", "signup_date": "2025-12-30T03:03:03Z"}
-{"account_id": "acct_0116", "device_id": "dev_2713582c", "funding_source": "cex_hotel", "ip_block": "74.115.32.0/24", "signup_date": "2025-12-08T01:00:28Z"}
-{"account_id": "acct_0117", "device_id": "dev_18b87245", "funding_source": "wallet_cfd05f65c8ce", "ip_block": "205.64.65.0/24", "signup_date": "2025-12-13T17:02:57Z"}
-{"account_id": "acct_0118", "device_id": "dev_8fc42092", "funding_source": "cex_kilo", "ip_block": "89.116.114.0/24", "signup_date": "2025-12-13T00:01:10Z"}
-{"account_id": "acct_0119", "device_id": "dev_f0ede303", "funding_source": "wallet_ea74de3b496f", "ip_block": "22.1.170.0/24", "signup_date": "2026-02-04T21:29:27Z"}
-{"account_id": "acct_0120", "device_id": "dev_5a057c11", "funding_source": "cex_india", "ip_block": "48.2.54.0/24", "signup_date": "2025-12-21T03:30:56Z"}
-{"account_id": "acct_0121", "device_id": "dev_1bb43332", "funding_source": "cex_india", "ip_block": "75.26.47.0/24", "signup_date": "2026-01-04T01:55:54Z"}
-{"account_id": "acct_0122", "device_id": "dev_cea60f4c", "funding_source": "cex_india", "ip_block": "110.10.194.0/24", "signup_date": "2026-02-27T17:01:14Z"}
-{"account_id": "acct_0123", "device_id": "dev_ca6a2224", "funding_source": "wallet_076944777442", "ip_block": "43.21.157.0/24", "signup_date": "2025-12-18T05:41:55Z"}
-{"account_id": "acct_0124", "device_id": "dev_59dcabd0", "funding_source": "cex_coin", "ip_block": "144.100.186.0/24", "signup_date": "2026-01-21T23:15:12Z"}
-{"account_id": "acct_0125", "device_id": "dev_bdb025ff", "funding_source": "cex_alpha", "ip_block": "80.171.163.0/24", "signup_date": "2025-12-10T06:11:47Z"}
-{"account_id": "acct_0129", "device_id": "dev_372f871a", "funding_source": "wallet_585d1d2324e6", "ip_block": "173.216.141.0/24", "signup_date": "2026-01-09T16:36:48Z"}
-{"account_id": "acct_0130", "device_id": "dev_97d7a560", "funding_source": "cex_kilo", "ip_block": "63.160.122.0/24", "signup_date": "2025-12-29T18:11:09Z"}
-{"account_id": "acct_0131", "device_id": "dev_996d5c50", "funding_source": "cex_delta", "ip_block": "159.20.41.0/24", "signup_date": "2025-12-29T03:03:56Z"}
-{"account_id": "acct_0132", "device_id": "dev_c3a00c6f", "funding_source": "cex_foxtrot", "ip_block": "127.68.237.0/24", "signup_date": "2025-12-12T19:09:58Z"}
-{"account_id": "acct_0133", "device_id": "dev_2cfa55b0", "funding_source": "cex_india", "ip_block": "181.162.226.0/24", "signup_date": "2026-02-03T07:55:47Z"}
-{"account_id": "acct_0134", "device_id": "dev_ab05347f", "funding_source": "wallet_65a612738a23", "ip_block": "149.0.165.0/24", "signup_date": "2026-02-17T13:24:39Z"}
-{"account_id": "acct_0135", "device_id": "dev_75b27455", "funding_source": "wallet_5024dcb33df3", "ip_block": "67.139.223.0/24", "signup_date": "2026-01-22T19:38:23Z"}
-{"account_id": "acct_0137", "device_id": "dev_f296d9f0", "funding_source": "cex_lima", "ip_block": "97.10.117.0/24", "signup_date": "2026-02-22T18:42:09Z"}
-{"account_id": "acct_0140", "device_id": "dev_1d30d990", "funding_source": "cex_delta", "ip_block": "62.235.179.0/24", "signup_date": "2026-02-21T12:47:35Z"}
-{"account_id": "acct_0142", "device_id": "dev_2c6a6e9a", "funding_source": "cex_kilo", "ip_block": "153.127.62.0/24", "signup_date": "2025-12-08T18:45:47Z"}
-{"account_id": "acct_0144", "device_id": "dev_fc8d5b93", "funding_source": "cex_kilo", "ip_block": "212.164.238.0/24", "signup_date": "2025-12-30T10:51:36Z"}
-{"account_id": "acct_0148", "device_id": "dev_8de7ad6c", "funding_source": "wallet_e558bd29ede9", "ip_block": "67.139.223.0/24", "signup_date": "2025-12-05T16:36:32Z"}
-{"account_id": "acct_0149", "device_id": "dev_524f93ff", "funding_source": "cex_india", "ip_block": "205.64.65.0/24", "signup_date": "2025-12-15T13:51:35Z"}
-{"account_id": "acct_0150", "device_id": "dev_cf9b8558", "funding_source": "wallet_fb7d57eb89b1", "ip_block": "167.218.228.0/24", "signup_date": "2026-02-04T06:55:17Z"}
-{"account_id": "acct_0151", "device_id": "dev_0a0537f0", "funding_source": "cex_hotel", "ip_block": "193.146.120.0/24", "signup_date": "2026-03-01T04:31:47Z"}
-{"account_id": "acct_0152", "device_id": "dev_28a39779", "funding_source": "cex_echo", "ip_block": "216.127.136.0/24", "signup_date": "2026-01-05T20:49:11Z"}
-{"account_id": "acct_0153", "device_id": "dev_0d67d38e", "funding_source": "wallet_55aba5b5cdc2", "ip_block": "29.30.117.0/24", "signup_date": "2025-12-07T22:22:10Z"}
-{"account_id": "acct_0154", "device_id": "dev_62f5df2b", "funding_source": "cex_lima", "ip_block": "82.236.127.0/24", "signup_date": "2026-02-16T15:22:59Z"}
-{"account_id": "acct_0155", "device_id": "dev_952e6abb", "funding_source": "cex_foxtrot", "ip_block": "158.97.130.0/24", "signup_date": "2025-12-29T22:06:01Z"}
-{"account_id": "acct_0156", "device_id": "dev_b576255e", "funding_source": "wallet_8f154f40c22f", "ip_block": "116.12.91.0/24", "signup_date": "2026-01-04T21:37:38Z"}
-{"account_id": "acct_0158", "device_id": "dev_aba301cb", "funding_source": "cex_foxtrot", "ip_block": "43.21.157.0/24", "signup_date": "2025-12-03T15:22:40Z"}
-{"account_id": "acct_0159", "device_id": "dev_36d55494", "funding_source": "cex_hotel", "ip_block": "215.55.127.0/24", "signup_date": "2025-12-19T06:43:52Z"}
-{"account_id": "acct_0161", "device_id": "dev_3bdbc09e", "funding_source": "wallet_218c9e374f7a", "ip_block": "30.226.50.0/24", "signup_date": "2026-01-24T18:03:08Z"}
-{"account_id": "acct_0162", "device_id": "dev_d4d30795", "funding_source": "cex_juliet", "ip_block": "115.248.246.0/24", "signup_date": "2026-02-12T19:32:03Z"}
-{"account_id": "acct_0165", "device_id": "dev_c8cc7cfe", "funding_source": "cex_delta", "ip_block": "67.139.223.0/24", "signup_date": "2026-01-04T02:32:11Z"}
-{"account_id": "acct_0166", "device_id": "dev_7630a8a7", "funding_source": "wallet_61c2c7332304", "ip_block": "114.151.65.0/24", "signup_date": "2026-01-16T06:16:42Z"}
-{"account_id": "acct_0168", "device_id": "dev_7b07fd31", "funding_source": "wallet_ef2d8df661da", "ip_block": "207.248.122.0/24", "signup_date": "2025-12-11T05:35:37Z"}
-{"account_id": "acct_0172", "device_id": "dev_5ffa46ef", "funding_source": "cex_foxtrot", "ip_block": "199.170.210.0/24", "signup_date": "2026-02-23T18:35:02Z"}
-{"account_id": "acct_0173", "device_id": "dev_2339ba19", "funding_source": "cex_hotel", "ip_block": "215.55.127.0/24", "signup_date": "2026-02-02T15:30:55Z"}
-{"account_id": "acct_0176", "device_id": "dev_49c10669", "funding_source": "cex_bravo", "ip_block": "114.151.65.0/24", "signup_date": "2025-12-06T07:08:19Z"}
-{"account_id": "acct_0177", "device_id": "dev_9f708368", "funding_source": "cex_bravo", "ip_block": "127.68.237.0/24", "signup_date": "2026-02-15T07:14:43Z"}
-{"account_id": "acct_0178", "device_id": "dev_04351b64", "funding_source": "cex_juliet", "ip_block": "60.97.229.0/24", "signup_date": "2025-12-23T18:35:10Z"}
-{"account_id": "acct_0179", "device_id": "dev_0066853d", "funding_source": "cex_delta", "ip_block": "50.97.151.0/24", "signup_date": "2026-01-22T08:38:01Z"}
-{"account_id": "acct_0180", "device_id": "dev_15eacbcf", "funding_source": "cex_foxtrot", "ip_block": "193.146.120.0/24", "signup_date": "2025-12-08T02:11:14Z"}
-{"account_id": "acct_0181", "device_id": "dev_c9525185", "funding_source": "wallet_05348ddce719", "ip_block": "132.37.233.0/24", "signup_date": "2026-01-06T03:22:48Z"}
-{"account_id": "acct_0182", "device_id": "dev_8a4b8f7c", "funding_source": "wallet_bf5040ef3935", "ip_block": "78.216.108.0/24", "signup_date": "2025-12-03T11:04:59Z"}
-{"account_id": "acct_0183", "device_id": "dev_bba205ca", "funding_source": "cex_bravo", "ip_block": "199.170.210.0/24", "signup_date": "2026-02-09T10:26:34Z"}
-{"account_id": "acct_0184", "device_id": "dev_5a304528", "funding_source": "cex_kilo", "ip_block": "68.101.75.0/24", "signup_date": "2025-12-17T18:11:33Z"}
-{"account_id": "acct_0185", "device_id": "dev_7a8104de", "funding_source": "cex_coin", "ip_block": "220.120.158.0/24", "signup_date": "2025-12-07T16:17:49Z"}
-{"account_id": "acct_0186", "device_id": "dev_f920264c", "funding_source": "cex_delta", "ip_block": "104.20.183.0/24", "signup_date": "2026-02-19T17:18:26Z"}
-{"account_id": "acct_0190", "device_id": "dev_2fd340c0", "funding_source": "cex_hotel", "ip_block": "207.248.122.0/24", "signup_date": "2026-01-04T01:28:09Z"}
-{"account_id": "acct_0194", "device_id": "dev_5efa9c5b", "funding_source": "cex_gamma", "ip_block": "32.248.35.0/24", "signup_date": "2025-12-26T17:02:22Z"}
-{"account_id": "acct_0196", "device_id": "dev_248d31ec", "funding_source": "wallet_c804ad973b67", "ip_block": "119.210.239.0/24", "signup_date": "2026-01-10T10:27:11Z"}
-{"account_id": "acct_0197", "device_id": "dev_c74cc890", "funding_source": "cex_foxtrot", "ip_block": "148.112.249.0/24", "signup_date": "2026-01-05T10:57:55Z"}
-{"account_id": "acct_0199", "device_id": "dev_878aaed9", "funding_source": "cex_foxtrot", "ip_block": "73.189.145.0/24", "signup_date": "2026-01-29T11:03:04Z"}
-{"account_id": "acct_0201", "device_id": "dev_c6641285", "funding_source": "cex_hotel", "ip_block": "22.1.170.0/24", "signup_date": "2025-12-21T07:28:19Z"}
-{"account_id": "acct_0202", "device_id": "dev_ffa623d0", "funding_source": "cex_bravo", "ip_block": "149.102.159.0/24", "signup_date": "2025-12-14T05:10:24Z"}
-{"account_id": "acct_0203", "device_id": "dev_e60fd420", "funding_source": "wallet_1679ff4c96d6", "ip_block": "64.127.52.0/24", "signup_date": "2026-02-12T22:42:30Z"}
-{"account_id": "acct_0204", "device_id": "dev_b5a47200", "funding_source": "cex_india", "ip_block": "154.4.57.0/24", "signup_date": "2025-12-28T03:10:57Z"}
-{"account_id": "acct_0205", "device_id": "dev_b6391f04", "funding_source": "wallet_a340b34191b8", "ip_block": "95.142.35.0/24", "signup_date": "2025-12-17T16:02:11Z"}
-{"account_id": "acct_0207", "device_id": "dev_dd3f7d7e", "funding_source": "cex_hotel", "ip_block": "26.105.215.0/24", "signup_date": "2026-02-12T07:54:33Z"}
-{"account_id": "acct_0209", "device_id": "dev_c4e7f7dd", "funding_source": "cex_juliet", "ip_block": "64.127.52.0/24", "signup_date": "2025-12-08T15:18:05Z"}
-{"account_id": "acct_0210", "device_id": "dev_73318749", "funding_source": "cex_india", "ip_block": "26.105.215.0/24", "signup_date": "2026-01-02T00:09:06Z"}
-{"account_id": "acct_0212", "device_id": "dev_84a2576c", "funding_source": "cex_coin", "ip_block": "78.202.67.0/24", "signup_date": "2025-12-16T13:50:55Z"}
-{"account_id": "acct_0213", "device_id": "dev_f0df1684", "funding_source": "cex_echo", "ip_block": "51.224.154.0/24", "signup_date": "2026-02-16T03:13:00Z"}
-{"account_id": "acct_0214", "device_id": "dev_f4d375c1", "funding_source": "cex_coin", "ip_block": "149.41.70.0/24", "signup_date": "2026-01-27T06:02:53Z"}
-{"account_id": "acct_0215", "device_id": "dev_a417c093", "funding_source": "cex_juliet", "ip_block": "216.127.136.0/24", "signup_date": "2025-12-15T21:03:34Z"}
-{"account_id": "acct_0216", "device_id": "dev_90494583", "funding_source": "cex_alpha", "ip_block": "135.14.199.0/24", "signup_date": "2025-12-09T07:26:28Z"}
-{"account_id": "acct_0217", "device_id": "dev_35f789bc", "funding_source": "wallet_9e3c6aa56e6d", "ip_block": "127.68.237.0/24", "signup_date": "2026-01-28T12:13:15Z"}
-{"account_id": "acct_0220", "device_id": "dev_5716dc2e", "funding_source": "cex_foxtrot", "ip_block": "64.127.52.0/24", "signup_date": "2026-02-17T12:48:27Z"}
-{"account_id": "acct_0221", "device_id": "dev_dc5be7d1", "funding_source": "cex_gamma", "ip_block": "175.204.169.0/24", "signup_date": "2025-12-13T18:27:17Z"}
-{"account_id": "acct_0222", "device_id": "dev_1b2ededb", "funding_source": "cex_hotel", "ip_block": "179.43.145.0/24", "signup_date": "2025-12-13T00:38:50Z"}
-{"account_id": "acct_0224", "device_id": "dev_dd84cacc", "funding_source": "wallet_53d2d0401587", "ip_block": "104.20.183.0/24", "signup_date": "2026-02-24T00:54:11Z"}
-{"account_id": "acct_0226", "device_id": "dev_170d7507", "funding_source": "wallet_750d8164ceec", "ip_block": "118.161.133.0/24", "signup_date": "2026-02-27T00:02:35Z"}
-{"account_id": "acct_0227", "device_id": "dev_0c74dc0f", "funding_source": "cex_hotel", "ip_block": "132.37.233.0/24", "signup_date": "2026-01-24T18:38:25Z"}
-{"account_id": "acct_0228", "device_id": "dev_0217ea0e", "funding_source": "wallet_22496e51484d", "ip_block": "208.142.179.0/24", "signup_date": "2026-02-19T10:06:15Z"}
-{"account_id": "acct_0231", "device_id": "dev_fd350c5f", "funding_source": "cex_juliet", "ip_block": "29.30.117.0/24", "signup_date": "2025-12-12T16:37:54Z"}
-{"account_id": "acct_0232", "device_id": "dev_cb7e6268", "funding_source": "wallet_f05e8ece1128", "ip_block": "60.97.229.0/24", "signup_date": "2026-01-03T21:42:35Z"}
-{"account_id": "acct_0233", "device_id": "dev_8255da61", "funding_source": "cex_alpha", "ip_block": "215.55.127.0/24", "signup_date": "2025-12-06T01:51:18Z"}
-{"account_id": "acct_0234", "device_id": "dev_cdd0b4d4", "funding_source": "cex_hotel", "ip_block": "77.126.141.0/24", "signup_date": "2025-12-15T09:42:42Z"}
-{"account_id": "acct_0235", "device_id": "dev_ee6e2e72", "funding_source": "cex_coin", "ip_block": "154.4.57.0/24", "signup_date": "2026-01-06T08:46:54Z"}
-{"account_id": "acct_0236", "device_id": "dev_81df6517", "funding_source": "wallet_7d6688476c56", "ip_block": "154.4.57.0/24", "signup_date": "2026-02-03T18:52:40Z"}
-{"account_id": "acct_0237", "device_id": "dev_044251db", "funding_source": "cex_kilo", "ip_block": "181.209.167.0/24", "signup_date": "2025-12-11T20:44:45Z"}
-{"account_id": "acct_0238", "device_id": "dev_cbf81f86", "funding_source": "wallet_b023df41e335", "ip_block": "117.99.196.0/24", "signup_date": "2026-01-27T15:12:09Z"}
-{"account_id": "acct_0242", "device_id": "dev_70e7e756", "funding_source": "cex_coin", "ip_block": "28.34.120.0/24", "signup_date": "2026-01-08T03:59:37Z"}
-{"account_id": "acct_0244", "device_id": "dev_84c86c46", "funding_source": "cex_foxtrot", "ip_block": "137.204.124.0/24", "signup_date": "2026-03-01T19:56:43Z"}
-{"account_id": "acct_0245", "device_id": "dev_50521700", "funding_source": "wallet_e98075ac824c", "ip_block": "27.212.208.0/24", "signup_date": "2026-01-18T23:33:16Z"}
-{"account_id": "acct_0247", "device_id": "dev_31383975", "funding_source": "wallet_8ede476cf68c", "ip_block": "154.4.57.0/24", "signup_date": "2025-12-28T20:45:29Z"}
-{"account_id": "acct_0248", "device_id": "dev_b4746349", "funding_source": "cex_lima", "ip_block": "137.204.124.0/24", "signup_date": "2026-01-15T00:14:47Z"}
-{"account_id": "acct_0249", "device_id": "dev_ef06fccb", "funding_source": "wallet_4601b8beff3d", "ip_block": "67.139.223.0/24", "signup_date": "2025-12-27T21:37:30Z"}
-{"account_id": "acct_0250", "device_id": "dev_6133a34d", "funding_source": "wallet_d18165001423", "ip_block": "46.216.93.0/24", "signup_date": "2026-01-02T01:29:27Z"}
-{"account_id": "acct_0251", "device_id": "dev_49a22441", "funding_source": "wallet_58ab143b45e3", "ip_block": "167.4.153.0/24", "signup_date": "2026-02-23T03:51:38Z"}
-{"account_id": "acct_0252", "device_id": "dev_36c7d6fa", "funding_source": "cex_india", "ip_block": "133.3.180.0/24", "signup_date": "2025-12-26T09:38:48Z"}
-{"account_id": "acct_0254", "device_id": "dev_e7ba26ac", "funding_source": "cex_kilo", "ip_block": "28.16.169.0/24", "signup_date": "2025-12-22T22:55:37Z"}
-{"account_id": "acct_0257", "device_id": "dev_330f8be1", "funding_source": "wallet_52384988e418", "ip_block": "205.64.65.0/24", "signup_date": "2025-12-27T16:29:49Z"}
-{"account_id": "acct_0258", "device_id": "dev_16e6e5c0", "funding_source": "cex_delta", "ip_block": "50.191.82.0/24", "signup_date": "2026-01-19T03:55:44Z"}
-{"account_id": "acct_0259", "device_id": "dev_2cd10b9f", "funding_source": "cex_coin", "ip_block": "50.191.82.0/24", "signup_date": "2026-02-24T01:16:22Z"}
-{"account_id": "acct_0260", "device_id": "dev_65a16fa9", "funding_source": "wallet_efc52fb21e66", "ip_block": "208.66.134.0/24", "signup_date": "2026-02-07T09:50:48Z"}
-{"account_id": "acct_0262", "device_id": "dev_fd359f6a", "funding_source": "cex_india", "ip_block": "26.206.173.0/24", "signup_date": "2026-01-15T10:51:02Z"}
-{"account_id": "acct_0263", "device_id": "dev_77d0359e", "funding_source": "cex_bravo", "ip_block": "220.120.158.0/24", "signup_date": "2025-12-31T18:16:39Z"}
-{"account_id": "acct_0266", "device_id": "dev_83e96ef4", "funding_source": "cex_gamma", "ip_block": "50.97.151.0/24", "signup_date": "2026-01-31T05:35:33Z"}
-{"account_id": "acct_0267", "device_id": "dev_7a3a6e96", "funding_source": "cex_delta", "ip_block": "197.160.223.0/24", "signup_date": "2025-12-02T14:45:11Z"}
-{"account_id": "acct_0268", "device_id": "dev_c0f63229", "funding_source": "cex_foxtrot", "ip_block": "67.139.223.0/24", "signup_date": "2025-12-29T04:12:10Z"}
-{"account_id": "acct_0270", "device_id": "dev_67c96204", "funding_source": "cex_lima", "ip_block": "59.48.49.0/24", "signup_date": "2026-02-09T06:51:23Z"}
-{"account_id": "acct_0271", "device_id": "dev_f0cd7f05", "funding_source": "cex_juliet", "ip_block": "26.206.173.0/24", "signup_date": "2025-12-21T21:02:03Z"}
-{"account_id": "acct_0272", "device_id": "dev_74797b61", "funding_source": "wallet_5fa59b11b530", "ip_block": "95.238.212.0/24", "signup_date": "2026-01-08T10:13:35Z"}
-{"account_id": "acct_0273", "device_id": "dev_c1e1b94a", "funding_source": "cex_kilo", "ip_block": "73.189.145.0/24", "signup_date": "2026-02-14T07:18:12Z"}
-{"account_id": "acct_0276", "device_id": "dev_265cb9d9", "funding_source": "cex_india", "ip_block": "28.34.120.0/24", "signup_date": "2026-01-10T18:22:32Z"}
-{"account_id": "acct_0277", "device_id": "dev_7d23d479", "funding_source": "cex_india", "ip_block": "32.248.35.0/24", "signup_date": "2026-01-11T02:14:33Z"}
-{"account_id": "acct_0278", "device_id": "dev_836435e3", "funding_source": "cex_juliet", "ip_block": "68.101.75.0/24", "signup_date": "2025-12-07T04:42:41Z"}
-{"account_id": "acct_0282", "device_id": "dev_c40d4874", "funding_source": "cex_lima", "ip_block": "114.151.65.0/24", "signup_date": "2026-01-29T03:06:09Z"}
-{"account_id": "acct_0284", "device_id": "dev_dc3bbdd8", "funding_source": "cex_coin", "ip_block": "158.97.130.0/24", "signup_date": "2026-03-01T08:32:56Z"}
-{"account_id": "acct_0285", "device_id": "dev_ba54e920", "funding_source": "wallet_00e3d5b6de85", "ip_block": "154.4.57.0/24", "signup_date": "2026-02-08T01:20:51Z"}
-{"account_id": "acct_0286", "device_id": "dev_b8168aeb", "funding_source": "cex_india", "ip_block": "182.153.234.0/24", "signup_date": "2026-01-05T03:14:13Z"}
-{"account_id": "acct_0288", "device_id": "dev_170d7507", "funding_source": "cex_alpha", "ip_block": "78.216.108.0/24", "signup_date": "2025-12-23T15:50:21Z"}
-{"account_id": "acct_0289", "device_id": "dev_08987462", "funding_source": "cex_kilo", "ip_block": "103.157.122.0/24", "signup_date": "2026-02-03T07:05:54Z"}
-{"account_id": "acct_0291", "device_id": "dev_fe54ee4b", "funding_source": "cex_lima", "ip_block": "135.14.199.0/24", "signup_date": "2026-01-22T20:23:53Z"}
-{"account_id": "acct_0292", "device_id": "dev_ac2b0cfc", "funding_source": "wallet_4d403ca5be29", "ip_block": "81.225.39.0/24", "signup_date": "2026-02-18T20:43:04Z"}
-{"account_id": "acct_0293", "device_id": "dev_4ceda164", "funding_source": "cex_india", "ip_block": "53.194.1.0/24", "signup_date": "2026-02-25T08:48:13Z"}
-{"account_id": "acct_0294", "device_id": "dev_6d5d0477", "funding_source": "cex_alpha", "ip_block": "38.222.176.0/24", "signup_date": "2026-02-27T12:08:48Z"}
-{"account_id": "acct_0295", "device_id": "dev_519894d8", "funding_source": "cex_gamma", "ip_block": "56.135.19.0/24", "signup_date": "2025-12-15T10:18:36Z"}
-{"account_id": "acct_0296", "device_id": "dev_89b5aab0", "funding_source": "cex_delta", "ip_block": "60.97.229.0/24", "signup_date": "2025-12-29T01:35:26Z"}
-{"account_id": "acct_0297", "device_id": "dev_ea2c7a51", "funding_source": "cex_gamma", "ip_block": "110.10.194.0/24", "signup_date": "2026-02-27T02:25:05Z"}
-{"account_id": "acct_0298", "device_id": "dev_636f6e5c", "funding_source": "cex_delta", "ip_block": "143.231.61.0/24", "signup_date": "2025-12-31T17:22:05Z"}
-{"account_id": "acct_0300", "device_id": "dev_608e149e", "funding_source": "cex_juliet", "ip_block": "149.102.159.0/24", "signup_date": "2025-12-05T13:25:21Z"}
-{"account_id": "acct_0301", "device_id": "dev_c2fe8954", "funding_source": "cex_kilo", "ip_block": "137.204.124.0/24", "signup_date": "2026-01-21T07:07:01Z"}
-{"account_id": "acct_0302", "device_id": "dev_e8334da5", "funding_source": "cex_alpha", "ip_block": "66.29.31.0/24", "signup_date": "2025-12-21T01:30:17Z"}
-{"account_id": "acct_0304", "device_id": "dev_3d44cb2c", "funding_source": "cex_echo", "ip_block": "149.41.70.0/24", "signup_date": "2026-01-05T06:13:45Z"}
-{"account_id": "acct_0308", "device_id": "dev_ef4c5119", "funding_source": "cex_lima", "ip_block": "30.226.50.0/24", "signup_date": "2026-01-08T13:58:07Z"}
-{"account_id": "acct_0310", "device_id": "dev_d253d966", "funding_source": "cex_lima", "ip_block": "56.237.25.0/24", "signup_date": "2026-01-28T18:03:36Z"}
-{"account_id": "acct_0314", "device_id": "dev_a175a9c3", "funding_source": "cex_lima", "ip_block": "118.161.133.0/24", "signup_date": "2025-12-15T14:13:26Z"}
-{"account_id": "acct_0315", "device_id": "dev_5f8a14bd", "funding_source": "cex_kilo", "ip_block": "48.2.54.0/24", "signup_date": "2026-01-31T00:11:24Z"}
-{"account_id": "acct_0316", "device_id": "dev_0406ff44", "funding_source": "cex_india", "ip_block": "207.174.57.0/24", "signup_date": "2026-01-08T00:29:28Z"}
-{"account_id": "acct_0317", "device_id": "dev_465568b7", "funding_source": "cex_echo", "ip_block": "114.0.155.0/24", "signup_date": "2025-12-03T13:01:40Z"}
-{"account_id": "acct_0318", "device_id": "dev_e8e6e840", "funding_source": "cex_bravo", "ip_block": "148.109.135.0/24", "signup_date": "2026-01-18T04:40:20Z"}
-{"account_id": "acct_0319", "device_id": "dev_86c5d1d6", "funding_source": "cex_foxtrot", "ip_block": "22.223.0.0/24", "signup_date": "2025-12-26T01:25:17Z"}
-{"account_id": "acct_0322", "device_id": "dev_61177270", "funding_source": "cex_hotel", "ip_block": "146.128.5.0/24", "signup_date": "2025-12-07T01:12:29Z"}
-{"account_id": "acct_0329", "device_id": "dev_8a624cbd", "funding_source": "cex_lima", "ip_block": "143.231.61.0/24", "signup_date": "2025-12-14T14:17:35Z"}
-{"account_id": "acct_0330", "device_id": "dev_f96d40f8", "funding_source": "cex_bravo", "ip_block": "113.191.224.0/24", "signup_date": "2026-01-10T08:06:38Z"}
-{"account_id": "acct_0332", "device_id": "dev_71348c2a", "funding_source": "wallet_7d98735741e5", "ip_block": "26.105.215.0/24", "signup_date": "2025-12-22T12:46:44Z"}
-{"account_id": "acct_0334", "device_id": "dev_4b9dfd58", "funding_source": "wallet_12d1b68e47fa", "ip_block": "30.226.50.0/24", "signup_date": "2025-12-09T09:12:07Z"}
-{"account_id": "acct_0336", "device_id": "dev_01547950", "funding_source": "wallet_5c2371da35b9", "ip_block": "29.121.142.0/24", "signup_date": "2026-02-08T12:30:30Z"}
-{"account_id": "acct_0337", "device_id": "dev_2ff8e87e", "funding_source": "cex_india", "ip_block": "170.160.63.0/24", "signup_date": "2026-01-20T22:14:18Z"}
-{"account_id": "acct_0339", "device_id": "dev_0328c136", "funding_source": "cex_gamma", "ip_block": "133.3.180.0/24", "signup_date": "2026-02-10T03:00:18Z"}
-{"account_id": "acct_0340", "device_id": "dev_fa698cd2", "funding_source": "cex_india", "ip_block": "38.222.176.0/24", "signup_date": "2025-12-17T06:17:56Z"}
-{"account_id": "acct_0341", "device_id": "dev_44d7df9a", "funding_source": "cex_hotel", "ip_block": "115.248.246.0/24", "signup_date": "2025-12-15T03:13:09Z"}
-{"account_id": "acct_0343", "device_id": "dev_7eece88d", "funding_source": "cex_delta", "ip_block": "26.206.173.0/24", "signup_date": "2026-01-12T04:58:52Z"}
-{"account_id": "acct_0344", "device_id": "dev_f2e61828", "funding_source": "cex_juliet", "ip_block": "116.12.91.0/24", "signup_date": "2026-01-05T04:33:44Z"}
-{"account_id": "acct_0346", "device_id": "dev_9a6c0db9", "funding_source": "wallet_7aa0336b00cb", "ip_block": "22.223.0.0/24", "signup_date": "2025-12-30T06:38:09Z"}
-{"account_id": "acct_0348", "device_id": "dev_47c1c017", "funding_source": "wallet_5d7164976593", "ip_block": "87.199.214.0/24", "signup_date": "2025-12-12T05:59:51Z"}
-{"account_id": "acct_0349", "device_id": "dev_ff4cc10f", "funding_source": "cex_kilo", "ip_block": "127.1.134.0/24", "signup_date": "2026-02-09T02:03:16Z"}
-{"account_id": "acct_0351", "device_id": "dev_cbb02a8b", "funding_source": "wallet_7fd2ac484366", "ip_block": "30.76.18.0/24", "signup_date": "2025-12-14T12:37:36Z"}
-{"account_id": "acct_0352", "device_id": "dev_a89e22f2", "funding_source": "cex_gamma", "ip_block": "149.102.159.0/24", "signup_date": "2026-02-11T00:24:20Z"}
-{"account_id": "acct_0353", "device_id": "dev_9912316a", "funding_source": "cex_gamma", "ip_block": "114.151.65.0/24", "signup_date": "2026-01-19T02:14:00Z"}
-{"account_id": "acct_0357", "device_id": "dev_6e3255a8", "funding_source": "cex_bravo", "ip_block": "51.243.230.0/24", "signup_date": "2025-12-25T06:52:29Z"}
-{"account_id": "acct_0358", "device_id": "dev_8ed8a80d", "funding_source": "cex_juliet", "ip_block": "18.59.133.0/24", "signup_date": "2025-12-21T21:25:42Z"}
-{"account_id": "acct_0361", "device_id": "dev_f0d0270f", "funding_source": "wallet_4fd8592c1107", "ip_block": "28.34.120.0/24", "signup_date": "2026-01-01T21:01:26Z"}
-{"account_id": "acct_0363", "device_id": "dev_4cde1b6b", "funding_source": "cex_lima", "ip_block": "51.55.195.0/24", "signup_date": "2025-12-12T08:35:03Z"}
-{"account_id": "acct_0365", "device_id": "dev_28fea761", "funding_source": "cex_gamma", "ip_block": "91.37.4.0/24", "signup_date": "2026-02-26T06:16:45Z"}
-{"account_id": "acct_0366", "device_id": "dev_a137f8e4", "funding_source": "cex_kilo", "ip_block": "22.223.0.0/24", "signup_date": "2026-01-30T03:47:06Z"}
-{"account_id": "acct_0367", "device_id": "dev_8a624cbd", "funding_source": "wallet_979a7317591a", "ip_block": "109.195.239.0/24", "signup_date": "2026-01-09T15:50:02Z"}
-{"account_id": "acct_0369", "device_id": "dev_ccac2fb5", "funding_source": "wallet_5da42fdc9992", "ip_block": "220.120.158.0/24", "signup_date": "2025-12-31T08:07:38Z"}
-{"account_id": "acct_0371", "device_id": "dev_9645f0e4", "funding_source": "cex_foxtrot", "ip_block": "53.194.1.0/24", "signup_date": "2026-02-16T02:19:06Z"}
-{"account_id": "acct_0373", "device_id": "dev_3d131a3d", "funding_source": "cex_coin", "ip_block": "60.97.229.0/24", "signup_date": "2026-01-04T14:20:28Z"}
-{"account_id": "acct_0374", "device_id": "dev_6b11b7cb", "funding_source": "cex_juliet", "ip_block": "50.97.151.0/24", "signup_date": "2026-01-05T12:48:48Z"}
-{"account_id": "acct_0375", "device_id": "dev_8991b01a", "funding_source": "cex_kilo", "ip_block": "53.194.1.0/24", "signup_date": "2026-02-23T18:18:03Z"}
-{"account_id": "acct_0376", "device_id": "dev_7d592e19", "funding_source": "cex_coin", "ip_block": "179.43.145.0/24", "signup_date": "2025-12-30T07:29:34Z"}
-{"account_id": "acct_0377", "device_id": "dev_dd92dd7c", "funding_source": "cex_alpha", "ip_block": "202.160.29.0/24", "signup_date": "2026-01-14T14:45:18Z"}
-{"account_id": "acct_0378", "device_id": "dev_f6bd80c7", "funding_source": "cex_kilo", "ip_block": "56.237.25.0/24", "signup_date": "2026-01-15T13:08:05Z"}
-{"account_id": "acct_0379", "device_id": "dev_d703262f", "funding_source": "cex_coin", "ip_block": "139.91.54.0/24", "signup_date": "2025-12-09T10:34:06Z"}
-{"account_id": "acct_0380", "device_id": "dev_38749f3c", "funding_source": "cex_echo", "ip_block": "22.1.170.0/24", "signup_date": "2025-12-22T05:39:42Z"}
-{"account_id": "acct_0382", "device_id": "dev_44945e09", "funding_source": "wallet_fdabd2c2a960", "ip_block": "149.0.165.0/24", "signup_date": "2026-01-04T00:25:17Z"}
-{"account_id": "acct_0383", "device_id": "dev_70fd6672", "funding_source": "cex_gamma", "ip_block": "73.189.145.0/24", "signup_date": "2025-12-11T05:13:10Z"}
-{"account_id": "acct_0384", "device_id": "dev_ffd2f491", "funding_source": "cex_echo", "ip_block": "97.10.117.0/24", "signup_date": "2026-01-02T08:55:34Z"}
-{"account_id": "acct_0385", "device_id": "dev_fe7402cd", "funding_source": "cex_delta", "ip_block": "62.235.179.0/24", "signup_date": "2025-12-20T21:20:12Z"}
-{"account_id": "acct_0388", "device_id": "dev_fa9fc10e", "funding_source": "wallet_929e4a11be44", "ip_block": "77.126.141.0/24", "signup_date": "2025-12-26T01:27:39Z"}
-{"account_id": "acct_0389", "device_id": "dev_ade68f51", "funding_source": "wallet_f67822b5f457", "ip_block": "195.153.158.0/24", "signup_date": "2026-02-07T12:12:12Z"}
-{"account_id": "acct_0390", "device_id": "dev_fe1393cd", "funding_source": "cex_kilo", "ip_block": "197.27.50.0/24", "signup_date": "2025-12-13T10:04:42Z"}
-{"account_id": "acct_0393", "device_id": "dev_cb6ad0c7", "funding_source": "wallet_672117d50f59", "ip_block": "75.26.47.0/24", "signup_date": "2026-01-17T09:43:30Z"}
-{"account_id": "acct_0394", "device_id": "dev_e097dedb", "funding_source": "cex_hotel", "ip_block": "51.216.32.0/24", "signup_date": "2025-12-31T10:56:41Z"}
-{"account_id": "acct_0396", "device_id": "dev_cbb18c79", "funding_source": "cex_delta", "ip_block": "159.20.41.0/24", "signup_date": "2026-02-27T03:09:27Z"}
-{"account_id": "acct_0397", "device_id": "dev_52a74a41", "funding_source": "wallet_8c1c56771f36", "ip_block": "87.199.214.0/24", "signup_date": "2026-01-23T00:20:11Z"}
-{"account_id": "acct_0399", "device_id": "dev_c8acffcf", "funding_source": "wallet_1fce042b03ca", "ip_block": "23.7.47.0/24", "signup_date": "2026-02-23T15:34:30Z"}
-{"account_id": "acct_0400", "device_id": "dev_002c4c22", "funding_source": "wallet_33cb6d84414d", "ip_block": "197.27.50.0/24", "signup_date": "2026-03-01T14:41:57Z"}
-{"account_id": "acct_0401", "device_id": "dev_4d470ed6", "funding_source": "cex_echo", "ip_block": "95.142.35.0/24", "signup_date": "2025-12-10T09:36:51Z"}
-{"account_id": "acct_0402", "device_id": "dev_5f31273d", "funding_source": "cex_kilo", "ip_block": "22.223.0.0/24", "signup_date": "2025-12-16T21:32:03Z"}
-{"account_id": "acct_0404", "device_id": "dev_00473139", "funding_source": "cex_bravo", "ip_block": "78.202.67.0/24", "signup_date": "2025-12-13T22:37:53Z"}
-{"account_id": "acct_0405", "device_id": "dev_71efe72a", "funding_source": "cex_lima", "ip_block": "59.48.49.0/24", "signup_date": "2026-01-01T22:07:12Z"}
-{"account_id": "acct_0406", "device_id": "dev_6c1cc405", "funding_source": "cex_hotel", "ip_block": "197.160.223.0/24", "signup_date": "2025-12-08T08:59:20Z"}
-{"account_id": "acct_0407", "device_id": "dev_ce532ffd", "funding_source": "cex_foxtrot", "ip_block": "154.4.57.0/24", "signup_date": "2026-01-04T01:55:59Z"}
-{"account_id": "acct_0408", "device_id": "dev_c601818b", "funding_source": "wallet_2215dfdf0e05", "ip_block": "60.97.229.0/24", "signup_date": "2026-01-28T17:48:16Z"}
-{"account_id": "acct_0409", "device_id": "dev_9033da65", "funding_source": "cex_kilo", "ip_block": "62.235.179.0/24", "signup_date": "2025-12-16T18:29:30Z"}
-{"account_id": "acct_0410", "device_id": "dev_a0c9da72", "funding_source": "wallet_6965eb7e2e64", "ip_block": "124.226.109.0/24", "signup_date": "2026-01-26T10:43:27Z"}
-{"account_id": "acct_0411", "device_id": "dev_16312fc6", "funding_source": "wallet_c0a023d7e6a1", "ip_block": "197.160.223.0/24", "signup_date": "2025-12-13T02:01:10Z"}
-{"account_id": "acct_0412", "device_id": "dev_6dec6bbd", "funding_source": "cex_coin", "ip_block": "74.115.32.0/24", "signup_date": "2025-12-24T07:13:06Z"}
-{"account_id": "acct_0413", "device_id": "dev_99db1302", "funding_source": "cex_juliet", "ip_block": "127.1.134.0/24", "signup_date": "2025-12-27T15:25:44Z"}
-{"account_id": "acct_0414", "device_id": "dev_a88d4108", "funding_source": "wallet_848b34981735", "ip_block": "66.29.31.0/24", "signup_date": "2026-01-25T14:57:43Z"}
-{"account_id": "acct_0415", "device_id": "dev_4ba8a4ca", "funding_source": "cex_delta", "ip_block": "149.67.242.0/24", "signup_date": "2026-01-15T12:57:26Z"}
-{"account_id": "acct_0416", "device_id": "dev_a3595d1f", "funding_source": "cex_india", "ip_block": "185.58.136.0/24", "signup_date": "2026-02-19T23:38:41Z"}
-{"account_id": "acct_0418", "device_id": "dev_8bde005b", "funding_source": "cex_hotel", "ip_block": "149.102.159.0/24", "signup_date": "2026-02-25T21:37:06Z"}
-{"account_id": "acct_0419", "device_id": "dev_9efba58b", "funding_source": "cex_delta", "ip_block": "205.64.65.0/24", "signup_date": "2025-12-05T14:01:33Z"}
-{"account_id": "acct_0421", "device_id": "dev_66fba71d", "funding_source": "cex_india", "ip_block": "30.226.50.0/24", "signup_date": "2026-01-19T09:20:08Z"}
-{"account_id": "acct_0422", "device_id": "dev_4f560ed5", "funding_source": "cex_delta", "ip_block": "30.226.50.0/24", "signup_date": "2026-02-27T16:31:00Z"}
-{"account_id": "acct_0424", "device_id": "dev_6fff15cc", "funding_source": "wallet_3d17d8b22277", "ip_block": "97.10.117.0/24", "signup_date": "2025-12-07T05:04:36Z"}
-{"account_id": "acct_0425", "device_id": "dev_1db14bfc", "funding_source": "cex_juliet", "ip_block": "53.194.1.0/24", "signup_date": "2025-12-06T22:51:42Z"}
-{"account_id": "acct_0426", "device_id": "dev_b538f96c", "funding_source": "cex_alpha", "ip_block": "20.240.113.0/24", "signup_date": "2025-12-16T17:52:42Z"}
-{"account_id": "acct_0427", "device_id": "dev_c871d7b3", "funding_source": "wallet_2abe425e0259", "ip_block": "201.79.139.0/24", "signup_date": "2026-01-04T11:14:16Z"}
-{"account_id": "acct_0429", "device_id": "dev_4350ab06", "funding_source": "wallet_a0a5939f71a2", "ip_block": "142.171.47.0/24", "signup_date": "2025-12-08T22:28:16Z"}
-{"account_id": "acct_0430", "device_id": "dev_0e3141ec", "funding_source": "cex_juliet", "ip_block": "23.7.47.0/24", "signup_date": "2025-12-17T00:27:49Z"}
-{"account_id": "acct_0432", "device_id": "dev_37cc863b", "funding_source": "cex_hotel", "ip_block": "82.236.127.0/24", "signup_date": "2026-01-03T18:11:21Z"}
-{"account_id": "acct_0434", "device_id": "dev_3f8e2d0d", "funding_source": "cex_lima", "ip_block": "113.191.224.0/24", "signup_date": "2025-12-30T19:03:35Z"}
-{"account_id": "acct_0435", "device_id": "dev_1e910f36", "funding_source": "cex_alpha", "ip_block": "207.248.122.0/24", "signup_date": "2025-12-18T03:23:01Z"}
-{"account_id": "acct_0437", "device_id": "dev_8d9765c7", "funding_source": "cex_foxtrot", "ip_block": "87.199.214.0/24", "signup_date": "2025-12-20T01:26:58Z"}
-{"account_id": "acct_0438", "device_id": "dev_bd54da04", "funding_source": "cex_hotel", "ip_block": "153.127.62.0/24", "signup_date": "2026-01-04T03:28:15Z"}
-{"account_id": "acct_0439", "device_id": "dev_c6a07656", "funding_source": "cex_india", "ip_block": "44.178.35.0/24", "signup_date": "2026-02-08T10:38:29Z"}
-{"account_id": "acct_0440", "device_id": "dev_eeb19ad2", "funding_source": "cex_delta", "ip_block": "146.128.5.0/24", "signup_date": "2026-01-19T17:44:15Z"}
-{"account_id": "acct_0441", "device_id": "dev_005fd0e6", "funding_source": "wallet_d95860538c1b", "ip_block": "105.75.220.0/24", "signup_date": "2026-02-06T10:15:30Z"}
-{"account_id": "acct_0443", "device_id": "dev_17d09810", "funding_source": "cex_delta", "ip_block": "81.225.39.0/24", "signup_date": "2026-02-20T18:08:27Z"}
-{"account_id": "acct_0444", "device_id": "dev_e5449887", "funding_source": "cex_lima", "ip_block": "29.30.117.0/24", "signup_date": "2025-12-09T15:23:21Z"}
-{"account_id": "acct_0445", "device_id": "dev_a3209116", "funding_source": "wallet_978613281726", "ip_block": "84.107.220.0/24", "signup_date": "2026-01-22T02:29:33Z"}
-{"account_id": "acct_0446", "device_id": "dev_21761930", "funding_source": "cex_echo", "ip_block": "158.97.130.0/24", "signup_date": "2026-02-16T13:58:24Z"}
-{"account_id": "acct_0447", "device_id": "dev_bc4015fa", "funding_source": "cex_hotel", "ip_block": "113.191.224.0/24", "signup_date": "2025-12-26T11:25:28Z"}
-{"account_id": "acct_0448", "device_id": "dev_22d839d3", "funding_source": "wallet_1be595af6d0c", "ip_block": "115.248.246.0/24", "signup_date": "2025-12-15T23:41:12Z"}
-{"account_id": "acct_0449", "device_id": "dev_50647c59", "funding_source": "cex_india", "ip_block": "114.61.126.0/24", "signup_date": "2026-01-03T05:54:03Z"}
-{"account_id": "acct_0450", "device_id": "dev_769de1e3", "funding_source": "cex_bravo", "ip_block": "30.76.18.0/24", "signup_date": "2025-12-10T03:18:32Z"}
-{"account_id": "acct_0451", "device_id": "dev_b266986c", "funding_source": "cex_delta", "ip_block": "71.83.90.0/24", "signup_date": "2026-02-15T05:35:50Z"}
-{"account_id": "acct_0454", "device_id": "dev_8cd4b90a", "funding_source": "cex_hotel", "ip_block": "215.55.127.0/24", "signup_date": "2025-12-11T04:07:11Z"}
-{"account_id": "acct_0456", "device_id": "dev_a15b2e18", "funding_source": "wallet_951315839b99", "ip_block": "113.191.224.0/24", "signup_date": "2026-01-23T18:00:59Z"}
-{"account_id": "acct_0457", "device_id": "dev_61607459", "funding_source": "cex_kilo", "ip_block": "119.210.239.0/24", "signup_date": "2026-01-10T21:48:41Z"}
-{"account_id": "acct_0458", "device_id": "dev_d8e70aeb", "funding_source": "wallet_1f5d54e07431", "ip_block": "68.101.75.0/24", "signup_date": "2025-12-05T20:13:26Z"}
-{"account_id": "acct_0459", "device_id": "dev_ec93e596", "funding_source": "cex_lima", "ip_block": "139.91.54.0/24", "signup_date": "2026-01-06T13:11:49Z"}
-{"account_id": "acct_0460", "device_id": "dev_6d39da75", "funding_source": "cex_delta", "ip_block": "63.135.250.0/24", "signup_date": "2026-02-21T17:56:13Z"}
-{"account_id": "acct_0461", "device_id": "dev_9864ffd1", "funding_source": "wallet_013e3d017817", "ip_block": "132.116.157.0/24", "signup_date": "2026-01-27T15:03:13Z"}
-{"account_id": "acct_0462", "device_id": "dev_ddda0b3b", "funding_source": "wallet_013e3d017817", "ip_block": "132.116.157.0/24", "signup_date": "2026-01-23T11:13:13Z"}
-{"account_id": "acct_0463", "device_id": "dev_ddda0b3b", "funding_source": "wallet_b24155e4bdf3", "ip_block": "132.116.157.0/24", "signup_date": "2026-01-26T18:56:17Z"}
-{"account_id": "acct_0464", "device_id": "dev_ddda0b3b", "funding_source": "wallet_b24155e4bdf3", "ip_block": "132.116.157.0/24", "signup_date": "2026-01-23T11:50:21Z"}
-{"account_id": "acct_0465", "device_id": "dev_9864ffd1", "funding_source": "wallet_013e3d017817", "ip_block": "132.116.157.0/24", "signup_date": "2026-01-26T09:04:11Z"}
-{"account_id": "acct_0466", "device_id": "dev_ddda0b3b", "funding_source": "wallet_013e3d017817", "ip_block": "132.116.157.0/24", "signup_date": "2026-01-25T17:20:48Z"}
-{"account_id": "acct_0467", "device_id": "dev_9864ffd1", "funding_source": "wallet_b24155e4bdf3", "ip_block": "132.116.157.0/24", "signup_date": "2026-01-26T13:07:37Z"}
-{"account_id": "acct_0468", "device_id": "dev_9864ffd1", "funding_source": "wallet_b24155e4bdf3", "ip_block": "132.116.157.0/24", "signup_date": "2026-01-24T16:06:30Z"}
-{"account_id": "acct_0469", "device_id": "dev_f9b63200", "funding_source": "wallet_21b641e4c3a3", "ip_block": "13.240.222.0/24", "signup_date": "2026-03-04T05:18:21Z"}
-{"account_id": "acct_0470", "device_id": "dev_dff659f6", "funding_source": "wallet_12b78271f76f", "ip_block": "117.85.236.0/24", "signup_date": "2026-03-08T03:04:23Z"}
-{"account_id": "acct_0471", "device_id": "dev_48fd283e", "funding_source": "wallet_21b641e4c3a3", "ip_block": "53.162.69.0/24", "signup_date": "2026-03-06T13:41:27Z"}
-{"account_id": "acct_0472", "device_id": "dev_de066593", "funding_source": "wallet_12b78271f76f", "ip_block": "51.185.37.0/24", "signup_date": "2026-03-05T10:08:37Z"}
-{"account_id": "acct_0473", "device_id": "dev_9ac4dffd", "funding_source": "wallet_21b641e4c3a3", "ip_block": "180.255.115.0/24", "signup_date": "2026-03-04T13:39:48Z"}
-{"account_id": "acct_0474", "device_id": "dev_dfa2ff13", "funding_source": "wallet_12b78271f76f", "ip_block": "88.6.13.0/24", "signup_date": "2026-03-07T17:13:51Z"}
-{"account_id": "acct_0475", "device_id": "dev_37189997", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-21T22:08:51Z"}
-{"account_id": "acct_0476", "device_id": "dev_ad3eb156", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-20T23:36:49Z"}
-{"account_id": "acct_0477", "device_id": "dev_a9d658c5", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-20T22:01:22Z"}
-{"account_id": "acct_0478", "device_id": "dev_a9d658c5", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-22T06:48:05Z"}
-{"account_id": "acct_0479", "device_id": "dev_a9d658c5", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-21T12:09:46Z"}
-{"account_id": "acct_0480", "device_id": "dev_08e3dec0", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-20T12:45:02Z"}
-{"account_id": "acct_0481", "device_id": "dev_37189997", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-20T14:14:41Z"}
-{"account_id": "acct_0482", "device_id": "dev_ad3eb156", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-22T06:36:47Z"}
-{"account_id": "acct_0483", "device_id": "dev_ad3eb156", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-20T12:16:29Z"}
-{"account_id": "acct_0484", "device_id": "dev_37189997", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-20T19:41:34Z"}
-{"account_id": "acct_0485", "device_id": "dev_ad3eb156", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-21T08:02:20Z"}
-{"account_id": "acct_0486", "device_id": "dev_ad3eb156", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-21T06:52:57Z"}
-{"account_id": "acct_0487", "device_id": "dev_a9d658c5", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-21T09:42:16Z"}
-{"account_id": "acct_0488", "device_id": "dev_37189997", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-22T02:42:24Z"}
-{"account_id": "acct_0489", "device_id": "dev_37189997", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-20T14:08:36Z"}
-{"account_id": "acct_0490", "device_id": "dev_37189997", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-21T16:46:50Z"}
-{"account_id": "acct_0491", "device_id": "dev_08e3dec0", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-20T11:17:42Z"}
-{"account_id": "acct_0492", "device_id": "dev_08e3dec0", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-20T20:19:06Z"}
-{"account_id": "acct_0493", "device_id": "dev_37189997", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-20T17:26:27Z"}
-{"account_id": "acct_0494", "device_id": "dev_37189997", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-20T12:40:17Z"}
-{"account_id": "acct_0495", "device_id": "dev_ad3eb156", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-20T16:13:57Z"}
-{"account_id": "acct_0496", "device_id": "dev_37189997", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-21T17:15:14Z"}
-{"account_id": "acct_0497", "device_id": "dev_a9d658c5", "funding_source": "wallet_9f918f9896ca", "ip_block": "103.122.17.0/24", "signup_date": "2026-02-20T09:08:34Z"}
-{"account_id": "acct_0498", "device_id": "dev_ad3eb156", "funding_source": "wallet_9f918f9896ca", "ip_block": "215.116.28.0/24", "signup_date": "2026-02-20T08:53:07Z"}
+{"account_id": "A0001", "country": "PH", "created_ts": "2026-04-26T16:00:00+00:00", "device_id": "D0001", "funding_source_id": "F0001", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0002", "country": "TH", "created_ts": "2026-06-24T16:00:00+00:00", "device_id": "D0002", "funding_source_id": "F0002", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0003", "country": "KR", "created_ts": "2026-09-05T16:00:00+00:00", "device_id": "D0003", "funding_source_id": "F0003", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0004", "country": "JP", "created_ts": "2025-12-22T16:00:00+00:00", "device_id": "D0004", "funding_source_id": "F0004", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0005", "country": "IN", "created_ts": "2025-11-24T16:00:00+00:00", "device_id": "D0005", "funding_source_id": "F1317", "kyc_tier": 3, "source": "synthetic"}
+{"account_id": "A0006", "country": "ID", "created_ts": "2025-08-30T16:00:00+00:00", "device_id": "D0006", "funding_source_id": "F0006", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "A0007", "country": "PH", "created_ts": "2025-11-27T16:00:00+00:00", "device_id": "D0007", "funding_source_id": "F0007", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0008", "country": "ID", "created_ts": "2025-09-01T16:00:00+00:00", "device_id": "D0008", "funding_source_id": "F0008", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "A0009", "country": "JP", "created_ts": "2026-04-08T16:00:00+00:00", "device_id": "D0009", "funding_source_id": "F0009", "kyc_tier": 3, "source": "synthetic"}
+{"account_id": "A0010", "country": "PH", "created_ts": "2026-09-10T16:00:00+00:00", "device_id": "D0010", "funding_source_id": "F0010", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0011", "country": "KR", "created_ts": "2025-11-03T16:00:00+00:00", "device_id": "D0011", "funding_source_id": "F0011", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0012", "country": "JP", "created_ts": "2025-09-26T16:00:00+00:00", "device_id": "D0012", "funding_source_id": "F0012", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0013", "country": "IN", "created_ts": "2026-07-11T16:00:00+00:00", "device_id": "D0013", "funding_source_id": "F0013", "kyc_tier": 3, "source": "synthetic"}
+{"account_id": "A0014", "country": "IN", "created_ts": "2025-10-30T16:00:00+00:00", "device_id": "D0014", "funding_source_id": "F0014", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0015", "country": "IN", "created_ts": "2025-12-22T16:00:00+00:00", "device_id": "D0015", "funding_source_id": "F0015", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0016", "country": "PH", "created_ts": "2026-04-25T16:00:00+00:00", "device_id": "D0016", "funding_source_id": "F0016", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0017", "country": "KR", "created_ts": "2026-08-25T16:00:00+00:00", "device_id": "D0017", "funding_source_id": "F0017", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "A0018", "country": "SG", "created_ts": "2025-10-17T16:00:00+00:00", "device_id": "D0018", "funding_source_id": "F0018", "kyc_tier": 3, "source": "synthetic"}
+{"account_id": "A0019", "country": "AU", "created_ts": "2026-08-26T16:00:00+00:00", "device_id": "D0019", "funding_source_id": "F0019", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "A0020", "country": "HK", "created_ts": "2026-01-30T16:00:00+00:00", "device_id": "D0020", "funding_source_id": "F0020", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "W001", "country": "SG", "created_ts": "2026-10-08T16:00:00+00:00", "device_id": "DW1", "funding_source_id": "FW1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "W002", "country": "SG", "created_ts": "2026-10-07T16:00:00+00:00", "device_id": "DW2", "funding_source_id": "FW1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "W003", "country": "SG", "created_ts": "2026-10-09T16:00:00+00:00", "device_id": "DW1", "funding_source_id": "FW1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "W004", "country": "SG", "created_ts": "2026-10-08T16:00:00+00:00", "device_id": "DW2", "funding_source_id": "FW1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "W005", "country": "SG", "created_ts": "2026-10-09T16:00:00+00:00", "device_id": "DW1", "funding_source_id": "FW1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "W006", "country": "SG", "created_ts": "2026-10-07T16:00:00+00:00", "device_id": "DW2", "funding_source_id": "FW1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "W007", "country": "SG", "created_ts": "2026-10-09T16:00:00+00:00", "device_id": "DW1", "funding_source_id": "FW1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "W008", "country": "SG", "created_ts": "2026-10-09T16:00:00+00:00", "device_id": "DW2", "funding_source_id": "FW1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "C001", "country": "HK", "created_ts": "2026-10-09T16:00:00+00:00", "device_id": "DC_C001", "funding_source_id": "FC1", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "C002", "country": "HK", "created_ts": "2026-10-08T16:00:00+00:00", "device_id": "DC_C002", "funding_source_id": "FC1", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "C003", "country": "HK", "created_ts": "2026-10-08T16:00:00+00:00", "device_id": "DC_C003", "funding_source_id": "FC1", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "C004", "country": "HK", "created_ts": "2026-10-08T16:00:00+00:00", "device_id": "DC_C004", "funding_source_id": "FC1", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "C005", "country": "HK", "created_ts": "2026-10-08T16:00:00+00:00", "device_id": "DC_C005", "funding_source_id": "FC1", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "C006", "country": "HK", "created_ts": "2026-10-09T16:00:00+00:00", "device_id": "DC_C006", "funding_source_id": "FC1", "kyc_tier": 2, "source": "synthetic"}
+{"account_id": "M001", "country": "ID", "created_ts": "2026-10-12T09:00:00+00:00", "device_id": "DM2", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M002", "country": "ID", "created_ts": "2026-10-11T13:00:00+00:00", "device_id": "DM3", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M003", "country": "ID", "created_ts": "2026-10-10T18:00:00+00:00", "device_id": "DM1", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M004", "country": "ID", "created_ts": "2026-10-12T06:00:00+00:00", "device_id": "DM2", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M005", "country": "ID", "created_ts": "2026-10-11T00:00:00+00:00", "device_id": "DM3", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M006", "country": "ID", "created_ts": "2026-10-10T17:00:00+00:00", "device_id": "DM1", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M007", "country": "ID", "created_ts": "2026-10-11T07:00:00+00:00", "device_id": "DM2", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M008", "country": "ID", "created_ts": "2026-10-12T04:00:00+00:00", "device_id": "DM3", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M009", "country": "ID", "created_ts": "2026-10-11T17:00:00+00:00", "device_id": "DM1", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M010", "country": "ID", "created_ts": "2026-10-12T03:00:00+00:00", "device_id": "DM2", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M011", "country": "ID", "created_ts": "2026-10-10T21:00:00+00:00", "device_id": "DM3", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M012", "country": "ID", "created_ts": "2026-10-11T07:00:00+00:00", "device_id": "DM1", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M013", "country": "ID", "created_ts": "2026-10-11T06:00:00+00:00", "device_id": "DM2", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M014", "country": "ID", "created_ts": "2026-10-11T10:00:00+00:00", "device_id": "DM3", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M015", "country": "ID", "created_ts": "2026-10-12T08:00:00+00:00", "device_id": "DM1", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M016", "country": "ID", "created_ts": "2026-10-10T16:00:00+00:00", "device_id": "DM2", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M017", "country": "ID", "created_ts": "2026-10-12T08:00:00+00:00", "device_id": "DM3", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M018", "country": "ID", "created_ts": "2026-10-10T22:00:00+00:00", "device_id": "DM1", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M019", "country": "ID", "created_ts": "2026-10-11T06:00:00+00:00", "device_id": "DM2", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M020", "country": "ID", "created_ts": "2026-10-12T02:00:00+00:00", "device_id": "DM3", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M021", "country": "ID", "created_ts": "2026-10-11T06:00:00+00:00", "device_id": "DM1", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M022", "country": "ID", "created_ts": "2026-10-12T10:00:00+00:00", "device_id": "DM2", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M023", "country": "ID", "created_ts": "2026-10-11T05:00:00+00:00", "device_id": "DM3", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M024", "country": "ID", "created_ts": "2026-10-11T03:00:00+00:00", "device_id": "DM1", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
+{"account_id": "M025", "country": "ID", "created_ts": "2026-10-11T09:00:00+00:00", "device_id": "DM2", "funding_source_id": "FM1", "kyc_tier": 1, "source": "synthetic"}
