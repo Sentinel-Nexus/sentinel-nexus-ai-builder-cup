@@ -6,9 +6,25 @@ Last updated: 2026-10-14
 
 ## Live GCP resources
 
-To be filled by phase 1 (P1 gcp-sync).
+Project `project-f8544066-3df8-4f99-8ed`, region `us-central1`, BigQuery location `US`.
+Snapshot 2026-10-14; full detail in `infra/gcp/inventory.md`. The project was built by hand
+in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 
-Project `project-f8544066-3df8-4f99-8ed`, region `us-central1`.
+| Area | Live state |
+|---|---|
+| BigQuery datasets | `risk_raw`, `risk_curated`, `risk_graph`, `eval`, `audit` (empty) |
+| Data (seed 42) | accounts 2,039; trades 35,073; markets 20; ground truth 39 (8 wash, 6 coordination, 25 mule) |
+| Graph | 8 tables in `risk_graph` + property graph `market_graph` |
+| Eval tables | `eval.benchmark` (3), `eval.benchmark_runs` (12), `risk_curated.alerts` (39) |
+| Pub/Sub | topics `trades`, `trades-dlq`; subs `trades-sub` (DLQ, 5 attempts, ack 60 s), `trades-dlq-sub` |
+| Service accounts | `sa-agent` (aiplatform.user, bigquery.dataViewer, bigquery.jobUser), `sa-ingest` (bigquery.dataEditor, bigquery.jobUser, pubsub.subscriber) |
+| Artifact Registry | `sentinel` (empty), `cloud-run-source-deploy` (auto-created) |
+| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker) |
+| Reservation | `gql-poc` (ENTERPRISE, 0 baseline slots, autoscale max 50), QUERY assignment to the whole project |
+| APIs | 35 enabled, listed in the inventory |
+
+Note: the Phase 1 brief quoted 34,306 trades. That is the seed-7 count; live holds the
+seed-42 data (35,073) because the last Cloud Shell loop ended on seed 42.
 
 ## Repo state
 
