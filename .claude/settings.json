@@ -1,5 +1,21 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git switch:*)",
+      "Bash(git push -u origin:*)",
+      "Bash(pytest:*)",
+      "Bash(ruff:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(bq ls:*)",
+      "Bash(bq show:*)",
+      "Bash(bq head:*)"
+    ],
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
@@ -7,7 +23,15 @@
       "Read(**/*.key)",
       "Read(**/*.p12)",
       "Read(**/*credentials*.json)",
-      "Read(**/*service-account*.json)"
+      "Read(**/*service-account*.json)",
+      "Bash(git push --force:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push -u origin main:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git branch -D:*)",
+      "Bash(bq rm:*)",
+      "Bash(gcloud *delete*)",
+      "Bash(bq *delete*)"
     ]
   }
 }
