@@ -44,3 +44,6 @@ Thumbs.db
 data/synthetic/full/
 
 data/synthetic/full/
+
+# Cloud Shell import (never commit)
+_import/
