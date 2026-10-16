@@ -59,6 +59,12 @@ Evals use synthetic manipulation scenarios with labeled ground truth
   (BigQuery GQL, ADK, Model Armor) and make a real test call to confirm the Gemini model
   ID available in `us-central1`.
 
+### Long-running commands
+- No command may run longer than 10 minutes without a timeout (`timeout N`, the tool's
+  `timeout`, or a script wall-clock cap) and progress output.
+- No background job may call Gemini without a hard cap on calls and a cost estimate shown first.
+  Scripts that spend tokens default to dry-run, print the estimate, and need `--apply`.
+
 ### Agents
 - Cap tokens and tool calls per agent run (explicit max output tokens and max tool-call count).
 - Analysts approve every consequential action; agents never act on accounts autonomously.

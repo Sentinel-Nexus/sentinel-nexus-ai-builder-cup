@@ -1,0 +1,552 @@
+{
+  "run_ts": "2026-10-16 18:20 UTC",
+  "status": "partial: stopped by the operator during case 8 of 9",
+  "models": {
+    "investigator": "gemini-2.5-flash",
+    "drafter": "gemini-2.5-flash",
+    "critic": "gemini-2.5-flash"
+  },
+  "retrieval": "keyword",
+  "completed": [
+    "AL_3df9da0276",
+    "AL_5a1a959872",
+    "AL_fa9727ee1e",
+    "AL_584807441a",
+    "EV_C004",
+    "EV_DG1_household",
+    "EV_DG2_exchange_cluster"
+  ],
+  "not_completed": [
+    {
+      "alert_id": "EV_DG3_busy_honest",
+      "reason": "stopped while running"
+    },
+    {
+      "alert_id": "adversarial run (wash ring)",
+      "reason": "not started"
+    }
+  ],
+  "notes": [
+    "Metrics cover the 7 completed cases. Attacker recall is over all 39 attackers because all four real alerts completed; decoy and borderline figures cover only the decoy groups listed in `completed`.",
+    "Injected (EV_*) alerts are not cached, so their report text and unsupported claims were not kept; decisions, tokens, latency and per-agent traces come from the run log.",
+    "The adversarial test last passed in the first full run (docs/results/agent_evals_run1.json): 2 of 2 injected unsupported claims rejected, 0 leaked. It was not re-run after the Critic evidence change.",
+    "This run used the Critic fix that passes every edge id (not 12 rows) to the Critic. Run 1 (before that fix) is in agent_evals_run1.json."
+  ],
+  "metrics": {
+    "alerts_run": 7,
+    "attacker_recall": {
+      "caught": 29,
+      "of": 39,
+      "rate": 0.7436,
+      "by_scenario": {
+        "wash_trading": {
+          "caught": 8,
+          "of": 8,
+          "rate": 1.0
+        },
+        "coordinated_accumulation": {
+          "caught": 6,
+          "of": 6,
+          "rate": 1.0
+        },
+        "mule_funding": {
+          "caught": 15,
+          "of": 25,
+          "rate": 0.6
+        }
+      },
+      "missed": [
+        "M005",
+        "M006",
+        "M007",
+        "M011",
+        "M013",
+        "M014",
+        "M016",
+        "M018",
+        "M023",
+        "M025"
+      ]
+    },
+    "evasion_caught": {
+      "caught": 5,
+      "of": 15,
+      "rate": 0.3333
+    },
+    "claim_support_rate": {
+      "final": 0.7097,
+      "first_pass": 0.5484,
+      "claims": 31
+    },
+    "critic_rejection_rate": {
+      "rejected": 23,
+      "reviewed": 58,
+      "rate": 0.3966
+    },
+    "decoys": {
+      "groups": 2,
+      "alerts_escalated": 0,
+      "alerts_cleared": 2,
+      "alerts_uncertain": 0,
+      "accounts_escalated": 0,
+      "accounts": 13,
+      "false_escalation_rate": 0.0
+    },
+    "borderline": {
+      "attackers_in_band": 1,
+      "attackers_escalated": 0,
+      "decoy_groups_cleared": 2,
+      "decoy_groups": 2
+    },
+    "merge": {
+      "alerts_with_accepted_merge": 0
+    },
+    "hint": {
+      "agrees": 6,
+      "disagrees": 1,
+      "disagreeing_alerts": [
+        "EV_C004"
+      ]
+    },
+    "cost": {
+      "avg_tokens": 21651.4,
+      "avg_tool_calls": 3.1,
+      "budget_exhausted": 0
+    },
+    "latency_ms": {
+      "engine=gql, graph_live": {
+        "n": 7,
+        "avg": 49019.7,
+        "max": 67390
+      }
+    }
+  },
+  "adversarial": null,
+  "failures": [],
+  "stopped": "stopped by the operator while EV_DG3_busy_honest was running",
+  "cases": [
+    {
+      "alert_id": "AL_3df9da0276",
+      "kind": "real",
+      "decision": "escalate",
+      "tokens": 32222,
+      "latency_ms": 66000,
+      "engines": "gql",
+      "tool_calls": 4,
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 3,
+          "tokens_in": 16197,
+          "tokens_out": 3690,
+          "llm_ms": 29031,
+          "retries": 0,
+          "tool_calls": 4
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 8843,
+          "tokens_out": 1210,
+          "llm_ms": 9687,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1623,
+          "tokens_out": 659,
+          "llm_ms": 4875,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "escalate_accounts": [
+        "C001",
+        "C003",
+        "C005",
+        "C006"
+      ],
+      "unsupported_claims": [],
+      "summary": "The alert hypothesizes coordinated accumulation, and the investigation agrees. All four accounts (C001, C003, C005, C006) share a common funding source FC1 [c1]. All 23 trades executed by these ring members in market M12 were BUY orders [c2], occurring within a 2 hour and 25 minute window [c3]. This shared funding source and synchronized BUY-side trading activity across all accounts in market M12 indicate coordinated accumulation, consistent with policy SP-2.2 [c4].",
+      "detail_source": "case_reports (full report)"
+    },
+    {
+      "alert_id": "AL_5a1a959872",
+      "kind": "real",
+      "decision": "escalate",
+      "tokens": 10600,
+      "latency_ms": 21453,
+      "engines": "gql",
+      "tool_calls": 3,
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 1,
+          "tokens_in": 3271,
+          "tokens_out": 1254,
+          "llm_ms": 8188,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 1,
+          "tokens_in": 3372,
+          "tokens_out": 751,
+          "llm_ms": 4265,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1317,
+          "tokens_out": 635,
+          "llm_ms": 5046,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "escalate_accounts": [
+        "C002",
+        "C004"
+      ],
+      "unsupported_claims": [],
+      "summary": "The detector hypothesized coordinated accumulation, and the investigation agrees with this hypothesis. Accounts C002 and C004 share a device, Device:DC_EV [c1]. Account C002 made 8 BUY trades totaling 27962.5 USD in market M12 [c2], while Account C004 made 6 BUY trades totaling 24507.57 USD in the same market [c3]. Both accounts exclusively placed BUY orders in market M12, with trades occurring in an interleaved fashion and generally increasing prices from 0.606 to 0.837 within a 2-hour window [c4].",
+      "detail_source": "case_reports (full report)"
+    },
+    {
+      "alert_id": "AL_fa9727ee1e",
+      "kind": "real",
+      "decision": "escalate",
+      "tokens": 32318,
+      "latency_ms": 47467,
+      "engines": "gql",
+      "tool_calls": 3,
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 19085,
+          "tokens_out": 5434,
+          "llm_ms": 25763,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 3740,
+          "tokens_out": 1417,
+          "llm_ms": 11233,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 2084,
+          "tokens_out": 558,
+          "llm_ms": 4703,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "escalate_accounts": [
+        "M001",
+        "M002",
+        "M003",
+        "M004",
+        "M008",
+        "M009",
+        "M010",
+        "M012",
+        "M015",
+        "M017",
+        "M019",
+        "M020",
+        "M021",
+        "M022",
+        "M024"
+      ],
+      "unsupported_claims": [
+        "c3: 24 accounts in ring R_M001 have traded in market M08. (The claim states 24 accounts traded in market M08. However, the provided edge_ids list 25 distinct accounts (M001-M012, M014-M025) that traded in M08. The count does not match.)"
+      ],
+      "summary": "The detector hypothesized a mule funding scenario, and the investigation agrees with this assessment. 15 accounts within ring R_M001 share a common funding source, FundingSource:FM1 [c1]. All 25 accounts in the ring share one of three devices, indicating a strong connection [c2]. Specifically, 15 accounts are linked by both the shared funding source (FundingSource:FM1) and shared devices, and have all traded in market M08, which is indicative of coordinated activity [c4].",
+      "detail_source": "case_reports (full report)"
+    },
+    {
+      "alert_id": "AL_584807441a",
+      "kind": "real",
+      "decision": "escalate",
+      "tokens": 28241,
+      "latency_ms": 44063,
+      "engines": "gql",
+      "tool_calls": 3,
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 17356,
+          "tokens_out": 5375,
+          "llm_ms": 27217,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 2563,
+          "tokens_out": 1138,
+          "llm_ms": 7891,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1181,
+          "tokens_out": 628,
+          "llm_ms": 4592,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "escalate_accounts": [
+        "W001",
+        "W002",
+        "W003",
+        "W004",
+        "W005",
+        "W006",
+        "W007",
+        "W008"
+      ],
+      "unsupported_claims": [
+        "c4: All accounts in the ring have numerous 'TradedWith' links with each other, indicating a dense trading network. (The claim states 'All accounts in the ring have numerous 'TradedWith' links with each other'. While many 'TradedWith' links are provided, there are missing links that prevent it from being a complete 'dense trading network' where every account trades with every other account. Specifically, W004 does)",
+        "c5: The total number of trades in Market:M05 is 400, with an equal distribution of 200 BUY and 200 SELL orders, and many trades occurring in pairs with identical timestamps, prices, and sizes, such as T0034659 and T0034660. (numbers not in the cited rows: [400.0, 200.0, 200.0])"
+      ],
+      "summary": "The investigation into alert AL_584807441a hypothesized wash trading, and the findings agree with this hypothesis. All 8 accounts in the ring (W001-W008) are flagged with high scores, and 'fill_reciprocity' is a top contributing factor for all [c1]. Accounts W001, W003, W005, W007 share Device:DW1, while W002, W004, W006, W008 share Device:DW2 [c2]. Furthermore, accounts W003, W004, W005, W007, W008 share FundingSource:FW1 [c3].",
+      "detail_source": "case_reports (full report)"
+    },
+    {
+      "alert_id": "EV_C004",
+      "kind": "borderline_attacker",
+      "decision": "clear",
+      "tokens": 13178,
+      "latency_ms": 67390,
+      "engines": "gql",
+      "tool_calls": 3,
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 5277,
+          "tokens_out": 2343,
+          "llm_ms": 45327,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 2663,
+          "tokens_out": 1298,
+          "llm_ms": 10451,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1035,
+          "tokens_out": 562,
+          "llm_ms": 7890,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "escalate_accounts": [],
+      "unsupported_claims": [],
+      "summary": "",
+      "detail_source": "log + audit (report text not kept: injected alerts are not cached)"
+    },
+    {
+      "alert_id": "EV_DG1_household",
+      "kind": "decoy",
+      "decision": "clear",
+      "tokens": 14235,
+      "latency_ms": 53250,
+      "engines": "gql",
+      "tool_calls": 3,
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 5894,
+          "tokens_out": 2440,
+          "llm_ms": 26780,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 2727,
+          "tokens_out": 1336,
+          "llm_ms": 18545,
+          "retries": 1,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1204,
+          "tokens_out": 634,
+          "llm_ms": 4407,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "escalate_accounts": [],
+      "unsupported_claims": [],
+      "summary": "",
+      "detail_source": "log + audit (report text not kept: injected alerts are not cached)"
+    },
+    {
+      "alert_id": "EV_DG2_exchange_cluster",
+      "kind": "decoy",
+      "decision": "clear",
+      "tokens": 20766,
+      "latency_ms": 43515,
+      "engines": "gql",
+      "tool_calls": 3,
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 9542,
+          "tokens_out": 3483,
+          "llm_ms": 21091,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 4492,
+          "tokens_out": 1390,
+          "llm_ms": 10828,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1368,
+          "tokens_out": 491,
+          "llm_ms": 3609,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "escalate_accounts": [],
+      "unsupported_claims": [],
+      "summary": "",
+      "detail_source": "log + audit (report text not kept: injected alerts are not cached)"
+    }
+  ]
+}
