@@ -189,9 +189,13 @@ judgement and the exclusion path was never exercised on live data. The four deco
 `EV_*` cases are injected `needs_review` alerts (seed 42 has none) and were not re-run after the
 membership change. Four real alerts are cached in `case_reports` from the final eval runs.
 
-Pending: apply `sql/iam/sa_agent_agent_tables.sql` (needs the owner's approval), precompute
-(`python -m scripts.precompute_cases`; nothing to run while the four real alerts stay cached),
-deploy to Cloud Run as `sa-agent` (with P5).
+IAM applied 2026-10-17: `sql/iam/sa_agent_agent_tables.sql` gave `sa-agent`
+`roles/bigquery.dataEditor` on three tables only (`audit.agent_events`, `risk_curated.case_reports`,
+`risk_curated.case_decisions`), verified on each table's policy; no dataset-level binding, and
+`risk_curated.alerts` is untouched (still read-only for `sa-agent`).
+
+Pending: deploy to Cloud Run as `sa-agent` (with P5). The forced precompute was skipped on
+purpose (`python -m scripts.precompute_cases`; the four real alerts are already cached).
 
 ## Known risks
 
@@ -199,8 +203,8 @@ deploy to Cloud Run as `sa-agent` (with P5).
 - Cloud Run `sentinel-hello` is publicly invokable (see Known drift).
 - Vertex latency is uneven (one send-back call took 37 s; 429s under burst). Mitigated by caps,
   retries and a 120 s deadline, not removed.
-- `sa-agent` cannot yet write the agent tables (grants not applied), so the Cloud Run service
-  would fail to audit or cache until `sa_agent_agent_tables.sql` is applied.
+- The `sa-agent` write grants exist only on the three agent tables; the Cloud Run deploy that
+  uses them has not been done or tested yet.
 - Tight schedule: submission Oct 18.
 
 ## Teardown after Nov 6

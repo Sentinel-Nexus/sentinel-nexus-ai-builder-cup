@@ -40,9 +40,9 @@ Schedule: P1 and P2 Oct 14, P3 and P4 Oct 15, P5 and P6 Oct 16, P7 Oct 17. Submi
   - Evals against ground-truth scenarios.
   - Status 2026-10-17: code, tests and evals done (`docs/agent-evals.md`); Policy is folded into a
     retrieval step plus the Drafter; agent-cleared lane with analyst override added. **Box stays
-    open** because the service is not on Cloud Run yet and `sa-agent` has no grants on the agent
-    tables (`sql/iam/sa_agent_agent_tables.sql`, awaiting owner approval). Cached cases for the
-    four real alerts exist; the precompute script has nothing left to run.
+    open** because the service is not on Cloud Run yet. The `sa-agent` table grants are applied
+    (`sql/iam/sa_agent_agent_tables.sql`, table-level only). Cached cases for the four real
+    alerts exist; the precompute script has nothing left to run.
 
 - [ ] **P5 web** (Oct 16)
   - Analyst workbench served by the same service: alert queue, ring graph view, agent
