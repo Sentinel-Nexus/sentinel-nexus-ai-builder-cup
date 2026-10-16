@@ -7,6 +7,7 @@ loop is the bounded label-propagation hop inside det_30_components.sql).
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -115,5 +116,12 @@ def run_pipeline(project: str, target: Target, apply: bool, client=None, steps=S
     return report
 
 
-def fetch_rows(client, query_table: str) -> list[dict]:
-    return [dict(r.items()) for r in client.query(f"SELECT * FROM `{query_table}`").result()]
+def fetch_rows(client, table: str, cache: Path | None = None) -> list[dict]:
+    """Read a whole table with list_rows (no query, no slots). Optional local JSON cache."""
+    if cache is not None and cache.exists():
+        return json.loads(cache.read_text(encoding="utf-8"))
+    rows = [dict(r.items()) for r in client.list_rows(table)]
+    if cache is not None:
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps(rows, default=str), encoding="utf-8", newline="\n")
+    return rows

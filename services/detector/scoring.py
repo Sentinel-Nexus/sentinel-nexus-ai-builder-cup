@@ -29,7 +29,6 @@ class Feature:
     name: str
     weight: float
     term: Callable[[Row], float]
-    group: str  # which kind of pattern the feature points at (used only for the hint)
 
 
 def _freshness(r: Row) -> float:
@@ -38,29 +37,31 @@ def _freshness(r: Row) -> float:
 
 
 FEATURES: tuple[Feature, ...] = (
-    Feature("link_size", 0.12, lambda r: clip((r["comp_size"] - 1) / 7), "linked"),
+    Feature("link_size", 0.12, lambda r: clip((r["comp_size"] - 1) / 7)),
     Feature(
         "link_density",
         0.08,
         lambda r: clip(r["comp_density"]) if r["comp_size"] >= 3 else 0.0,
-        "linked",
     ),
-    Feature("fill_reciprocity", 0.15, lambda r: clip(r["recip"]) * clip(r["fill_n"] / 10), "wash"),
-    Feature("fresh_funding_fanin", 0.10, lambda r: clip(r["fresh_fanin"] / 4), "mule"),
-    Feature("account_freshness", 0.10, _freshness, "mule"),
-    Feature("fresh_cluster", 0.10, lambda r: clip(r["fresh_linked"] / 4), "mule"),
+    Feature("fill_reciprocity", 0.15, lambda r: clip(r["recip"]) * clip(r["fill_n"] / 10)),
+    Feature("fresh_funding_fanin", 0.10, lambda r: clip(r["fresh_fanin"] / 4)),
+    Feature("account_freshness", 0.10, _freshness),
+    Feature("fresh_cluster", 0.10, lambda r: clip(r["fresh_linked"] / 4)),
     Feature(
         "late_concentration",
         0.15,
         lambda r: clip(r["late_share"]) * clip(r["late_usd"] / 1000),
-        "coordination",
     ),
-    Feature("size_zscore", 0.10, lambda r: clip(r["mean_size_z"] / 3), "coordination"),
-    Feature("timing_zscore", 0.10, lambda r: clip(r["mean_late_z"] / 2), "coordination"),
+    Feature("size_zscore", 0.10, lambda r: clip(r["mean_size_z"] / 3)),
+    Feature("timing_zscore", 0.10, lambda r: clip(r["mean_late_z"] / 2)),
 )
 assert abs(sum(f.weight for f in FEATURES) - 1.0) < 1e-9
 
-HINTS = {"wash": "wash_trading", "coordination": "coordinated_accumulation", "mule": "mule_funding"}
+# Ring structure the hint looks for. Reciprocal matched fills and late one-sided buying are
+# specific; shared funding into fresh accounts is generic (every ring type has it), so it only
+# decides the hint when neither specific pattern is present. Fixed a priori (a quarter of a
+# term's range), not fitted.
+SIGNATURE_MIN = 0.25
 
 
 def score_row(row: Row) -> tuple[float, dict[str, float], dict[str, float]]:
@@ -70,7 +71,8 @@ def score_row(row: Row) -> tuple[float, dict[str, float], dict[str, float]]:
     return sum(contributions.values()), terms, contributions
 
 
-def score_rows(rows: Iterable[Row], threshold: float) -> list[Row]:
+def score_rows(rows: Iterable[Row], threshold: float, review_margin: float = 0.0) -> list[Row]:
+    """Score rows. flagged: score >= threshold; in_band: threshold - margin <= score < threshold."""
     out = []
     for row in rows:
         score, terms, contributions = score_row(row)
@@ -80,6 +82,7 @@ def score_rows(rows: Iterable[Row], threshold: float) -> list[Row]:
                 "ring_id": row["ring_id"],
                 "score": round(score, 4),
                 "flagged": score >= threshold,
+                "in_band": threshold - review_margin <= score < threshold,
                 "threshold": threshold,
                 "terms": terms,
                 "contributions": contributions,
@@ -89,36 +92,56 @@ def score_rows(rows: Iterable[Row], threshold: float) -> list[Row]:
     return out
 
 
-def scenario_hint(contributions: dict[str, float]) -> str:
-    """Name the pattern the ring's evidence mostly points at ('linked' alone gives no hint)."""
-    by_group: dict[str, float] = defaultdict(float)
-    for f in FEATURES:
-        by_group[f.group] += contributions.get(f.name, 0.0)
-    best = max(HINTS, key=lambda g: by_group[g])
-    return HINTS[best] if by_group[best] > 0 else "unclassified"
+def scenario_hint(terms: dict[str, float]) -> str:
+    """Name the pattern a ring's mean feature terms point at, from ring structure only.
+
+    Specific signatures first (reciprocal matched fills, late one-sided buying near
+    resolution; the stronger wins), then funding fan-in into fresh accounts, else
+    'unclassified'. Link size, density and freshness are shared by all patterns and never vote.
+    """
+    specific = {
+        "wash_trading": terms.get("fill_reciprocity", 0.0),
+        "coordinated_accumulation": terms.get("late_concentration", 0.0),
+    }
+    best = max(specific, key=specific.__getitem__)
+    if specific[best] >= SIGNATURE_MIN:
+        return best
+    funding = max(terms.get("fresh_funding_fanin", 0.0), terms.get("fresh_cluster", 0.0))
+    return "mule_funding" if funding >= SIGNATURE_MIN else "unclassified"
 
 
 def build_alerts(scored: list[Row], run_id: str, created_ts: str) -> list[Row]:
-    """One alert per ring (connected component) that has at least one flagged account."""
+    """One alert per ring (connected component) with a flagged or review-band account.
+
+    status is 'flagged' when any member scores at or above the threshold, else
+    'needs_review' (every member is in the band just below it). Band members of a
+    flagged ring stay in the alert so an analyst sees them; n_flagged counts the
+    members that cleared the threshold."""
     rings: dict[str, list[Row]] = defaultdict(list)
     for s in scored:
-        if s["flagged"]:
+        if s["flagged"] or s.get("in_band"):
             rings[s["ring_id"]].append(s)
     alerts = []
     for ring_id, members in sorted(rings.items()):
         members.sort(key=lambda s: s["account_id"])
         total: dict[str, float] = defaultdict(float)
+        mean_terms: dict[str, float] = defaultdict(float)
         for m in members:
             for name, value in m["contributions"].items():
                 total[name] += value / len(members)
+            for name, value in m["terms"].items():
+                mean_terms[name] += value / len(members)
         top = sorted(total.items(), key=lambda kv: -kv[1])[:4]
         ids = sorted(m["account_id"] for m in members)
+        n_flagged = sum(1 for m in members if m["flagged"])
         digest = hashlib.sha1(f"{run_id}|{ring_id}".encode()).hexdigest()[:10]
         alerts.append(
             {
                 "alert_id": f"AL_{digest}",
                 "ring_id": ring_id,
-                "scenario_hint": scenario_hint(total),
+                "status": "flagged" if n_flagged else "needs_review",
+                "n_flagged": n_flagged,
+                "scenario_hint": scenario_hint(mean_terms),
                 "member_accounts": ids,
                 "n_members": len(ids),
                 "score": round(sum(m["score"] for m in members) / len(members), 4),

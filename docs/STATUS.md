@@ -2,7 +2,7 @@
 
 Live state of GCP and the repo. Update in the same commit as any cloud change.
 
-Last updated: 2026-10-16 (P3 graph-tools)
+Last updated: 2026-10-16 (P2 hardening)
 
 ## Live GCP resources
 
@@ -17,8 +17,9 @@ in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 | Data (seed 42, ADR 0002) | accounts 2,039; trades 35,116; markets 20; ground truth 39 (8 wash, 6 coordination, 25 mule); `eval.decoy_groups` 23 (5 household, 8 exchange cluster, 10 busy-honest) |
 | Graph | 8 tables in `risk_graph` + property graph `market_graph`; device_nodes 1,870, traded_in 22,169, traded_with 54. GQL runs natively in BigQuery on reservation `gql-poc`. |
 | Eval tables | `eval.benchmark` (3), `eval.benchmark_runs` (12) from the old Cloud Shell `detect.py`; `eval.detector_results` (64 rows, iteration 1); `eval.decoy_groups` (23) |
-| Detector outputs | `risk_curated.account_scores` (2,039), `risk_curated.alerts` (4 alerts, 38 accounts), intermediates `risk_curated.det_*` and `baseline_flags`; old alerts kept as `risk_curated.alerts_legacy` (39) |
+| Detector outputs | `risk_curated.account_scores` (2,039), `risk_curated.alerts` (4 alerts, 38 accounts, columns `status` and `n_flagged` added by `sql/migrations/p2h_10_alerts_status.sql`), intermediates `risk_curated.det_*` and `baseline_flags`; old alerts kept as `risk_curated.alerts_legacy` (39) |
 | Validation | dataset `eval_val`: `s7_*`, `s11_*`, `s23_*` inputs plus `s<seed>_det_*` and `s<seed>_baseline_flags` (threshold selection only) |
+| Robustness | dataset `eval_val`: `s101_*` to `s108_*` (same layout, varied generator parameters from `evals/robustness_profiles.json`); scored only, never used for tuning |
 | Pub/Sub | topics `trades`, `trades-dlq`; subs `trades-sub` (DLQ, 5 attempts, ack 60 s), `trades-dlq-sub` |
 | Service accounts | `sa-agent` (aiplatform.user, bigquery.dataViewer, bigquery.jobUser), `sa-ingest` (bigquery.dataEditor, bigquery.jobUser, pubsub.subscriber) |
 | Artifact Registry | `sentinel` (empty), `cloud-run-source-deploy` (auto-created) |
@@ -35,7 +36,7 @@ positives (all of the exchange cluster). It matches the offline generator number
 
 ## Sync check (`python scripts/verify_sync.py`, 2026-10-16, exit 0)
 
-38 checks, 0 drift, 0 warnings after the ADR 0002 reload. Highlights:
+42 checks, 0 drift, 0 warnings after the ADR 0002 reload and the P2 hardening changes. Highlights:
 
 - Row counts match repo/generator: trades 35,116, accounts 2,039, markets 20, ground truth 39,
   decoy groups 23; graph row counts are derived from the generator, not a snapshot.
@@ -85,7 +86,13 @@ Things in GCP that the repo cannot (yet) reproduce:
 - Reproduce the detector: `python -m services.detector val-load --apply`, then
   `pipeline --target <7|11|23|live> --apply`, `select --iteration 1 --apply`,
   `score-live --iteration 1 --apply`, `python scripts/benchmark.py --iteration 1`.
-  One-off migrations: `sql/migrations/p2_00_backup_pre_p2.sql`, `p2_10_alerts_v2.sql`.
+  One-off migrations: `sql/migrations/p2_00_backup_pre_p2.sql`, `p2_10_alerts_v2.sql`,
+  `p2h_10_alerts_status.sql`.
+- Hardening (branch `feat/detector-hardening`): `python -m services.detector robust-load --apply`,
+  `pipeline --target <101..108> --apply`, `margin --apply` (review margin from validation seeds
+  into `threshold.json`), `score-live --iteration 1 --apply` (alerts with `status`),
+  `python -m services.detector report` (writes `docs/results/hardening.json`, reads cached free
+  table reads in `.cache/`), then `python scripts/benchmark.py --iteration 1`.
 
 ## P2 detector result (seed 42, frozen threshold 43.0, iteration 1)
 
@@ -98,6 +105,26 @@ Full tables and caveats: `docs/benchmark.md`. The margin is thin (one evaded coo
 account scored 42.99 and was missed) and `scenario_hint` mislabels the wash ring as
 `mule_funding`. Weights are fixed a priori; only the threshold came from data (validation
 seeds 7, 11, 23). Pre-P2 backups (`eval.*_pre_p2`) can be deleted once P2 is accepted.
+
+## P2 hardening (threshold still frozen at 43.0)
+
+Details and tables: `docs/benchmark.md`. Cloud changes: alerts `status`/`n_flagged` columns
+(migration), `eval_val.s101..s108` loaded and run through the detector SQL (batch loads free;
+5 statements per seed, 500 MB cap each, about 35 s per seed), `risk_curated.alerts` and
+`account_scores` rewritten by `score-live`. The flagged set on seed 42 is unchanged (38 of 39,
+0 false positives).
+
+- `scenario_hint` now comes from ring structure and is correct for every attacker alert on all
+  11 other seeds and on seed 42 (it was rewritten after the seed 42 confusion was known).
+- Review band [31.66, 43.0), margin 11.34 = mean validation gap. Seed 42: 1 attacker, 0 decoys in the
+  band, 0 `needs_review` alerts.
+- Robustness (8 varied seeds, frozen threshold): precision 100% on all, recall 95% to 100%
+  (median 98%), worst F1 98% (seed 101). All 5 missed attackers sit in the review band, but so do
+  1 to 2 decoys on seeds 102, 105 and 107.
+- Ablation (validation-selected cut-offs): robustness F1 median graph-only 97%, behavior-only 81%,
+  components-only 71%, flat rule 62%, full 99%.
+- Reads of detector tables now use `list_rows` (no query, no slots) plus a local cache; clear
+  `.cache/` after reloading data.
 
 ## P3 graph tools (`services/graph`)
 

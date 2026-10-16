@@ -105,12 +105,46 @@ def test_alert_groups_flagged_accounts_by_ring_with_evidence_and_hint():
     assert list(json.loads(a["top_features"]))[0] == "fill_reciprocity"
 
 
-def test_hint_follows_the_contributing_pattern_not_labels():
-    late = {f.name: 0.0 for f in scoring.FEATURES} | {"late_concentration": 9.0}
-    fresh = {f.name: 0.0 for f in scoring.FEATURES} | {"account_freshness": 9.0}
-    assert scoring.scenario_hint(late) == "coordinated_accumulation"
-    assert scoring.scenario_hint(fresh) == "mule_funding"
-    assert scoring.scenario_hint({f.name: 0.0 for f in scoring.FEATURES}) == "unclassified"
+def test_hint_follows_ring_structure_not_labels():
+    zero = {f.name: 0.0 for f in scoring.FEATURES}
+    assert scoring.scenario_hint(zero | {"late_concentration": 0.9}) == "coordinated_accumulation"
+    assert scoring.scenario_hint(zero | {"fill_reciprocity": 0.9}) == "wash_trading"
+    assert scoring.scenario_hint(zero | {"fresh_funding_fanin": 1.0}) == "mule_funding"
+    # freshness, link size and density are shared by every pattern and never vote
+    shared = zero | {"account_freshness": 1.0, "link_size": 1.0, "link_density": 1.0}
+    assert scoring.scenario_hint(shared) == "unclassified"
+    assert scoring.scenario_hint(zero) == "unclassified"
+
+
+def test_specific_signature_outranks_generic_funding_fanin():
+    """The wash ring also has fresh funding fan-in; reciprocal fills must still win."""
+    wash_ring = {f.name: 1.0 for f in scoring.FEATURES} | {"late_concentration": 0.0}
+    assert scoring.scenario_hint(wash_ring) == "wash_trading"
+    stronger = {f.name: 0.0 for f in scoring.FEATURES}
+    stronger |= {"fill_reciprocity": 0.4, "late_concentration": 0.8, "fresh_funding_fanin": 1.0}
+    assert scoring.scenario_hint(stronger) == "coordinated_accumulation"
+
+
+def test_hint_accuracy_per_alert_with_confusion():
+    alerts = [
+        {"alert_id": "a1", "scenario_hint": "wash_trading", "member_accounts": ["w1", "w2"]},
+        {"alert_id": "a2", "scenario_hint": "mule_funding", "member_accounts": ["w3", "m1", "m2"]},
+        {"alert_id": "a3", "scenario_hint": "wash_trading", "member_accounts": ["d1"]},
+    ]
+    truth = {
+        "w1": "wash_trading",
+        "w2": "wash_trading",
+        "w3": "wash_trading",
+        "m1": "mule_funding",
+        "m2": "mule_funding",
+    }
+    res = evaluate.hint_accuracy(alerts, truth)
+    assert [r["correct"] for r in res["alerts"]] == [True, True, False]
+    assert res["alerts"][1]["true_type"] == "mule_funding" and res["alerts"][1]["purity"] == 2 / 3
+    assert res["by_scenario"]["wash_trading"] == dict(
+        alerts=1, correct=1, accounts=2, accounts_ok=2
+    )
+    assert res["confusion"]["none"] == {"wash_trading": 1}
 
 
 TRUTH = {"w1": "wash", "w2": "wash", "m1": "mule", "m2": "mule"}
@@ -170,3 +204,39 @@ def test_views_render_without_placeholders_for_live_and_validation():
         "proj",
         pipeline.validation_target("proj", 7),
     )
+
+
+def test_review_band_makes_needs_review_alerts_and_keeps_flagged_metrics():
+    strong = dict(comp_size=8, comp_density=1.0, recip=1.0, fill_n=20)
+    t = scoring.score_row(row(**strong))[0]
+    mid = scoring.score_row(row(comp_size=8, comp_density=1.0))[0]
+    rows = [
+        row(account_id="f1", ring_id="R_a", **strong),
+        row(account_id="b1", ring_id="R_a", comp_size=8, comp_density=1.0),
+        row(account_id="b2", ring_id="R_b", comp_size=8, comp_density=1.0),
+        row(account_id="q1", ring_id="R_c"),
+    ]
+    scored = scoring.score_rows(rows, t, review_margin=t - mid + 0.1)
+    assert [s["flagged"] for s in scored] == [True, False, False, False]
+    assert [s["in_band"] for s in scored] == [False, True, True, False]
+    alerts = {a["ring_id"]: a for a in scoring.build_alerts(scored, "r", "2026-10-16 00:00:00")}
+    assert set(alerts) == {"R_a", "R_b"}
+    assert (alerts["R_a"]["status"], alerts["R_a"]["n_flagged"]) == ("flagged", 1)
+    assert alerts["R_a"]["member_accounts"] == ["b1", "f1"]
+    assert (alerts["R_b"]["status"], alerts["R_b"]["n_flagged"]) == ("needs_review", 0)
+
+
+def test_zero_margin_has_no_band():
+    scored = scoring.score_rows([row(account_id="a", comp_size=8, comp_density=1.0)], 99.0)
+    assert not scored[0]["in_band"] and scoring.build_alerts(scored, "r", "t") == []
+
+
+def test_score_gap_and_band_counts_use_labels_only_in_evaluate():
+    scores = {"w1": 50.0, "w2": 43.0, "d1": 42.2, "n1": 10.0, "n2": 42.5}
+    truth, decoys = {"w1": "wash", "w2": "wash"}, {"G": ["d1"]}
+    assert evaluate.score_gap(scores, truth) == pytest.approx(0.5)
+    assert evaluate.band_counts(scores, truth, decoys, 43.0, 1.0) == {
+        "attackers": 0,
+        "decoys": 1,
+        "background": 1,
+    }

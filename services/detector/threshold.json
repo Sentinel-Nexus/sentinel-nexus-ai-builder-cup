@@ -26,5 +26,11 @@
     "late_concentration": 0.15,
     "size_zscore": 0.1,
     "timing_zscore": 0.1
+  },
+  "review_margin": 11.34,
+  "review_gap_by_seed": {
+    "7": 16.7701,
+    "11": 14.9636,
+    "23": 2.2922
   }
 }

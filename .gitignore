@@ -47,3 +47,6 @@ data/synthetic/full/
 
 # Cloud Shell import (never commit)
 _import/
+
+# Local cache of detector inputs (re-read from BigQuery with list_rows)
+.cache/

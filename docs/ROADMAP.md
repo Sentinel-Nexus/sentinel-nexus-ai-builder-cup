@@ -20,6 +20,12 @@ Schedule: P1 and P2 Oct 14, P3 and P4 Oct 15, P5 and P6 Oct 16, P7 Oct 17. Submi
   - Must clearly beat baseline. If it does not, report that honestly and iterate on
     scenario-agnostic features only.
 
+- [x] **P2b detector hardening** (Oct 16, follow-up to P2)
+  - Structure-based `scenario_hint` with accuracy per ring in `docs/benchmark.md`.
+  - `needs_review` band from the validation margin and `status` column on `risk_curated.alerts`.
+  - Ablation table, 8 robustness seeds with ranges and worst case, `docs/img/threshold_sweep.png`.
+  - Threshold 43.0 unchanged; Caveats updated.
+
 - [x] **P3 graph-tools** (Oct 15)
   - `services/graph` module: GQL first on `market_graph`; automatic fallback to SQL plus
     NetworkX if the reservation is off or errors.

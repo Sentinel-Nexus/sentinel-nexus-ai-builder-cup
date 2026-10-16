@@ -249,3 +249,45 @@ def test_flat_funding_rule_is_no_longer_near_perfect(data):
 def test_pre_adr0002_trades_are_unchanged(data):
     ids = [t["trade_id"] for t in data.trades]
     assert ids[:35073] == [f"T{i:07d}" for i in range(1, 35074)]
+
+
+def test_default_params_are_the_canonical_world():
+    from services.ingest.synth.generator import GenParams
+
+    assert generate(SEED, params=GenParams()).trades == generate(SEED).trades
+
+
+def test_params_change_sizes_and_keep_the_pipeline_valid():
+    from services.ingest.synth.generator import GenParams
+
+    p = GenParams(
+        wash_size=12,
+        coord_size=4,
+        mule_size=40,
+        evasion=0.6,
+        household_size=3,
+        exchange_size=12,
+        busy_size=14,
+        bg_trades=(2, 15),
+        device_noise=0.15,
+    )
+    d = generate(101, params=p)
+    kinds = collections.Counter(r["scenario_type"] for r in d.ground_truth)
+    assert kinds == {"wash_trading": 12, "coordinated_accumulation": 4, "mule_funding": 40}
+    groups = collections.Counter(r["group_id"] for r in d.decoy_groups)
+    assert groups == {"DG1_household": 3, "DG2_exchange_cluster": 12, "DG3_busy_honest": 14}
+    accounts = _by_id(d.accounts, "account_id")
+    evaded = [a for a in accounts.values() if a["funding_source_id"].startswith("FE_")]
+    assert len(evaded) == round(12 * 0.6) + round(4 * 0.6) + round(40 * 0.6)
+    assert len({t["trade_id"] for t in d.trades}) == len(d.trades)
+
+
+def test_robustness_profiles_cover_the_requested_ranges():
+    from services.ingest.synth.profiles import load_profiles
+
+    profiles = load_profiles()
+    assert len(profiles) >= 6 and not set(profiles) & {7, 11, 23, 42}
+    evasion = [p.evasion for p in profiles.values()]
+    assert min(evasion) >= 0.2 and max(evasion) <= 0.6 and max(evasion) - min(evasion) >= 0.3
+    for field in ("wash_size", "coord_size", "mule_size", "busy_size", "device_noise"):
+        assert len({getattr(p, field) for p in profiles.values()}) >= 5, field

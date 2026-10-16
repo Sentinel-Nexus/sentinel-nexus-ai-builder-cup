@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS `__P__.risk_curated.markets` (
   resolve_ts TIMESTAMP,
   source STRING
 );
+-- alerts.status is 'flagged' or 'needs_review'; status and n_flagged were added last by
+-- sql/migrations/p2h_10_alerts_status.sql.
 -- Written by the P2 detector (services/detector). Replaces the Cloud Shell detect.py table,
 -- which is kept as alerts_legacy (sql/migrations/p2_10_alerts_v2.sql).
 CREATE TABLE IF NOT EXISTS `__P__.risk_curated.alerts` (
@@ -27,7 +29,9 @@ CREATE TABLE IF NOT EXISTS `__P__.risk_curated.alerts` (
   evidence_edge_ids ARRAY<STRING>,
   threshold FLOAT64,
   run_id STRING,
-  created_ts TIMESTAMP
+  created_ts TIMESTAMP,
+  status STRING,
+  n_flagged INT64
 );
 -- One row per account: score plus every feature and its contribution to the score.
 CREATE TABLE IF NOT EXISTS `__P__.risk_curated.account_scores` (

@@ -60,12 +60,31 @@ SIGNALS = {
 }
 
 
-# ADR 0002. Fraction of each scenario's attackers that stop sharing a funding source.
-EVASION_FRACTION = {"S1_wash_ring": 0.4, "S2_pre_resolution": 0.4, "S3_mule_funding": 0.4}
-# Innocent groups, drawn from the normal population A0001..A2000.
-HOUSEHOLD = [f"A{i:04d}" for i in range(100, 105)]  # 5 people, one home device
-EXCHANGE_CLUSTER = [f"A{i:04d}" for i in range(200, 208)]  # 8 users withdrawing from one CEX
-BUSY_HONEST = [f"A{i:04d}" for i in range(300, 310)]  # 10 independent users reacting to news
+@dataclass(frozen=True)
+class GenParams:
+    """Knobs of one generated world. The defaults are the canonical seed-42 world (ADR 0001,
+    0002); changing them never reorders random calls, so defaults reproduce it exactly.
+    Robustness seeds use other values (``evals/robustness_profiles.json``)."""
+
+    wash_size: int = 8  # wash ring accounts (200 matched fills at 8, 25 per account)
+    coord_size: int = 6  # pre-resolution coordination accounts
+    mule_size: int = 25  # mule-funded accounts
+    evasion: float = 0.4  # ADR 0002: share of each scenario's attackers that stop sharing funding
+    household_size: int = 5  # decoy: people on one home device (start A0100)
+    exchange_size: int = 8  # decoy: users withdrawing from one exchange (start A0200)
+    busy_size: int = 10  # decoy: independent users reacting to news (start A0300)
+    bg_trades: tuple[int, int] = (4, 30)  # trades per background account, inclusive
+    device_noise: float = 0.08  # share of background accounts on an innocent shared device
+
+
+# Innocent groups are drawn from the normal population A0001..A2000.
+HOUSEHOLD_START, EXCHANGE_START, BUSY_START = 100, 200, 300
+
+
+def _ids(start: int, n: int) -> list[str]:
+    return [f"A{i:04d}" for i in range(start, start + n)]
+
+
 EXCHANGE_FUNDING_ID = "FEX1"
 HOUSEHOLD_DEVICE_ID = "DH1"
 EVADED_SHARED_DEVICE = "DC_EV"
@@ -108,7 +127,10 @@ class SyntheticData:
         return out
 
 
-def generate(seed: int = DEFAULT_SEED, now: dt.datetime = DEFAULT_NOW) -> SyntheticData:
+def generate(
+    seed: int = DEFAULT_SEED, now: dt.datetime = DEFAULT_NOW, params: GenParams | None = None
+) -> SyntheticData:
+    params = params or GenParams()
     rng = random.Random(seed)
     now = now.astimezone(dt.UTC).replace(microsecond=0)
     t0 = now - dt.timedelta(days=14)
@@ -176,10 +198,12 @@ def generate(seed: int = DEFAULT_SEED, now: dt.datetime = DEFAULT_NOW) -> Synthe
         a = f"A{i:04d}"
         created = t0 - dt.timedelta(days=rng.randint(5, 400))
         # 8% innocent shared devices and 3% innocent shared funding are noise for detectors.
-        device = f"D{i:04d}" if rng.random() > 0.08 else f"D{rng.randint(1, 200):04d}"
+        device = (
+            f"D{i:04d}" if rng.random() > params.device_noise else f"D{rng.randint(1, 200):04d}"
+        )
         fund = f"F{i:04d}" if rng.random() > 0.03 else f"F{rng.randint(1, 2000):04d}"
         account(a, created, rng.choice([1, 2, 2, 3]), rng.choice(COUNTRIES), device, fund)
-        for _ in range(rng.randint(4, 30)):
+        for _ in range(rng.randint(*params.bg_trades)):
             m = f"M{rng.randint(1, 20):02d}"
             end = min(resolve[m], now)
             ts = t0 + (end - t0) * rng.random()
@@ -195,11 +219,11 @@ def generate(seed: int = DEFAULT_SEED, now: dt.datetime = DEFAULT_NOW) -> Synthe
 
     # ---- Scenario 1: wash-trading ring (8 linked accounts trade with each other) ----
     sid = "S1_wash_ring"
-    ring = [f"W{i:03d}" for i in range(1, 9)]
+    ring = [f"W{i:03d}" for i in range(1, params.wash_size + 1)]
     for i, a in enumerate(ring):
         account(a, now - dt.timedelta(days=rng.randint(3, 6)), 1, "SG", f"DW{i % 2 + 1}", "FW1")
         truth(sid, "wash_trading", a, "M05")
-    for _ in range(200):
+    for _ in range(params.wash_size * 25):
         a, b = rng.sample(ring, 2)
         ts = now - dt.timedelta(days=2) + dt.timedelta(minutes=rng.randint(0, 2 * 24 * 60 - 1))
         p, size = 0.50 + rng.uniform(-0.01, 0.01), rng.uniform(300, 900)
@@ -208,7 +232,7 @@ def generate(seed: int = DEFAULT_SEED, now: dt.datetime = DEFAULT_NOW) -> Synthe
 
     # ---- Scenario 2: coordinated buying just before resolution (insider pattern) ----
     sid = "S2_pre_resolution"
-    group = [f"C{i:03d}" for i in range(1, 7)]
+    group = [f"C{i:03d}" for i in range(1, params.coord_size + 1)]
     rt = resolve["M12"]
     for a in group:
         account(a, rt - dt.timedelta(days=rng.randint(2, 3)), 2, "HK", f"DC_{a}", "FC1")
@@ -229,7 +253,7 @@ def generate(seed: int = DEFAULT_SEED, now: dt.datetime = DEFAULT_NOW) -> Synthe
 
     # ---- Scenario 3: mule funding (25 new accounts, one funding source) ----
     sid = "S3_mule_funding"
-    for i in range(1, 26):
+    for i in range(1, params.mule_size + 1):
         a = f"M{i:03d}"
         created = now - dt.timedelta(hours=rng.randint(6, 48))
         account(a, created, 1, "ID", f"DM{i % 3 + 1}", "FM1")
@@ -247,11 +271,11 @@ def generate(seed: int = DEFAULT_SEED, now: dt.datetime = DEFAULT_NOW) -> Synthe
                 sid,
             )
 
-    _plant_decoys_and_evasions(data, now, resolve, base_price, trade)
+    _plant_decoys_and_evasions(data, now, resolve, base_price, trade, params)
     return data
 
 
-def _plant_decoys_and_evasions(data, now, resolve, base_price, trade) -> None:
+def _plant_decoys_and_evasions(data, now, resolve, base_price, trade, params) -> None:
     """ADR 0002. Deterministic (own RNG), applied at generation time, never by SQL UPDATE.
 
     Evasion: a share of each scenario's attackers stop sharing a funding source and stay
@@ -261,7 +285,12 @@ def _plant_decoys_and_evasions(data, now, resolve, base_price, trade) -> None:
     aux = random.Random(f"{data.seed}:decoys")
     accounts = {a["account_id"]: a for a in data.accounts}
 
-    for sid, fraction in EVASION_FRACTION.items():
+    household = _ids(HOUSEHOLD_START, params.household_size)
+    exchange = _ids(EXCHANGE_START, params.exchange_size)
+    busy = _ids(BUSY_START, params.busy_size)
+
+    for sid in ("S1_wash_ring", "S2_pre_resolution", "S3_mule_funding"):
+        fraction = params.evasion
         members = sorted(r["account_id"] for r in data.ground_truth if r["scenario_id"] == sid)
         for a in sorted(aux.sample(members, round(len(members) * fraction))):
             accounts[a]["funding_source_id"] = f"FE_{a}"
@@ -274,13 +303,13 @@ def _plant_decoys_and_evasions(data, now, resolve, base_price, trade) -> None:
                 dict(group_id=group_id, group_type=group_type, account_id=a, market_id=market_id)
             )
 
-    for a in HOUSEHOLD:
+    for a in household:
         accounts[a]["device_id"] = HOUSEHOLD_DEVICE_ID
-    group("DG1_household", "shared_device_household", HOUSEHOLD)
+    group("DG1_household", "shared_device_household", household)
 
-    for a in EXCHANGE_CLUSTER:
+    for a in exchange:
         accounts[a]["funding_source_id"] = EXCHANGE_FUNDING_ID
-    group("DG2_exchange_cluster", "shared_exchange_funding", EXCHANGE_CLUSTER)
+    group("DG2_exchange_cluster", "shared_exchange_funding", exchange)
 
     # Busy but honest: aged, unlinked accounts piling into one outcome in the last hours of a
     # market after public news. Same direction and timing as an insider ring, but no links.
@@ -291,7 +320,7 @@ def _plant_decoys_and_evasions(data, now, resolve, base_price, trade) -> None:
     rt = resolve[market]
     favoured = aux.choice(["YES", "NO"])
     other = "NO" if favoured == "YES" else "YES"
-    for a in BUSY_HONEST:
+    for a in busy:
         for _ in range(aux.randint(3, 6)):
             hours = aux.uniform(0.5, 5.0)
             outcome = favoured if aux.random() < 0.85 else other
@@ -300,7 +329,7 @@ def _plant_decoys_and_evasions(data, now, resolve, base_price, trade) -> None:
             price = yes_p if outcome == "YES" else 1 - yes_p
             size = min(aux.lognormvariate(6.2, 0.6), 3000)
             trade(rt - dt.timedelta(hours=hours), market, a, "BUY", outcome, price, size)
-    group("DG3_busy_honest", "busy_but_honest", BUSY_HONEST, market)
+    group("DG3_busy_honest", "busy_but_honest", busy, market)
 
 
 # ---- writers ----
