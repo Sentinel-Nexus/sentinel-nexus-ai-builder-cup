@@ -5,12 +5,14 @@ python -m services.detector robust-load [--apply]         # robustness seeds -> 
 python -m services.detector pipeline --target live|7|101 [--apply]
 python -m services.detector select --iteration 1 [--apply]  # threshold from validation
 python -m services.detector score-live --iteration 1 [--apply]
+python -m services.detector report                          # writes docs/results/hardening.json
 python -m services.detector margin [--apply]               # review band from validation
 """
 
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import datetime as dt
 import json
 import os
@@ -18,12 +20,13 @@ import sys
 import uuid
 from pathlib import Path
 
-from services.detector import evaluate, pipeline, scoring
+from services.detector import evaluate, pipeline, report, scoring
 from services.ingest.synth.generator import generate
 from services.ingest.synth.load import load, validation_destinations
 from services.ingest.synth.profiles import load_profiles
 
 THRESHOLD_FILE = Path(__file__).with_name("threshold.json")
+RESULTS_FILE = Path(__file__).resolve().parents[2] / "docs" / "results" / "hardening.json"
 VALIDATION_SEEDS = (7, 11, 23)
 GRID = [x / 2 for x in range(0, 201)]  # thresholds 0..100 in 0.5 steps
 METHOD_BASELINE, METHOD_DETECTOR = "baseline_flat_rule", "detector_v1"
@@ -53,8 +56,15 @@ def load_inputs(client, project: str, target: pipeline.Target) -> dict:
         r["account_id"]
         for r in pipeline.fetch_rows(client, target.table("baseline_flags"), cache("baseline"))
     }
+    accounts = pipeline.fetch_rows(client, target.accounts, cache("accounts"))
     truth, decoys = evaluate.fetch_labels(client, project, target)
-    return {"features": features, "baseline": baseline, "truth": truth, "decoys": decoys}
+    return {
+        "features": features,
+        "baseline": baseline,
+        "accounts": accounts,
+        "truth": truth,
+        "decoys": decoys,
+    }
 
 
 def overall(rows: list[dict]) -> dict:
@@ -62,28 +72,13 @@ def overall(rows: list[dict]) -> dict:
 
 
 def choose_threshold(inputs_by_seed: dict[int, dict]) -> tuple[float, dict]:
-    """Middle of the plateau of thresholds that maximise mean overall F1 on validation seeds.
-
-    The midpoint, not the edge, so the frozen threshold sits in the widest margin between
-    attackers and everything else instead of on the lowest-scoring attacker.
-    """
-    scored = {s: scoring.score_rows(i["features"], 0.0) for s, i in inputs_by_seed.items()}
-    curve = []
-    for t in GRID:
-        f1s = {}
-        for seed, inp in inputs_by_seed.items():
-            flagged = {s["account_id"] for s in scored[seed] if s["score"] >= t}
-            m = evaluate.metrics(flagged, inp["truth"], inp["decoys"], set(inp["truth"]) | flagged)
-            f1s[seed] = overall(m)["f1"] or 0.0
-        curve.append((t, sum(f1s.values()) / len(f1s), f1s))
-    best = max(mean for _, mean, _ in curve)
-    plateau = [(t, f1s) for t, mean, f1s in curve if mean >= best - 1e-12]
-    threshold, per_seed = plateau[len(plateau) // 2]
-    return threshold, {
-        "mean_f1": round(best, 4),
-        "f1_by_seed": per_seed,
-        "plateau": [plateau[0][0], plateau[-1][0]],
+    """Plateau-midpoint threshold of the full detector on the validation seeds."""
+    scores = {
+        seed: {s["account_id"]: s["score"] for s in scoring.score_rows(inp["features"], 0.0)}
+        for seed, inp in inputs_by_seed.items()
     }
+    labels = {seed: (inp["truth"], inp["decoys"]) for seed, inp in inputs_by_seed.items()}
+    return evaluate.select_threshold(scores, labels, GRID)
 
 
 def result_rows(metric_rows, *, run_id, target, method, threshold, iteration) -> list[dict]:
@@ -241,6 +236,38 @@ def cmd_margin(args, project) -> None:
         print("dry run: threshold.json unchanged (pass --apply)")
 
 
+def cmd_report(args, project) -> None:
+    """Robustness, ablation, hint accuracy, review band and sweep -> docs/results/hardening.json.
+
+    Reads cached detector inputs (free table reads); the frozen threshold is only read.
+    """
+    frozen = json.loads(THRESHOLD_FILE.read_text(encoding="utf-8"))
+    profiles = load_profiles()
+    client = _client(project)
+    targets = {
+        **{s: pipeline.validation_target(project, s) for s in VALIDATION_SEEDS},
+        42: pipeline.live_target(project),
+        **{s: pipeline.validation_target(project, s) for s in profiles},
+    }
+    inputs = {s: load_inputs(client, project, t) for s, t in targets.items()}
+    data = report.build(
+        inputs,
+        threshold=frozen["threshold"],
+        margin=frozen["review_margin"],
+        validation=list(VALIDATION_SEEDS),
+        evaluation=42,
+        robustness=sorted(profiles),
+        profiles={s: dataclasses.asdict(p) for s, p in profiles.items()},
+    )
+    RESULTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    RESULTS_FILE.write_text(
+        json.dumps(data, indent=1, default=str) + "\n", encoding="utf-8", newline="\n"
+    )
+    print(f"wrote {RESULTS_FILE}")
+    rob = data["robustness"]
+    print("robustness precision", rob["precision"], "recall", rob["recall"], "f1", rob["f1"])
+
+
 def cmd_score_live(args, project) -> None:
     frozen = json.loads(THRESHOLD_FILE.read_text(encoding="utf-8"))
     if frozen["iteration"] != args.iteration:
@@ -297,7 +324,7 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="python -m services.detector", description=__doc__)
     ap.add_argument("--project", default=os.environ.get("PROJECT_ID"))
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name in ("val-load", "pipeline", "select", "score-live", "margin", "robust-load"):
+    for name in ("val-load", "pipeline", "select", "score-live", "margin", "robust-load", "report"):
         sp = sub.add_parser(name)
         sp.add_argument("--apply", action="store_true")
         if name == "pipeline":
@@ -314,6 +341,7 @@ def main(argv: list[str] | None = None) -> None:
         "score-live": cmd_score_live,
         "margin": cmd_margin,
         "robust-load": cmd_robust_load,
+        "report": cmd_report,
     }[args.cmd](args, args.project)
 
 

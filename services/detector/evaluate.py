@@ -139,3 +139,33 @@ def band_counts(
         "decoys": len(band & decoy_ids),
         "background": len(band - set(truth) - decoy_ids),
     }
+
+
+def select_threshold(
+    scores_by_seed: dict[int, dict[str, float]],
+    labels_by_seed: dict[int, tuple[dict[str, str], dict[str, list[str]]]],
+    grid: list[float],
+) -> tuple[float, dict[str, Any]]:
+    """Middle of the plateau of cut-offs that maximise mean overall F1 across seeds.
+
+    The midpoint, not the edge, so the frozen cut-off sits in the widest margin between
+    attackers and everything else instead of on the lowest-scoring attacker. Used by the
+    detector and by every ablation variant, so all of them are tuned the same way.
+    """
+    curve = []
+    for t in grid:
+        f1s = {}
+        for seed, scores in scores_by_seed.items():
+            truth, decoys = labels_by_seed[seed]
+            flagged = {a for a, v in scores.items() if v >= t}
+            rows = metrics(flagged, truth, decoys, set(scores))
+            f1s[seed] = next(r for r in rows if r["group_kind"] == "overall")["f1"] or 0.0
+        curve.append((t, sum(f1s.values()) / len(f1s), f1s))
+    best = max(mean for _, mean, _ in curve)
+    plateau = [(t, f1s) for t, mean, f1s in curve if mean >= best - 1e-12]
+    threshold, per_seed = plateau[len(plateau) // 2]
+    return threshold, {
+        "mean_f1": round(best, 4),
+        "f1_by_seed": per_seed,
+        "plateau": [plateau[0][0], plateau[-1][0]],
+    }
