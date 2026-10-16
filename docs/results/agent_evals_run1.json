@@ -1,0 +1,608 @@
+{
+  "run_ts": "2026-10-16 18:11 UTC",
+  "models": {
+    "investigator": "gemini-2.5-flash",
+    "drafter": "gemini-2.5-flash",
+    "critic": "gemini-2.5-flash"
+  },
+  "retrieval": "keyword",
+  "metrics": {
+    "alerts_run": 8,
+    "attacker_recall": {
+      "caught": 12,
+      "of": 39,
+      "rate": 0.3077,
+      "by_scenario": {
+        "wash_trading": {
+          "caught": 8,
+          "of": 8,
+          "rate": 1.0
+        },
+        "coordinated_accumulation": {
+          "caught": 4,
+          "of": 6,
+          "rate": 0.6667
+        },
+        "mule_funding": {
+          "caught": 0,
+          "of": 25,
+          "rate": 0.0
+        }
+      },
+      "missed": [
+        "C002",
+        "C004",
+        "M001",
+        "M002",
+        "M003",
+        "M004",
+        "M005",
+        "M006",
+        "M007",
+        "M008",
+        "M009",
+        "M010",
+        "M011",
+        "M012",
+        "M013",
+        "M014",
+        "M015",
+        "M016",
+        "M017",
+        "M018",
+        "M019",
+        "M020",
+        "M021",
+        "M022",
+        "M023",
+        "M024",
+        "M025"
+      ]
+    },
+    "evasion_caught": {
+      "caught": 3,
+      "of": 15,
+      "rate": 0.2
+    },
+    "claim_support_rate": {
+      "final": 0.5294,
+      "first_pass": 0.4118,
+      "claims": 34
+    },
+    "critic_rejection_rate": {
+      "rejected": 36,
+      "reviewed": 68,
+      "rate": 0.5294
+    },
+    "decoys": {
+      "groups": 3,
+      "alerts_escalated": 0,
+      "alerts_cleared": 2,
+      "alerts_uncertain": 1,
+      "accounts_escalated": 0,
+      "accounts": 23,
+      "false_escalation_rate": 0.0
+    },
+    "borderline": {
+      "attackers_in_band": 1,
+      "attackers_escalated": 0,
+      "decoy_groups_cleared": 2,
+      "decoy_groups": 3
+    },
+    "merge": {
+      "alerts_with_accepted_merge": 0
+    },
+    "hint": {
+      "agrees": 7,
+      "disagrees": 1,
+      "disagreeing_alerts": [
+        "EV_C004"
+      ]
+    },
+    "cost": {
+      "avg_tokens": 21721.2,
+      "avg_tool_calls": 3.0,
+      "budget_exhausted": 0
+    },
+    "latency_ms": {
+      "case_cache_hit": {
+        "n": 8,
+        "avg": 1.8,
+        "max": 14
+      },
+      "engine=gql, graph_cached": {
+        "n": 1,
+        "avg": 30234.0,
+        "max": 30234
+      },
+      "engine=gql, graph_live": {
+        "n": 7,
+        "avg": 39778.6,
+        "max": 48530
+      }
+    }
+  },
+  "adversarial": {
+    "alert_id": "AL_584807441a",
+    "injected": 2,
+    "rejected": 2,
+    "leaked_into_report": 0,
+    "passed": true,
+    "tokens": 28280,
+    "tool_calls": 3
+  },
+  "failures": [],
+  "stopped": null,
+  "cases": [
+    {
+      "alert_id": "AL_3df9da0276",
+      "kind": "real",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 9766,
+          "tokens_out": 2494,
+          "llm_ms": 18437,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 3868,
+          "tokens_out": 1138,
+          "llm_ms": 9030,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 986,
+          "tokens_out": 596,
+          "llm_ms": 3875,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "escalate",
+      "tokens": 18848,
+      "latency_ms": 48530,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [
+        "C001",
+        "C003",
+        "C005",
+        "C006"
+      ],
+      "unsupported_claims": [
+        "c2: All 23 trades in market M12 by accounts C001, C003, C005, C006 are 'BUY' orders, consistent with an accumulation strategy. (The claim states 'All 23 trades' are 'BUY' orders. While the provided trade rows are all 'BUY' orders, the `TradedIn` rows indicate a total of 23 trades (7+5+5+6), but only 8 specific trade rows are provided. Therefore, it cannot be confirmed that all 23 trades were 'BUY' orders.)"
+      ],
+      "summary": "The detector hypothesized a coordinated accumulation scenario, which the investigation agrees with. Four accounts (C001, C003, C005, C006) share a common funding source, FC1 [c1]. These accounts executed trades in market M12 within a 2.5-hour window, indicating coordinated timing [c3]. This suggests a potential attempt to accumulate positions in a coordinated manner."
+    },
+    {
+      "alert_id": "AL_5a1a959872",
+      "kind": "real",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 7130,
+          "tokens_out": 2098,
+          "llm_ms": 13360,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 4660,
+          "tokens_out": 1007,
+          "llm_ms": 8592,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 834,
+          "tokens_out": 509,
+          "llm_ms": 3890,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "uncertain",
+      "tokens": 16238,
+      "latency_ms": 30625,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [
+        "c2: Both accounts exclusively placed BUY orders in market M12, totaling 14 trades. (The claim states 'exclusively placed BUY orders', but the provided trade records only show BUY orders and do not confirm exclusivity (i.e., that no SELL orders were placed). The total number of trades is 10 in the detailed trade records, not 14 as claimed. The TradedIn records show 8 trades for C002)",
+        "c3: Accounts C002 and C004 executed 14 BUY trades in market M12 within a 2-hour window (2026-10-11 13:30:00+00 to 2026-10-11 15:28:00+00), showing interleaved timing and increasing prices. (The claim states 14 BUY trades, but the provided evidence only lists 12 BUY trades. While the trades are within the specified time window and show interleaved timing, the claim about 'increasing prices' is not consistently true (e.g., T0034951 price 0.714 after T0034952 price 0.727, and T0034938 pri)"
+      ],
+      "summary": "The detector hypothesized a coordinated accumulation scenario. The investigation agrees with this hypothesis, finding that Accounts C002 and C004 share a common device [c1]. However, only one claim was accepted, and two claims were rejected, limiting the scope of the findings. The decision remains uncertain due to the limited evidence."
+    },
+    {
+      "alert_id": "AL_fa9727ee1e",
+      "kind": "real",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 19244,
+          "tokens_out": 5071,
+          "llm_ms": 26030,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 6012,
+          "tokens_out": 1358,
+          "llm_ms": 9483,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 893,
+          "tokens_out": 535,
+          "llm_ms": 5546,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "uncertain",
+      "tokens": 33113,
+      "latency_ms": 47907,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [
+        "c1: 15 accounts share FundingSource:FM1: M001, M002, M003, M004, M008, M009, M010, M012, M015, M017, M019, M020, M021, M022, M024. (The evidence only shows 11 accounts sharing FundingSource:FM1, not 15. Specifically, accounts M020, M021, M022, and M024 are not present in the evidence.)",
+        "c2: All 25 accounts share one of three devices: Device:DM1 (8 accounts), Device:DM2 (9 accounts), or Device:DM3 (8 accounts). (The evidence only shows 8 accounts for Device:DM1 and 2 accounts for Device:DM2. There is no evidence for Device:DM3 or for a total of 25 accounts sharing these devices.)",
+        "c3: All 25 accounts traded in Market:M08, with a total of 53 trades between 2026-10-10 17:04:00+00 and 2026-10-12 11:07:00+00. (The evidence only shows 11 accounts trading in Market:M08, not 25. The total number of trades from the provided evidence is 26, not 53. There is no evidence for the specified date range.)"
+      ],
+      "summary": "The detector hypothesized a mule funding scenario. The investigation agrees with this hypothesis. The accounts exhibit a pattern of shared funding and device usage, combined with trading activity in the same market, consistent with mule funding [c4]. This suggests a coordinated effort to introduce funds into the system through multiple accounts."
+    },
+    {
+      "alert_id": "AL_584807441a",
+      "kind": "real",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 16290,
+          "tokens_out": 3831,
+          "llm_ms": 20045,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 4460,
+          "tokens_out": 1169,
+          "llm_ms": 8390,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1159,
+          "tokens_out": 629,
+          "llm_ms": 4703,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "escalate",
+      "tokens": 27538,
+      "latency_ms": 37672,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [
+        "W001",
+        "W002",
+        "W003",
+        "W004",
+        "W005",
+        "W006",
+        "W007",
+        "W008"
+      ],
+      "unsupported_claims": [
+        "c4: All 8 accounts traded with each other, as evidenced by 60 TradedWith edges, and exhibit fill reciprocity in Market:M05, such as T0034659 (W005 SELL) and T0034660 (W006 BUY) at the same timestamp and price. (The evidence provided only shows 12 'TradedWith' edges, not the 60 claimed. There is also no evidence provided regarding fill reciprocity in Market:M05 or specific transactions like T0034659 and T0034660.)",
+        "c5: In Market:M05, there are 400 total trades, with 200 BUY and 200 SELL orders. (numbers not in the cited rows: [400.0, 200.0, 200.0])"
+      ],
+      "summary": "The detector hypothesized wash trading, and the investigation agrees with this assessment. All 8 accounts in the ring (W001-W008) are flagged [c1]. A clear pattern of shared devices is observed, with accounts W001, W003, W005, W007 sharing Device:DW1, and accounts W002, W004, W006, W008 sharing Device:DW2 [c2]. Furthermore, accounts W003, W004, W005, W007, W008 share FundingSource:FW1 [c3]."
+    },
+    {
+      "alert_id": "EV_C004",
+      "kind": "borderline_attacker",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 5277,
+          "tokens_out": 2343,
+          "llm_ms": 13000,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 3251,
+          "tokens_out": 1229,
+          "llm_ms": 8811,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1121,
+          "tokens_out": 557,
+          "llm_ms": 4313,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "clear",
+      "tokens": 13778,
+      "latency_ms": 30234,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [
+        "c4: The scenario hint 'coordinated_accumulation' is not supported by sufficient evidence, as only one account (C004) is flagged and there is no evidence of coordinated trading activity with C002, which only shares a device. Policy SP-3.1 states that a shared device is not enough for escalation. (evidence ids not in this run's tool-call ledger: ['SP-3.1'])"
+      ],
+      "summary": "The detector hypothesized a coordinated accumulation scenario. The investigation does not agree with this hypothesis. Account C004 is the only member of alert R_C002, with a score of 42.99, just below the threshold of 43.0 [c1]. Account C004 shares a device, Device:DC_EV, with account C002 [c2]. Account C004 executed 6 BUY trades in Market:M12 totaling 24507.57 USD within a 1 hour and 21 minute period [c3]."
+    },
+    {
+      "alert_id": "EV_DG1_household",
+      "kind": "decoy",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 5895,
+          "tokens_out": 2396,
+          "llm_ms": 15188,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 4171,
+          "tokens_out": 1786,
+          "llm_ms": 11968,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1062,
+          "tokens_out": 596,
+          "llm_ms": 4092,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "clear",
+      "tokens": 15906,
+      "latency_ms": 35421,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [
+        "c2: Only accounts A0101 and A0102 traded in market M01 among the ring members. (The evidence shows that accounts A0101 and A0102 traded in market M01. However, the evidence does not contain information about other 'ring members' or whether only these two accounts traded in M01, making the 'Only' part of the claim unsubstantiated.)"
+      ],
+      "summary": "Five accounts (A0100, A0101, A0102, A0103, A0104) share a single device, DH1 [c1]. Account A0101 made two trades totaling 175.37 USD [c3], while account A0102 made two trades totaling 392.11 USD [c4]. The trades made by A0101 and A0102 were not reciprocal and occurred over several days [c5]. The detector's scenario hint was 'unclassified', and the investigation agrees with this assessment, finding no specific pattern. The decision is to clear this case."
+    },
+    {
+      "alert_id": "EV_DG2_exchange_cluster",
+      "kind": "decoy",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 9478,
+          "tokens_out": 3538,
+          "llm_ms": 19123,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 5360,
+          "tokens_out": 1604,
+          "llm_ms": 10953,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1485,
+          "tokens_out": 537,
+          "llm_ms": 4594,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "clear",
+      "tokens": 22002,
+      "latency_ms": 42703,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [
+        "c4: Across all 11 trades in market M02, there were 5 BUYs and 6 SELLs. There is no clear pattern of reciprocal trading or wash trading. For example, A0206 made a BUY (T0003480) and two SELLs (T0003485, T0003484), and A0201 made two BUYs (T0003400, T0003404). (The claim states there were 5 BUYs and 6 SELLs across all 11 trades. However, the provided evidence only includes 5 specific trade records (T0003480, T0003485, T0003484, T0003400, T0003404). From these 5 trades, there are 3 BUYs and 2 SELLs. The evidence does not contain all 11 trades to verify the )",
+        "c5: The shared funding source (FundingSource:FEX1) and shared devices (Device:D0055, Device:D0093) are not sufficient evidence for escalation without additional signals of coordinated behavior, as per policy SP-3.1 and SP-3.2. (evidence ids not in this run's tool-call ledger: ['SP-3.1', 'SP-3.2'])"
+      ],
+      "summary": "The detector scenario hint was 'unclassified', and the investigation found no specific pattern to classify it as. All eight accounts in the alert share a common funding source, FundingSource:FEX1 [c1]. Accounts A0207 and A0205 use distinct devices, Device:D0055 and Device:D0093 respectively [c2]. Seven of these accounts (A0200-A0206) made a total of 11 trades in market M02, while account A0207 made no trades [c3]."
+    },
+    {
+      "alert_id": "EV_DG3_busy_honest",
+      "kind": "decoy",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 13240,
+          "tokens_out": 3670,
+          "llm_ms": 18233,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 6509,
+          "tokens_out": 1400,
+          "llm_ms": 8671,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 960,
+          "tokens_out": 568,
+          "llm_ms": 4250,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "uncertain",
+      "tokens": 26347,
+      "latency_ms": 35592,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [
+        "c1: The alert involves 10 accounts (A0300, A0301, A0302, A0303, A0304, A0305, A0306, A0307, A0308, A0309) in market M16, all scoring just below the alert threshold. (The evidence confirms the 10 accounts and their scores, and that they are not flagged. However, it does not provide information about an 'alert threshold' or confirm that these accounts are 'just below' it. The market M16 is present but its relation to an 'alert' is not established by the evidence.)",
+        "c3: All 10 accounts made trades in market M16, with a total of 50 trades. 46 trades were BUYs and 4 were SELLs, indicating a strong buying bias. (The evidence confirms that all 10 accounts made trades in market M16. Summing the 'n_trades' from the evidence (4+6+4+5+7+6+6+4+5+3) totals 50 trades. However, the evidence does not provide information about the 'side' of these trades (BUYs or SELLs), so the claim about 46 BUYs and 4 SELLs, and thus)",
+        "c4: A significant concentration of BUY trades occurred on the market's resolution day (2026-10-08), with 24 trades out of the 30 shown trades happening on this day, many within a short timeframe. (The evidence shows 12 trades, all of which are BUYs and occurred on 2026-10-08. This supports the claim that a concentration of BUY trades occurred on this date. However, the claim states '24 trades out of the 30 shown trades' happened on this day, which contradicts the provided evidence of only 12 )",
+        "c5: Policy SP-4.1 requires at least two independent signals (link structure, behaviour, or trade evidence) for escalation. (evidence ids not in this run's tool-call ledger: ['SP-4.1'])"
+      ],
+      "summary": "The detector hypothesized a coordinated accumulation scenario. The investigation agrees with this hypothesis. Accounts A0024 and A1147 share device D0024, and accounts A0024 and A0304 share funding source F0024 [c2]. This indicates potential links between multiple accounts."
+    }
+  ]
+}

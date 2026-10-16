@@ -1,0 +1,180 @@
+{
+ "alert_id": "AL_5a1a959872",
+ "kind": "real",
+ "status": "flagged",
+ "run": {
+  "status": "ok",
+  "cached": false,
+  "run_id": "RUN_7f01c0a4eee8",
+  "report": {
+   "alert_id": "AL_5a1a959872",
+   "ring_id": "R_C002",
+   "alert_status": "flagged",
+   "scenario_hint": "coordinated_accumulation",
+   "decision": "escalate",
+   "lane": "escalated",
+   "summary": "Accounts C002 and C004 share a common device [c1]. Both accounts exclusively bought in market M12, with C002 executing 8 trades for 27962.5 USD and C004 executing 6 trades for 24507.57 USD [c2]. The trading activity shows a clear pattern of coordinated accumulation, with both accounts buying in increasing prices over a short period [c3]. The detector hypothesized a coordinated accumulation scenario, and the investigation agrees with this finding.",
+   "pattern": "coordinated_accumulation",
+   "hint_note": "The investigation confirmed the detector's hint of coordinated accumulation, with strong evidence supporting the pattern.",
+   "evidence_table": [
+    {
+     "claim_id": "c1",
+     "kind": "observation",
+     "claim": "Accounts C002 and C004 share a common device.",
+     "evidence_ids": [
+      "UsesDevice:C002>DC_EV",
+      "UsesDevice:C004>DC_EV"
+     ]
+    },
+    {
+     "claim_id": "c2",
+     "kind": "observation",
+     "claim": "Both accounts exclusively bought in market M12, with C002 executing 8 trades for 27962.5 USD and C004 executing 6 trades for 24507.57 USD.",
+     "evidence_ids": [
+      "TradedIn:C002>M12",
+      "TradedIn:C004>M12",
+      "T0034943",
+      "T0034941",
+      "T0034937",
+      "T0034942",
+      "T0034939",
+      "T0034936",
+      "T0034938",
+      "T0034940",
+      "T0034950",
+      "T0034952",
+      "T0034951",
+      "T0034953",
+      "T0034949",
+      "T0034954"
+     ]
+    },
+    {
+     "claim_id": "c3",
+     "kind": "pattern",
+     "claim": "The trading activity shows a clear pattern of coordinated accumulation, with both accounts buying in increasing prices over a short period.",
+     "evidence_ids": [
+      "T0034943",
+      "T0034941",
+      "T0034950",
+      "T0034937",
+      "T0034952",
+      "T0034951",
+      "T0034953",
+      "T0034942",
+      "T0034939",
+      "T0034936",
+      "T0034949",
+      "T0034938",
+      "T0034954",
+      "T0034940"
+     ]
+    }
+   ],
+   "policy_references": [
+    {
+     "clause_id": "SP-2.2",
+     "title": "Coordinated pre-resolution accumulation",
+     "why": "This clause directly addresses coordinated accumulation involving multiple accounts sharing a device and buying the same outcome, which aligns with the accepted claims."
+    },
+    {
+     "clause_id": "SP-4.1",
+     "title": "Evidence standard",
+     "why": "The escalation is supported by multiple independent signals (shared device, coordinated trading behavior) each backed by evidence IDs, meeting the standard for evidence."
+    },
+    {
+     "clause_id": "SP-6.1",
+     "title": "Analyst approval",
+     "why": "As an agent, I recommend analyst review for any action, including potential limits or referrals, as per policy."
+    }
+   ],
+   "recommended_action": "analyst_review",
+   "confidence": 1.0,
+   "members_alert": [
+    "C002",
+    "C004"
+   ],
+   "members_linked": [],
+   "member_basis": "members = detector alert members plus ring_subgraph members; the decision applies to all of them except accounts excluded with a supported claim",
+   "exclusions": [],
+   "escalate_accounts": [
+    "C002",
+    "C004"
+   ],
+   "cleared_accounts": [],
+   "clear_reason": "",
+   "clear_evidence_ids": [],
+   "removed_claims": [],
+   "unverified_note": "",
+   "unsupported_claims": [],
+   "merge_proposals": [],
+   "requires_analyst_approval": true,
+   "analyst_override_allowed": true,
+   "meta": {
+    "first_pass_claims": 3,
+    "first_pass_accepted": 3,
+    "critic_reviewed": 3,
+    "critic_rejected": 0,
+    "revised": false,
+    "claims_total": 3,
+    "claims_accepted": 3,
+    "report_claims": 3,
+    "report_claims_resolvable": 3,
+    "citations_stripped": 0,
+    "pattern_agent": "coordinated_accumulation",
+    "agrees_with_hint": true
+   }
+  },
+  "tokens": 10329,
+  "latency_ms": 18188,
+  "tool_calls": 3,
+  "engines": "gql",
+  "cached_graph_calls": 0,
+  "budget_status": "ok"
+ },
+ "repeat_ms": 0.0,
+ "repeat_cached": true,
+ "trace": {
+  "orchestrator": {
+   "llm_calls": 0,
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "llm_ms": 0,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "investigator": {
+   "llm_calls": 1,
+   "tokens_in": 3336,
+   "tokens_out": 1203,
+   "llm_ms": 6811,
+   "retries": 0,
+   "tool_calls": 3
+  },
+  "critic": {
+   "llm_calls": 1,
+   "tokens_in": 3316,
+   "tokens_out": 643,
+   "llm_ms": 3469,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "policy": {
+   "llm_calls": 0,
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "llm_ms": 0,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "drafter": {
+   "llm_calls": 1,
+   "tokens_in": 1260,
+   "tokens_out": 571,
+   "llm_ms": 3265,
+   "retries": 0,
+   "tool_calls": 0
+  }
+ },
+ "saved_ts": "2026-10-16 19:05:49 UTC"
+}

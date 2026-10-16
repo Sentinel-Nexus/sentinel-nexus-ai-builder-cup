@@ -1,0 +1,81 @@
+{
+ "alert_id": "EV_C004",
+ "kind": "borderline_attacker",
+ "status": "completed",
+ "run": {
+  "status": "ok",
+  "report": {
+   "decision": "clear",
+   "escalate_accounts": [],
+   "cleared_accounts": [
+    "C004"
+   ],
+   "merge_proposals": [],
+   "unsupported_claims": [],
+   "summary": "",
+   "meta": {
+    "first_pass_claims": 4,
+    "first_pass_accepted": 2,
+    "critic_reviewed": 8,
+    "critic_rejected": 4,
+    "revised": true,
+    "claims_total": 4,
+    "claims_accepted": 2,
+    "pattern_agent": "none",
+    "agrees_with_hint": false
+   }
+  },
+  "tokens": 13178,
+  "latency_ms": 67390,
+  "tool_calls": 3,
+  "engines": "gql",
+  "cached_graph_calls": 0,
+  "budget_status": "ok"
+ },
+ "trace": {
+  "orchestrator": {
+   "llm_calls": 0,
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "llm_ms": 0,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "investigator": {
+   "llm_calls": 2,
+   "tokens_in": 5277,
+   "tokens_out": 2343,
+   "llm_ms": 45327,
+   "retries": 0,
+   "tool_calls": 3
+  },
+  "critic": {
+   "llm_calls": 2,
+   "tokens_in": 2663,
+   "tokens_out": 1298,
+   "llm_ms": 10451,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "policy": {
+   "llm_calls": 0,
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "llm_ms": 0,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "drafter": {
+   "llm_calls": 1,
+   "tokens_in": 1035,
+   "tokens_out": 562,
+   "llm_ms": 7890,
+   "retries": 0,
+   "tool_calls": 0
+  }
+ },
+ "repeat_ms": null,
+ "pipeline": "partial run 2026-10-16 (before the recall fix)",
+ "detail_source": "reconstructed from the run log and audit events (injected alerts are not cached)",
+ "saved_ts": "2026-10-16 18:44:19 UTC"
+}

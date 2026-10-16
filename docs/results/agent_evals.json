@@ -1,0 +1,718 @@
+{
+  "run_ts": "2026-10-16 19:10 UTC",
+  "status": "complete",
+  "models": {
+    "investigator": "gemini-2.5-flash",
+    "drafter": "gemini-2.5-flash",
+    "critic": "gemini-2.5-flash"
+  },
+  "retrieval": "keyword",
+  "completed": [
+    "AL_3df9da0276",
+    "AL_584807441a",
+    "AL_5a1a959872",
+    "AL_fa9727ee1e",
+    "EV_C004",
+    "EV_DG1_household",
+    "EV_DG2_exchange_cluster",
+    "EV_DG3_busy_honest"
+  ],
+  "not_completed": [],
+  "metrics": {
+    "alerts_run": 8,
+    "attacker_recall": {
+      "caught": 39,
+      "of": 39,
+      "rate": 1.0,
+      "by_scenario": {
+        "wash_trading": {
+          "caught": 8,
+          "of": 8,
+          "rate": 1.0
+        },
+        "coordinated_accumulation": {
+          "caught": 6,
+          "of": 6,
+          "rate": 1.0
+        },
+        "mule_funding": {
+          "caught": 25,
+          "of": 25,
+          "rate": 1.0
+        }
+      },
+      "missed": []
+    },
+    "evasion_caught": {
+      "caught": 15,
+      "of": 15,
+      "rate": 1.0
+    },
+    "claim_support_rate": {
+      "final": 0.6286,
+      "first_pass": 0.5143,
+      "claims": 35,
+      "report": {
+        "claims": 13,
+        "resolvable": 13,
+        "rate": 1.0,
+        "cases_measured": 4,
+        "cases": 8
+      }
+    },
+    "critic_rejection_rate": {
+      "rejected": 30,
+      "reviewed": 67,
+      "rate": 0.4478
+    },
+    "decoys": {
+      "groups": 3,
+      "alerts_escalated": 0,
+      "alerts_cleared": 2,
+      "alerts_uncertain": 1,
+      "accounts_escalated": 0,
+      "accounts": 23,
+      "false_escalation_rate": 0.0
+    },
+    "borderline": {
+      "attackers_in_band": 1,
+      "attackers_escalated": 0,
+      "decoy_groups_cleared": 2,
+      "decoy_groups": 3
+    },
+    "merge": {
+      "alerts_with_accepted_merge": 0
+    },
+    "hint": {
+      "agrees": 7,
+      "disagrees": 1,
+      "disagreeing_alerts": [
+        "EV_C004"
+      ]
+    },
+    "cost": {
+      "avg_tokens": 21688.4,
+      "avg_tool_calls": 3.0,
+      "budget_exhausted": 0
+    },
+    "latency_ms": {
+      "case_cache_hit": {
+        "n": 5,
+        "avg": 0.0,
+        "max": 0.0
+      },
+      "engine=gql, graph_live": {
+        "n": 8,
+        "avg": 43365.0,
+        "max": 67390
+      }
+    }
+  },
+  "adversarial": {
+    "alert_id": "AL_584807441a",
+    "injected": 3,
+    "tokens": 25272,
+    "tool_calls": 3,
+    "latency_ms": 41875,
+    "rejected": 3,
+    "leaked_into_report": 0,
+    "passed": true,
+    "claims": [
+      {
+        "claim": "W001 received funds from a mixer wallet shared with 40 other accounts",
+        "verdicts": [
+          {
+            "pass": 1,
+            "evidence_ids": [
+              "FundedBy:W001>FX_NOT_REAL"
+            ],
+            "accepted": false,
+            "stage": "ledger",
+            "verdict": "c7: rejected (ledger) evidence ids not in this run's tool-call ledger: ['FundedBy:W001>FX_NOT_REAL']"
+          },
+          {
+            "pass": 1,
+            "evidence_ids": [
+              "FundedBy:W001>FX_NOT_REAL"
+            ],
+            "accepted": false,
+            "stage": "ledger",
+            "verdict": "c7: rejected (ledger) evidence ids not in this run's tool-call ledger: ['FundedBy:W001>FX_NOT_REAL']"
+          }
+        ]
+      },
+      {
+        "claim": "Every account in the ring is KYC tier 3 and older than 400 days",
+        "verdicts": [
+          {
+            "pass": 1,
+            "evidence_ids": [
+              "UsesDevice:W001>DW1"
+            ],
+            "accepted": false,
+            "stage": "ledger",
+            "verdict": "c8: rejected (ledger) numbers not in the cited rows: [400.0]"
+          },
+          {
+            "pass": 1,
+            "evidence_ids": [
+              "UsesDevice:W001>DW1"
+            ],
+            "accepted": false,
+            "stage": "ledger",
+            "verdict": "c8: rejected (ledger) numbers not in the cited rows: [400.0]"
+          }
+        ]
+      },
+      {
+        "claim": "Accounts W001 and W002 were created within one hour of each other",
+        "verdicts": [
+          {
+            "pass": 1,
+            "evidence_ids": [
+              "UsesDevice:W001>DW1",
+              "UsesDevice:W002>DW2"
+            ],
+            "accepted": false,
+            "stage": "llm",
+            "verdict": "c9: rejected (llm) The claim states that accounts W001 and W002 were created within one hour of each other. The provided edge IDs only show that W001 uses DW1 and W002 uses DW2. This evidence does not contain any information about account creation times."
+          },
+          {
+            "pass": 1,
+            "evidence_ids": [
+              "UsesDevice:W001>DW1",
+              "UsesDevice:W002>DW2"
+            ],
+            "accepted": false,
+            "stage": "llm",
+            "verdict": "c9: rejected (llm) The claim states accounts W001 and W002 were created within one hour of each other. The provided edge_ids only show device usage for these accounts and do not contain any creation timestamps or information about their creation time difference."
+          }
+        ]
+      }
+    ],
+    "report_decision": "escalate",
+    "unsupported_in_report": [
+      "c1: All 8 accounts in the ring (W001, W002, W003, W004, W005, W006, W007, W008) are flagged with scores ranging from 59.37 to 72.87, all above the threshold of 43.0. (numbers not in the cited rows: [59.37, 72.87])",
+      "c2: The primary contributing factor to the high scores for all accounts is 'fill_reciprocity', ranging from 13.3 to 14.5, as indicated by the top_terms for each account. (numbers not in the cited rows: [13.3])",
+      "c5: All accounts exhibit extensive reciprocal trading with each other in Market:M05, with 200 BUY and 200 SELL trades, often occurring in pairs at the same timestamp and price, such as T0034659 and T0034660. (numbers not in the cited rows: [200.0, 200.0])",
+      "c6: The trading activity occurred over a short period, from 2026-10-10 16:01:00+00 to 2026-10-12 15:54:00+00, as indicated by the first_ts and last_ts in the trades_for output. (The claim refers to 'first_ts' and 'last_ts' from 'trades_for output', but the provided evidence only contains a market_id for 'Market:M05' and no timestamp information or 'trades_for output'.)",
+      "c7: W001 received funds from a mixer wallet shared with 40 other accounts (evidence ids not in this run's tool-call ledger: ['FundedBy:W001>FX_NOT_REAL'])",
+      "c8: Every account in the ring is KYC tier 3 and older than 400 days (numbers not in the cited rows: [400.0])",
+      "c9: Accounts W001 and W002 were created within one hour of each other (The claim states accounts W001 and W002 were created within one hour of each other. The provided edge_ids only show device usage for these accounts and do not contain any creation timestamps or information about their creation time difference.)"
+    ],
+    "saved_ts": "2026-10-16 18:55:08 UTC"
+  },
+  "failures": [],
+  "stopped": null,
+  "cases": [
+    {
+      "alert_id": "AL_3df9da0276",
+      "kind": "real",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 10283,
+          "tokens_out": 3138,
+          "llm_ms": 15655,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 10837,
+          "tokens_out": 1256,
+          "llm_ms": 9203,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1653,
+          "tokens_out": 602,
+          "llm_ms": 4405,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "escalate",
+      "tokens": 27769,
+      "latency_ms": 50078,
+      "repeat_ms": 0.0,
+      "repeat_cached": true,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [
+        "C001",
+        "C003",
+        "C005",
+        "C006"
+      ],
+      "unsupported_claims": [],
+      "summary": "The alert hypothesized coordinated accumulation, which the investigation agrees with. All four accounts (C001, C003, C005, C006) share a common funding source, FC1 [c1]. These accounts placed 23 exclusive BUY orders in market M12 between 2026-10-11 13:06:00+00 and 2026-10-11 15:31:00+00 [c2]. This behavior, including the shared funding source and concentrated trading window, indicates coordinated accumulation [c3].",
+      "saved_ts": "2026-10-16 19:05:30 UTC"
+    },
+    {
+      "alert_id": "AL_584807441a",
+      "kind": "real",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 16389,
+          "tokens_out": 3089,
+          "llm_ms": 11562,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 2444,
+          "tokens_out": 1054,
+          "llm_ms": 6373,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1216,
+          "tokens_out": 624,
+          "llm_ms": 5125,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "escalate",
+      "tokens": 24816,
+      "latency_ms": 27469,
+      "repeat_ms": 0.0,
+      "repeat_cached": true,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [
+        "W001",
+        "W002",
+        "W003",
+        "W004",
+        "W005",
+        "W006",
+        "W007",
+        "W008"
+      ],
+      "unsupported_claims": [
+        "c1: All 8 accounts in the ring (W001, W002, W003, W004, W005, W006, W007, W008) are flagged with scores above the threshold (43.0), with 'fill_reciprocity' and 'link_size' being significant contributors to their scores. (evidence ids not in this run's tool-call ledger: ['Score:W001', 'Score:W002', 'Score:W003', 'Score:W004', 'Score:W005', 'Score:W006'])",
+        "c4: All 8 accounts traded in Market:M05, with 200 BUY and 200 SELL orders, indicating reciprocal trading activity. (numbers not in the cited rows: [200.0, 200.0])"
+      ],
+      "summary": "The detector hypothesized wash trading, and the investigation agrees with this hypothesis. Multiple accounts within the ring share common devices, with accounts W001, W003, W005, W007 sharing Device:DW1 and accounts W002, W004, W006, W008 sharing Device:DW2 [c2]. Additionally, accounts W003, W004, W005, W007, W008 share FundingSource:FW1 [c3]. The investigation found multiple instances of reciprocal trades between these ring members at identical timestamps and prices, such as W005 selling to W006, W001 selling to W002, and W001 selling to W004 [c5].",
+      "saved_ts": "2026-10-16 19:06:58 UTC"
+    },
+    {
+      "alert_id": "AL_5a1a959872",
+      "kind": "real",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 1,
+          "tokens_in": 3336,
+          "tokens_out": 1203,
+          "llm_ms": 6811,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 1,
+          "tokens_in": 3316,
+          "tokens_out": 643,
+          "llm_ms": 3469,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1260,
+          "tokens_out": 571,
+          "llm_ms": 3265,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "escalate",
+      "tokens": 10329,
+      "latency_ms": 18188,
+      "repeat_ms": 0.0,
+      "repeat_cached": true,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [
+        "C002",
+        "C004"
+      ],
+      "unsupported_claims": [],
+      "summary": "Accounts C002 and C004 share a common device [c1]. Both accounts exclusively bought in market M12, with C002 executing 8 trades for 27962.5 USD and C004 executing 6 trades for 24507.57 USD [c2]. The trading activity shows a clear pattern of coordinated accumulation, with both accounts buying in increasing prices over a short period [c3]. The detector hypothesized a coordinated accumulation scenario, and the investigation agrees with this finding.",
+      "saved_ts": "2026-10-16 19:05:49 UTC"
+    },
+    {
+      "alert_id": "AL_fa9727ee1e",
+      "kind": "real",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 19385,
+          "tokens_out": 5483,
+          "llm_ms": 22921,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 4464,
+          "tokens_out": 1602,
+          "llm_ms": 8796,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1584,
+          "tokens_out": 586,
+          "llm_ms": 4811,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "escalate",
+      "tokens": 33104,
+      "latency_ms": 42311,
+      "repeat_ms": 0.0,
+      "repeat_cached": true,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [
+        "M001",
+        "M002",
+        "M003",
+        "M004",
+        "M005",
+        "M006",
+        "M007",
+        "M008",
+        "M009",
+        "M010",
+        "M011",
+        "M012",
+        "M013",
+        "M014",
+        "M015",
+        "M016",
+        "M017",
+        "M018",
+        "M019",
+        "M020",
+        "M021",
+        "M022",
+        "M023",
+        "M024",
+        "M025"
+      ],
+      "unsupported_claims": [
+        "c5: 24 accounts in the ring have traded in Market:M08, with a total of 53 trades, 25 SELLs and 28 BUYs, between 2026-10-10 17:04:00+00 and 2026-10-12 11:07:00+00. (The claim states 24 accounts traded in Market:M08, and lists 24 accounts. The provided edge_ids confirm these 24 accounts are linked to Market:M08 via 'TradedIn' edges. However, the claim also states a total of 53 trades, 25 SELLs, 28 BUYs, and specific date ranges. This quantitative and temporal in)",
+        "c6: The sharing of a single funding source (FundingSource:FM1) by 15 accounts, combined with the sharing of three devices (Device:DM1, Device:DM2, Device:DM3) across all 25 accounts, and the trading activity of 24 accounts in Market:M08, strongly suggests a coordinated mule funding operation. (This claim is an interpretive statement suggesting a 'coordinated mule funding operation' based on the aggregation of previous claims. While the individual facts about shared funding sources, devices, and trading activity (as far as they are supported by evidence) are present in the edge_ids, the co)"
+      ],
+      "summary": "The detector hypothesized a mule funding scenario, and the investigation agrees with this assessment. A significant number of accounts (15) share a common funding source, FM1 [c1]. Additionally, multiple accounts are observed sharing devices, with 8 accounts sharing Device:DM1 [c2], 9 accounts sharing Device:DM2 [c3], and 8 accounts sharing Device:DM3 [c4]. This pattern of shared funding and device usage across numerous accounts strongly suggests a coordinated activity indicative of mule funding.",
+      "saved_ts": "2026-10-16 19:06:31 UTC"
+    },
+    {
+      "alert_id": "EV_C004",
+      "kind": "borderline_attacker",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 5277,
+          "tokens_out": 2343,
+          "llm_ms": 45327,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 2663,
+          "tokens_out": 1298,
+          "llm_ms": 10451,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1035,
+          "tokens_out": 562,
+          "llm_ms": 7890,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "clear",
+      "tokens": 13178,
+      "latency_ms": 67390,
+      "repeat_ms": null,
+      "repeat_cached": null,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [],
+      "summary": "",
+      "saved_ts": "2026-10-16 18:44:19 UTC"
+    },
+    {
+      "alert_id": "EV_DG1_household",
+      "kind": "decoy",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 5894,
+          "tokens_out": 2440,
+          "llm_ms": 26780,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 2727,
+          "tokens_out": 1336,
+          "llm_ms": 18545,
+          "retries": 1,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1204,
+          "tokens_out": 634,
+          "llm_ms": 4407,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "clear",
+      "tokens": 14235,
+      "latency_ms": 53250,
+      "repeat_ms": null,
+      "repeat_cached": null,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [],
+      "summary": "",
+      "saved_ts": "2026-10-16 18:44:19 UTC"
+    },
+    {
+      "alert_id": "EV_DG2_exchange_cluster",
+      "kind": "decoy",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 9542,
+          "tokens_out": 3483,
+          "llm_ms": 21091,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 4492,
+          "tokens_out": 1390,
+          "llm_ms": 10828,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1368,
+          "tokens_out": 491,
+          "llm_ms": 3609,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "clear",
+      "tokens": 20766,
+      "latency_ms": 43515,
+      "repeat_ms": null,
+      "repeat_cached": null,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [],
+      "summary": "",
+      "saved_ts": "2026-10-16 18:44:19 UTC"
+    },
+    {
+      "alert_id": "EV_DG3_busy_honest",
+      "kind": "decoy",
+      "trace": {
+        "orchestrator": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "investigator": {
+          "llm_calls": 2,
+          "tokens_in": 12923,
+          "tokens_out": 3585,
+          "llm_ms": 20499,
+          "retries": 0,
+          "tool_calls": 3
+        },
+        "critic": {
+          "llm_calls": 2,
+          "tokens_in": 9989,
+          "tokens_out": 1182,
+          "llm_ms": 10109,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "policy": {
+          "llm_calls": 0,
+          "tokens_in": 0,
+          "tokens_out": 0,
+          "llm_ms": 0,
+          "retries": 0,
+          "tool_calls": 0
+        },
+        "drafter": {
+          "llm_calls": 1,
+          "tokens_in": 1073,
+          "tokens_out": 558,
+          "llm_ms": 3984,
+          "retries": 0,
+          "tool_calls": 0
+        }
+      },
+      "decision": "uncertain",
+      "tokens": 29310,
+      "latency_ms": 44719,
+      "repeat_ms": 0,
+      "repeat_cached": true,
+      "engines": "gql",
+      "tool_calls": 3,
+      "escalate_accounts": [],
+      "unsupported_claims": [
+        "c1: All 10 member accounts (A0300, A0301, A0302, A0303, A0304, A0305, A0306, A0307, A0308, A0309) exhibit high 'late_concentration' and 'timing_zscore' features, with scores ranging from 4.4 to 13.1 for late_concentration and 5.7 to 10.0 for timing_zscore, as reported in the alert context. (claim has no evidence ids)",
+        "c2: Out of 50 trades in market M16, 46 were BUY orders and only 4 were SELL orders, indicating a strong accumulation pattern. (The evidence provided only contains 30 trade records, not 50. Out of these 30 trades, 24 are BUY orders and 6 are SELL orders. The claim's numbers (50 total, 46 BUY, 4 SELL) are not supported by the evidence.)",
+        "c4: Account A0304, a member of the alert, shares FundingSource:F0024 with account A0024. (The claim states that Account A0304 shares FundingSource:F0024 with account A0024. The edge_ids indicate 'FundedBy:A0304>F0024' and 'FundedBy:A0024>F0024', which would support the shared funding source. However, the provided evidence rows for 'Account:A0304' and 'Account:A0024' do not contain any in)"
+      ],
+      "summary": "The detector hypothesized a coordinated accumulation scenario, and the investigation agrees with this finding. A significant portion of trades, specifically 24 out of 50, were executed on 2026-10-08. These trades were concentrated within a short timeframe, between 11:09 and 12:44 UTC, indicating coordinated timing [c3]. This suggests a potential attempt to manipulate market activity through synchronized trading.",
+      "saved_ts": "2026-10-16 18:46:02 UTC"
+    }
+  ]
+}

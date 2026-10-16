@@ -22,9 +22,18 @@ def test_parse_ddl_columns_covers_all_live_tables():
         "eval.decoy_groups",
         "eval.benchmark",
         "eval.benchmark_runs",
+        "risk_curated.case_reports",
+        "audit.agent_events",
+        "risk_curated.case_decisions",
     }
     assert ddl["risk_raw.trades"][0] == ("trade_id", "STRING")
     assert len(ddl["eval.benchmark_runs"]) == 8
+    assert [c for c, _ in ddl["audit.agent_events"]][:3] == ["event_id", "run_id", "seq"]
+    assert (
+        len(ddl["audit.agent_events"]) == 16
+        and len(ddl["risk_curated.case_reports"]) == 20
+        and len(ddl["risk_curated.case_decisions"]) == 8
+    )
 
 
 def test_compare_columns_normalizes_types():

@@ -1,0 +1,198 @@
+{
+ "claims": [
+  {
+   "claim_id": "t1",
+   "claim": "Accounts W001, W003, W005, W007 share device Device:DW1.",
+   "evidence": [
+    {
+     "id": "UsesDevice:W001>DW1",
+     "row": "{\"id\": \"UsesDevice:W001>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W001\", \"target\": \"Device:DW1\"}"
+    },
+    {
+     "id": "UsesDevice:W003>DW1",
+     "row": "{\"id\": \"UsesDevice:W003>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W003\", \"target\": \"Device:DW1\"}"
+    },
+    {
+     "id": "UsesDevice:W005>DW1",
+     "row": "{\"id\": \"UsesDevice:W005>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W005\", \"target\": \"Device:DW1\"}"
+    },
+    {
+     "id": "UsesDevice:W007>DW1",
+     "row": "{\"id\": \"UsesDevice:W007>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W007\", \"target\": \"Device:DW1\"}"
+    }
+   ]
+  },
+  {
+   "claim_id": "t2",
+   "claim": "Accounts W002, W004, W006, W008 share device Device:DW2.",
+   "evidence": [
+    {
+     "id": "UsesDevice:W002>DW2",
+     "row": "{\"id\": \"UsesDevice:W002>DW2\", \"type\": \"UsesDevice\", \"source\": \"Account:W002\", \"target\": \"Device:DW2\"}"
+    },
+    {
+     "id": "UsesDevice:W004>DW2",
+     "row": "{\"id\": \"UsesDevice:W004>DW2\", \"type\": \"UsesDevice\", \"source\": \"Account:W004\", \"target\": \"Device:DW2\"}"
+    },
+    {
+     "id": "UsesDevice:W006>DW2",
+     "row": "{\"id\": \"UsesDevice:W006>DW2\", \"type\": \"UsesDevice\", \"source\": \"Account:W006\", \"target\": \"Device:DW2\"}"
+    },
+    {
+     "id": "UsesDevice:W008>DW2",
+     "row": "{\"id\": \"UsesDevice:W008>DW2\", \"type\": \"UsesDevice\", \"source\": \"Account:W008\", \"target\": \"Device:DW2\"}"
+    }
+   ]
+  },
+  {
+   "claim_id": "t3",
+   "claim": "Account W001 made 45 trades in M05.",
+   "evidence": [
+    {
+     "id": "TradedIn:W001>M05",
+     "row": "{\"id\": \"TradedIn:W001>M05\", \"account_id\": \"W001\", \"n_trades\": 45, \"total_usd\": 26564.16}"
+    }
+   ]
+  },
+  {
+   "claim_id": "t4",
+   "claim": "A BUY trade of 404.78 USD by W006 exists in M05.",
+   "evidence": [
+    {
+     "id": "T0034660",
+     "row": "{\"id\": \"T0034660\", \"ts\": \"2026-10-10 16:01:00+00\", \"account_id\": \"W006\", \"side\": \"BUY\", \"outcome\": \"YES\", \"price\": 0.499, \"size_usd\": 404.78}"
+    }
+   ]
+  },
+  {
+   "claim_id": "t5",
+   "claim": "Accounts W001 and W003 are linked through Device:DW1.",
+   "evidence": [
+    {
+     "id": "UsesDevice:W001>DW1",
+     "row": "{\"id\": \"UsesDevice:W001>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W001\", \"target\": \"Device:DW1\"}"
+    },
+    {
+     "id": "UsesDevice:W003>DW1",
+     "row": "{\"id\": \"UsesDevice:W003>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W003\", \"target\": \"Device:DW1\"}"
+    }
+   ]
+  },
+  {
+   "claim_id": "f1",
+   "claim": "Account W002 shares device Device:DW1 with W001.",
+   "evidence": [
+    {
+     "id": "UsesDevice:W001>DW1",
+     "row": "{\"id\": \"UsesDevice:W001>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W001\", \"target\": \"Device:DW1\"}"
+    },
+    {
+     "id": "UsesDevice:W002>DW2",
+     "row": "{\"id\": \"UsesDevice:W002>DW2\", \"type\": \"UsesDevice\", \"source\": \"Account:W002\", \"target\": \"Device:DW2\"}"
+    }
+   ]
+  },
+  {
+   "claim_id": "f2",
+   "claim": "Account W001 made 52 trades in M05.",
+   "evidence": [
+    {
+     "id": "TradedIn:W001>M05",
+     "row": "{\"id\": \"TradedIn:W001>M05\", \"account_id\": \"W001\", \"n_trades\": 45, \"total_usd\": 26564.16}"
+    }
+   ]
+  },
+  {
+   "claim_id": "f3",
+   "claim": "Account W006 SOLD 404.78 USD in M05.",
+   "evidence": [
+    {
+     "id": "T0034660",
+     "row": "{\"id\": \"T0034660\", \"ts\": \"2026-10-10 16:01:00+00\", \"account_id\": \"W006\", \"side\": \"BUY\", \"outcome\": \"YES\", \"price\": 0.499, \"size_usd\": 404.78}"
+    }
+   ]
+  },
+  {
+   "claim_id": "f4",
+   "claim": "Accounts W001 and W003 were created within one hour of each other.",
+   "evidence": [
+    {
+     "id": "UsesDevice:W001>DW1",
+     "row": "{\"id\": \"UsesDevice:W001>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W001\", \"target\": \"Device:DW1\"}"
+    },
+    {
+     "id": "UsesDevice:W003>DW1",
+     "row": "{\"id\": \"UsesDevice:W003>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W003\", \"target\": \"Device:DW1\"}"
+    }
+   ]
+  },
+  {
+   "claim_id": "f5",
+   "claim": "All 8 accounts of the ring share the single device Device:DW1.",
+   "evidence": [
+    {
+     "id": "UsesDevice:W001>DW1",
+     "row": "{\"id\": \"UsesDevice:W001>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W001\", \"target\": \"Device:DW1\"}"
+    },
+    {
+     "id": "UsesDevice:W003>DW1",
+     "row": "{\"id\": \"UsesDevice:W003>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W003\", \"target\": \"Device:DW1\"}"
+    },
+    {
+     "id": "UsesDevice:W005>DW1",
+     "row": "{\"id\": \"UsesDevice:W005>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W005\", \"target\": \"Device:DW1\"}"
+    },
+    {
+     "id": "UsesDevice:W007>DW1",
+     "row": "{\"id\": \"UsesDevice:W007>DW1\", \"type\": \"UsesDevice\", \"source\": \"Account:W007\", \"target\": \"Device:DW1\"}"
+    }
+   ]
+  }
+ ],
+ "labels": {
+  "t1": true,
+  "t2": true,
+  "t3": true,
+  "t4": true,
+  "t5": true,
+  "f1": false,
+  "f2": false,
+  "f3": false,
+  "f4": false,
+  "f5": false
+ },
+ "results": {
+  "gemini-2.5-flash": [
+   {
+    "latency_ms": 14984,
+    "tokens": 2705,
+    "correct": 10,
+    "of": 10,
+    "wrong": []
+   },
+   {
+    "latency_ms": 5046,
+    "tokens": 2705,
+    "correct": 10,
+    "of": 10,
+    "wrong": []
+   }
+  ],
+  "gemini-2.5-pro": [
+   {
+    "latency_ms": 63125,
+    "tokens": 2707,
+    "correct": 10,
+    "of": 10,
+    "wrong": []
+   },
+   {
+    "latency_ms": 7500,
+    "tokens": 2705,
+    "correct": 10,
+    "of": 10,
+    "wrong": []
+   }
+  ]
+ }
+}

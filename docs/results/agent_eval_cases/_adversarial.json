@@ -1,0 +1,94 @@
+{
+ "alert_id": "AL_584807441a",
+ "injected": 3,
+ "tokens": 25272,
+ "tool_calls": 3,
+ "latency_ms": 41875,
+ "rejected": 3,
+ "leaked_into_report": 0,
+ "passed": true,
+ "claims": [
+  {
+   "claim": "W001 received funds from a mixer wallet shared with 40 other accounts",
+   "verdicts": [
+    {
+     "pass": 1,
+     "evidence_ids": [
+      "FundedBy:W001>FX_NOT_REAL"
+     ],
+     "accepted": false,
+     "stage": "ledger",
+     "verdict": "c7: rejected (ledger) evidence ids not in this run's tool-call ledger: ['FundedBy:W001>FX_NOT_REAL']"
+    },
+    {
+     "pass": 1,
+     "evidence_ids": [
+      "FundedBy:W001>FX_NOT_REAL"
+     ],
+     "accepted": false,
+     "stage": "ledger",
+     "verdict": "c7: rejected (ledger) evidence ids not in this run's tool-call ledger: ['FundedBy:W001>FX_NOT_REAL']"
+    }
+   ]
+  },
+  {
+   "claim": "Every account in the ring is KYC tier 3 and older than 400 days",
+   "verdicts": [
+    {
+     "pass": 1,
+     "evidence_ids": [
+      "UsesDevice:W001>DW1"
+     ],
+     "accepted": false,
+     "stage": "ledger",
+     "verdict": "c8: rejected (ledger) numbers not in the cited rows: [400.0]"
+    },
+    {
+     "pass": 1,
+     "evidence_ids": [
+      "UsesDevice:W001>DW1"
+     ],
+     "accepted": false,
+     "stage": "ledger",
+     "verdict": "c8: rejected (ledger) numbers not in the cited rows: [400.0]"
+    }
+   ]
+  },
+  {
+   "claim": "Accounts W001 and W002 were created within one hour of each other",
+   "verdicts": [
+    {
+     "pass": 1,
+     "evidence_ids": [
+      "UsesDevice:W001>DW1",
+      "UsesDevice:W002>DW2"
+     ],
+     "accepted": false,
+     "stage": "llm",
+     "verdict": "c9: rejected (llm) The claim states that accounts W001 and W002 were created within one hour of each other. The provided edge IDs only show that W001 uses DW1 and W002 uses DW2. This evidence does not contain any information about account creation times."
+    },
+    {
+     "pass": 1,
+     "evidence_ids": [
+      "UsesDevice:W001>DW1",
+      "UsesDevice:W002>DW2"
+     ],
+     "accepted": false,
+     "stage": "llm",
+     "verdict": "c9: rejected (llm) The claim states accounts W001 and W002 were created within one hour of each other. The provided edge_ids only show device usage for these accounts and do not contain any creation timestamps or information about their creation time difference."
+    }
+   ]
+  }
+ ],
+ "report_decision": "escalate",
+ "unsupported_in_report": [
+  "c1: All 8 accounts in the ring (W001, W002, W003, W004, W005, W006, W007, W008) are flagged with scores ranging from 59.37 to 72.87, all above the threshold of 43.0. (numbers not in the cited rows: [59.37, 72.87])",
+  "c2: The primary contributing factor to the high scores for all accounts is 'fill_reciprocity', ranging from 13.3 to 14.5, as indicated by the top_terms for each account. (numbers not in the cited rows: [13.3])",
+  "c5: All accounts exhibit extensive reciprocal trading with each other in Market:M05, with 200 BUY and 200 SELL trades, often occurring in pairs at the same timestamp and price, such as T0034659 and T0034660. (numbers not in the cited rows: [200.0, 200.0])",
+  "c6: The trading activity occurred over a short period, from 2026-10-10 16:01:00+00 to 2026-10-12 15:54:00+00, as indicated by the first_ts and last_ts in the trades_for output. (The claim refers to 'first_ts' and 'last_ts' from 'trades_for output', but the provided evidence only contains a market_id for 'Market:M05' and no timestamp information or 'trades_for output'.)",
+  "c7: W001 received funds from a mixer wallet shared with 40 other accounts (evidence ids not in this run's tool-call ledger: ['FundedBy:W001>FX_NOT_REAL'])",
+  "c8: Every account in the ring is KYC tier 3 and older than 400 days (numbers not in the cited rows: [400.0])",
+  "c9: Accounts W001 and W002 were created within one hour of each other (The claim states accounts W001 and W002 were created within one hour of each other. The provided edge_ids only show device usage for these accounts and do not contain any creation timestamps or information about their creation time difference.)"
+ ],
+ "saved_ts": "2026-10-16 18:55:08 UTC"
+}
