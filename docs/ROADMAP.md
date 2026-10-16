@@ -11,7 +11,7 @@ Schedule: P1 and P2 Oct 14, P3 and P4 Oct 15, P5 and P6 Oct 16, P7 Oct 17. Submi
     and reservation against the repo, and exits non-zero on drift.
   - STATUS.md "Live GCP resources" is filled.
 
-- [ ] **P2 detector** (Oct 14)
+- [x] **P2 detector** (Oct 14)
   - Baseline flat-rule metrics recorded.
   - Graph-plus-behavior detector (device, funding and matched-trade links, account age,
     size, timing near resolution) writes `risk_curated.account_scores` and
