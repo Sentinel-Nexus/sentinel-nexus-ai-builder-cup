@@ -30,6 +30,7 @@ FORBIDDEN_PATTERNS = {
 }
 EVAL_TABLES = re.compile(r"ground_truth|decoy_groups", re.I)
 # A quoted literal shaped like one of our ids: A0100, W003, DH1, DC_EV, FE_C004, FEX1, ...
+SQL_TYPES = {"INT64", "FLOAT64", "STRING", "BOOL"}
 ID_LITERAL = re.compile(r"""['"]((?:[A-Z]{1,3}_?)[A-Z]*\d{1,4}|[A-Z]{1,3}_[A-Z0-9]+)['"]""")
 
 
@@ -61,6 +62,8 @@ def violations(path: Path, text: str, known: set[str]) -> list[str]:
     if EVAL_TABLES.search(text) and not _is_evaluation_script(path):
         found.append("reads evaluation tables")
     for literal in ID_LITERAL.findall(text):
+        if literal in SQL_TYPES:
+            continue
         found.append(f"id-like literal {literal!r}")
     for token in set(re.findall(r"[A-Za-z0-9_]+", text)) & known:
         found.append(f"known id {token!r}")

@@ -1,0 +1,30 @@
+{
+  "threshold": 43.0,
+  "iteration": 1,
+  "validation_seeds": [
+    7,
+    11,
+    23
+  ],
+  "mean_f1": 1.0,
+  "f1_by_seed": {
+    "7": 1.0,
+    "11": 1.0,
+    "23": 1.0
+  },
+  "plateau": [
+    42.5,
+    43.0
+  ],
+  "weights": {
+    "link_size": 0.12,
+    "link_density": 0.08,
+    "fill_reciprocity": 0.15,
+    "fresh_funding_fanin": 0.1,
+    "account_freshness": 0.1,
+    "fresh_cluster": 0.1,
+    "late_concentration": 0.15,
+    "size_zscore": 0.1,
+    "timing_zscore": 0.1
+  }
+}
