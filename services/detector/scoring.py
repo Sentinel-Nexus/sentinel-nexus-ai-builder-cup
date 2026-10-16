@@ -71,7 +71,8 @@ def score_row(row: Row) -> tuple[float, dict[str, float], dict[str, float]]:
     return sum(contributions.values()), terms, contributions
 
 
-def score_rows(rows: Iterable[Row], threshold: float) -> list[Row]:
+def score_rows(rows: Iterable[Row], threshold: float, review_margin: float = 0.0) -> list[Row]:
+    """Score rows. flagged: score >= threshold; in_band: threshold - margin <= score < threshold."""
     out = []
     for row in rows:
         score, terms, contributions = score_row(row)
@@ -81,6 +82,7 @@ def score_rows(rows: Iterable[Row], threshold: float) -> list[Row]:
                 "ring_id": row["ring_id"],
                 "score": round(score, 4),
                 "flagged": score >= threshold,
+                "in_band": threshold - review_margin <= score < threshold,
                 "threshold": threshold,
                 "terms": terms,
                 "contributions": contributions,
@@ -109,10 +111,15 @@ def scenario_hint(terms: dict[str, float]) -> str:
 
 
 def build_alerts(scored: list[Row], run_id: str, created_ts: str) -> list[Row]:
-    """One alert per ring (connected component) that has at least one flagged account."""
+    """One alert per ring (connected component) with a flagged or review-band account.
+
+    status is 'flagged' when any member scores at or above the threshold, else
+    'needs_review' (every member is in the band just below it). Band members of a
+    flagged ring stay in the alert so an analyst sees them; n_flagged counts the
+    members that cleared the threshold."""
     rings: dict[str, list[Row]] = defaultdict(list)
     for s in scored:
-        if s["flagged"]:
+        if s["flagged"] or s.get("in_band"):
             rings[s["ring_id"]].append(s)
     alerts = []
     for ring_id, members in sorted(rings.items()):
@@ -126,11 +133,14 @@ def build_alerts(scored: list[Row], run_id: str, created_ts: str) -> list[Row]:
                 mean_terms[name] += value / len(members)
         top = sorted(total.items(), key=lambda kv: -kv[1])[:4]
         ids = sorted(m["account_id"] for m in members)
+        n_flagged = sum(1 for m in members if m["flagged"])
         digest = hashlib.sha1(f"{run_id}|{ring_id}".encode()).hexdigest()[:10]
         alerts.append(
             {
                 "alert_id": f"AL_{digest}",
                 "ring_id": ring_id,
+                "status": "flagged" if n_flagged else "needs_review",
+                "n_flagged": n_flagged,
                 "scenario_hint": scenario_hint(mean_terms),
                 "member_accounts": ids,
                 "n_members": len(ids),

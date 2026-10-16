@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS `__P__.risk_curated.alerts` (
   alert_id STRING,
   ring_id STRING,
   scenario_hint STRING,
+  status STRING,
+  n_flagged INT64,
   member_accounts ARRAY<STRING>,
   n_members INT64,
   score FLOAT64,

@@ -115,3 +115,27 @@ def hint_accuracy(alerts: list[Row], truth: dict[str, str]) -> dict[str, Any]:
         s["accounts"] += len(kinds)
         s["accounts_ok"] += len(kinds) if ok else 0
     return {"alerts": rows, "by_scenario": summary, "confusion": confusion}
+
+
+def score_gap(scores: dict[str, float], truth: dict[str, str]) -> float | None:
+    """Weakest attacker score minus strongest non-attacker (decoy or background) score."""
+    attackers = [v for a, v in scores.items() if a in truth]
+    others = [v for a, v in scores.items() if a not in truth]
+    return min(attackers) - max(others) if attackers and others else None
+
+
+def band_counts(
+    scores: dict[str, float],
+    truth: dict[str, str],
+    decoys: dict[str, list[str]],
+    threshold: float,
+    margin: float,
+) -> dict[str, int]:
+    """Accounts with threshold - margin <= score < threshold, split by ground-truth kind."""
+    band = {a for a, v in scores.items() if threshold - margin <= v < threshold}
+    decoy_ids = {a for members in decoys.values() for a in members}
+    return {
+        "attackers": len(band & set(truth)),
+        "decoys": len(band & decoy_ids),
+        "background": len(band - set(truth) - decoy_ids),
+    }

@@ -4,6 +4,7 @@ python -m services.detector val-load [--apply]            # validation seeds -> 
 python -m services.detector pipeline --target live|7 [--apply]
 python -m services.detector select --iteration 1 [--apply]  # threshold from validation
 python -m services.detector score-live --iteration 1 [--apply]
+python -m services.detector margin [--apply]               # review band from validation
 """
 
 from __future__ import annotations
@@ -36,10 +37,19 @@ def _now() -> str:
     return dt.datetime.now(dt.UTC).strftime("%Y-%m-%d %H:%M:%S")
 
 
+CACHE_DIR = Path(__file__).resolve().parents[2] / ".cache" / "detector"
+
+
 def load_inputs(client, project: str, target: pipeline.Target) -> dict:
-    features = pipeline.fetch_rows(client, target.table("det_features"))
+    """Features, baseline flags and labels of one target (free table reads, cached locally)."""
+
+    def cache(name: str) -> Path:
+        return CACHE_DIR / f"{target.name}_{name}.json"
+
+    features = pipeline.fetch_rows(client, target.table("det_features"), cache("features"))
     baseline = {
-        r["account_id"] for r in pipeline.fetch_rows(client, target.table("baseline_flags"))
+        r["account_id"]
+        for r in pipeline.fetch_rows(client, target.table("baseline_flags"), cache("baseline"))
     }
     truth, decoys = evaluate.fetch_labels(client, project, target)
     return {"features": features, "baseline": baseline, "truth": truth, "decoys": decoys}
@@ -191,6 +201,32 @@ def cmd_select(args, project) -> None:
     write_results(client, project, all_rows, args.iteration, args.apply)
 
 
+def cmd_margin(args, project) -> None:
+    """Derive the review margin from validation seeds only and store it next to the threshold.
+
+    margin = mean over validation seeds of (weakest attacker score - strongest non-attacker
+    score). The threshold itself is not re-selected.
+    """
+    frozen = json.loads(THRESHOLD_FILE.read_text(encoding="utf-8"))
+    client = _client(project)
+    gaps = {}
+    for seed in VALIDATION_SEEDS:
+        inp = load_inputs(client, project, pipeline.validation_target(project, seed))
+        scores = {s["account_id"]: s["score"] for s in scoring.score_rows(inp["features"], 0.0)}
+        gaps[seed] = evaluate.score_gap(scores, inp["truth"])
+    margin = round(max(0.0, sum(gaps.values()) / len(gaps)), 2)
+    print(f"gaps by validation seed: {gaps} -> review margin {margin}")
+    if args.apply:
+        frozen["review_margin"] = margin
+        frozen["review_gap_by_seed"] = {str(k): round(v, 4) for k, v in gaps.items()}
+        THRESHOLD_FILE.write_text(
+            json.dumps(frozen, indent=2) + "\n", encoding="utf-8", newline="\n"
+        )
+        print("wrote review_margin to threshold.json")
+    else:
+        print("dry run: threshold.json unchanged (pass --apply)")
+
+
 def cmd_score_live(args, project) -> None:
     frozen = json.loads(THRESHOLD_FILE.read_text(encoding="utf-8"))
     if frozen["iteration"] != args.iteration:
@@ -201,7 +237,8 @@ def cmd_score_live(args, project) -> None:
     inp = load_inputs(client, project, target)
     run_id = f"live-{args.iteration}-{uuid.uuid4().hex[:8]}"
     created = _now()
-    scored = scoring.score_rows(inp["features"], threshold)
+    margin = frozen.get("review_margin", 0.0)
+    scored = scoring.score_rows(inp["features"], threshold, margin)
     alerts = scoring.build_alerts(scored, run_id, created)
     flagged = {s["account_id"] for s in scored if s["flagged"]}
     accounts = {s["account_id"] for s in scored}
@@ -209,7 +246,11 @@ def cmd_score_live(args, project) -> None:
     base = evaluate.metrics(inp["baseline"], inp["truth"], inp["decoys"], accounts)
     show("seed 42 baseline (flat funding rule)", base)
     show(f"seed 42 detector (frozen threshold {threshold})", det)
+    scores = {s["account_id"]: s["score"] for s in scored}
+    band = evaluate.band_counts(scores, inp["truth"], inp["decoys"], threshold, margin)
     print(f"\n{len(flagged)} accounts flagged in {len(alerts)} alerts")
+    print(f"review band [{threshold - margin:.2f}, {threshold}): {band}")
+    print("hint accuracy:", evaluate.hint_accuracy(alerts, inp["truth"])["by_scenario"])
     if args.apply:
         from google.cloud import bigquery
 
@@ -242,7 +283,7 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="python -m services.detector", description=__doc__)
     ap.add_argument("--project", default=os.environ.get("PROJECT_ID"))
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name in ("val-load", "pipeline", "select", "score-live"):
+    for name in ("val-load", "pipeline", "select", "score-live", "margin"):
         sp = sub.add_parser(name)
         sp.add_argument("--apply", action="store_true")
         if name == "pipeline":
@@ -257,6 +298,7 @@ def main(argv: list[str] | None = None) -> None:
         "pipeline": cmd_pipeline,
         "select": cmd_select,
         "score-live": cmd_score_live,
+        "margin": cmd_margin,
     }[args.cmd](args, args.project)
 
 

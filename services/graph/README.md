@@ -4,10 +4,11 @@ Graph tools over `risk_graph.market_graph`, for the agents (P4) and the web work
 
 ```python
 from services.graph.service import GraphService
+
 svc = GraphService(project)
-svc.neighbors("A0100", hops=2)        # accounts within 2 link hops, with the edges seen
-svc.ring_subgraph("R_W001")           # whole connected ring: members, nodes, edges (JSON)
-svc.trades_for(["W001"], "M05")       # TradedIn summary edges + trade rows (<= 500)
+svc.neighbors("A0100", hops=2)  # accounts within 2 link hops, with the edges seen
+svc.ring_subgraph("R_W001")  # whole connected ring: members, nodes, edges (JSON)
+svc.trades_for(["W001"], "M05")  # TradedIn summary edges + trade rows (<= 500)
 ```
 
 Every reply has `engine` (`gql` or `fallback`), `cached`, and, after a fallback,
