@@ -1,0 +1,98 @@
+[
+ {
+  "alert_id": "EV_C004",
+  "ring_id": "R_C002",
+  "status": "needs_review",
+  "scenario_hint": "coordinated_accumulation",
+  "member_accounts": [
+   "C004"
+  ],
+  "n_members": 1,
+  "score": 42.99,
+  "top_features": "{\"late_concentration\": 15.0, \"size_zscore\": 10.0, \"timing_zscore\": 10.0, \"account_freshness\": 3.78}",
+  "evidence_trade_ids": [],
+  "evidence_edge_ids": [],
+  "threshold": 43.0,
+  "run_id": "eval-injected",
+  "created_ts": "2026-10-16 00:00:00",
+  "n_flagged": 0,
+  "injected": "evaluation"
+ },
+ {
+  "alert_id": "EV_DG1_household",
+  "ring_id": "R_A0100",
+  "status": "needs_review",
+  "scenario_hint": "unclassified",
+  "member_accounts": [
+   "A0100",
+   "A0101",
+   "A0102",
+   "A0103",
+   "A0104"
+  ],
+  "n_members": 5,
+  "score": 18.194,
+  "top_features": "{\"link_density\": 8.0, \"link_size\": 6.86, \"timing_zscore\": 3.21, \"account_freshness\": 0.06}",
+  "evidence_trade_ids": [],
+  "evidence_edge_ids": [],
+  "threshold": 43.0,
+  "run_id": "eval-injected",
+  "created_ts": "2026-10-16 00:00:00",
+  "n_flagged": 0,
+  "injected": "evaluation"
+ },
+ {
+  "alert_id": "EV_DG2_exchange_cluster",
+  "ring_id": "R_A0055",
+  "status": "needs_review",
+  "scenario_hint": "unclassified",
+  "member_accounts": [
+   "A0200",
+   "A0201",
+   "A0202",
+   "A0203",
+   "A0204",
+   "A0205",
+   "A0206",
+   "A0207"
+  ],
+  "n_members": 8,
+  "score": 17.8113,
+  "top_features": "{\"link_size\": 12.0, \"link_density\": 4.12, \"timing_zscore\": 1.36, \"size_zscore\": 0.29}",
+  "evidence_trade_ids": [],
+  "evidence_edge_ids": [],
+  "threshold": 43.0,
+  "run_id": "eval-injected",
+  "created_ts": "2026-10-16 00:00:00",
+  "n_flagged": 0,
+  "injected": "evaluation"
+ },
+ {
+  "alert_id": "EV_DG3_busy_honest",
+  "ring_id": "R_A0024",
+  "status": "needs_review",
+  "scenario_hint": "coordinated_accumulation",
+  "member_accounts": [
+   "A0300",
+   "A0301",
+   "A0302",
+   "A0303",
+   "A0304",
+   "A0305",
+   "A0306",
+   "A0307",
+   "A0308",
+   "A0309"
+  ],
+  "n_members": 10,
+  "score": 20.525,
+  "top_features": "{\"late_concentration\": 9.1, \"timing_zscore\": 8.19, \"size_zscore\": 2.35, \"link_density\": 0.53}",
+  "evidence_trade_ids": [],
+  "evidence_edge_ids": [],
+  "threshold": 43.0,
+  "run_id": "eval-injected",
+  "created_ts": "2026-10-16 00:00:00",
+  "n_flagged": 0,
+  "injected": "evaluation"
+ }
+]

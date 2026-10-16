@@ -31,6 +31,7 @@ from services.app.decisions import (
     latest_visible,
 )
 from services.app.deps import Deps
+from services.app.injected import load_injected
 from services.app.models import LANES
 from services.app.pipeline import investigate
 from services.app.policy import PolicyIndex
@@ -48,7 +49,7 @@ def default_deps(settings: Settings | None = None) -> Deps:
     s = settings or Settings()
     return Deps(
         settings=s,
-        store=DataStore(s.project),
+        store=DataStore(s.project, extra_alerts=load_injected()),
         graph=GraphService(s.project),
         policy=PolicyIndex(),
         backend=AdkBackend(s),
