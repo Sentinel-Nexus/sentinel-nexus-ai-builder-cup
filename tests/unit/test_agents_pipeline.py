@@ -38,10 +38,11 @@ def test_tool_results_land_in_the_ledger_and_the_audit_with_engine_and_cached():
     backend = FakeBackend(good_findings())
     _, audit, res = run(backend)
     calls = [e for e in audit.events if e["event_type"] == "tool_call"]
-    assert [c["tool"] for c in calls] == ["get_alert_context", "graph", "trades_for"]
-    graph_call = calls[1]
-    assert (graph_call["engine"], graph_call["cached"]) == ("fallback", False)
-    assert (calls[2]["engine"], calls[2]["cached"]) == ("gql", True)  # a cached answer is labelled
+    by_tool = {c["tool"]: c for c in calls}  # prefetched in parallel: order is not fixed
+    assert sorted(by_tool) == ["get_alert_context", "graph", "trades_for"]
+    assert (by_tool["graph"]["engine"], by_tool["graph"]["cached"]) == ("fallback", False)
+    # a cached answer is labelled as cached, never presented as live
+    assert (by_tool["trades_for"]["engine"], by_tool["trades_for"]["cached"]) == ("gql", True)
     assert res["report"]["decision"] == "escalate"
 
 
@@ -306,3 +307,87 @@ def test_http_sse_cache_force_and_approve():
         assert ok.json()["webhook_fired"] is True
         bad = client.post("/cases/AL_W/approve", json={"analyst": "a1", "decision": "maybe"})
         assert bad.status_code == 422
+
+
+# ---- latency work: prefetch, deadline, status, numbers, ledger ----
+
+
+def test_prefetch_runs_the_three_core_tools_before_the_investigator():
+    backend = FakeBackend(good_findings())
+    _, audit, _ = run(backend)
+    assert set(backend.briefs[0]["prefetched"]) == {"get_alert_context", "graph", "trades_for"}
+    kinds = [(e["event_type"], e["tool"]) for e in audit.events]
+    assert kinds.index(("step", None)) < len(kinds)  # sanity
+    first_call = next(i for i, e in enumerate(audit.events) if e["event_type"] == "tool_call")
+    verdict = next(i for i, e in enumerate(audit.events) if e["event_type"] == "verdict")
+    assert first_call < verdict
+    assert any("prefetched 3 tools in parallel" in e["summary"] for e in audit.events)
+
+
+def test_numbers_in_a_claim_must_appear_in_the_cited_rows():
+    bad = Claim(id="x", text="W001 bought 9,999 USD of YES", evidence_ids=["TradedIn:W001>M05"])
+    findings = good_findings()
+    findings.claims.append(bad)
+    _, _, res = run(FakeBackend(findings, second=findings))
+    assert any("9,999" in u and "numbers not in the cited rows" in u
+               for u in res["report"]["unsupported_claims"])  # fmt: skip
+
+
+def test_ledger_trade_row_replaces_the_empty_listed_id():
+    from services.app.ledger import Ledger
+
+    ledger = Ledger()
+    ledger.record(1, "get_alert_context", {"alert_id": "AL", "evidence_trade_ids": ["T1"]})
+    ledger.record(2, "trades_for", {"trades": [{"id": "T1", "side": "BUY", "price": 0.5}]})
+    assert "BUY" in ledger.resolve(["T1"])[0]["T1"]["row"]
+
+
+def test_drafter_picks_policy_clauses_and_unknown_clause_ids_are_dropped():
+    _, _, res = run(FakeBackend(good_findings()))
+    refs = [r["clause_id"] for r in res["report"]["policy_references"]]
+    assert refs == ["SP-2.1"]
+
+
+def test_deadline_returns_timed_out_and_is_not_cached():
+    from services.app.budget import CaseTimeout
+
+    class Slow(FakeBackend):
+        def investigate(self, ctx, tools, brief, feedback):
+            raise CaseTimeout("too slow")
+
+    deps, audit = make_deps(Slow(good_findings()))
+    res = investigate(deps, "AL_W")
+    assert res["status"] == "timed_out" and res["report"] is None
+    assert deps.cases.get("AL_W") is None  # a repeat request tries again
+    assert any(e["event_type"] == "limit" and "timed out" in e["summary"] for e in audit.events)
+
+
+def test_a_failing_agent_gives_a_clean_error_status():
+    class Broken(FakeBackend):
+        def draft(self, ctx, material):
+            raise RuntimeError("boom")
+
+        def investigate(self, ctx, tools, brief, feedback):
+            raise ValueError("bad output")
+
+    deps, audit = make_deps(Broken(good_findings()))
+    res = investigate(deps, "AL_W")
+    assert res["status"] == "error" and "bad output" in res["error"]
+    assert any(e["event_type"] == "error" for e in audit.events)
+
+
+def test_cached_case_is_served_in_well_under_a_second():
+    import time
+
+    deps, _ = make_deps(FakeBackend(good_findings()))
+    investigate(deps, "AL_W")
+    t0 = time.monotonic()
+    again = investigate(deps, "AL_W")
+    assert again["cached"] is True and time.monotonic() - t0 < 1.0
+
+
+def test_escalation_with_no_named_accounts_is_downgraded():
+    findings = good_findings()
+    findings.escalate_accounts = []
+    _, _, res = run(FakeBackend(findings, second=findings))
+    assert res["report"]["decision"] == "uncertain"

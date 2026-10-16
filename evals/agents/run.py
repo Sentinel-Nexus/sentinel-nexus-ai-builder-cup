@@ -20,6 +20,7 @@ from pathlib import Path
 from evals.agents import cases as eval_cases
 from evals.agents import metrics
 from services.app.agents import AdkBackend
+from services.app.audit import drain_all
 from services.app.cases import BigQueryCases, MemoryCases
 from services.app.config import Settings
 from services.app.cost import estimate, format_estimate
@@ -79,18 +80,44 @@ def plan(deps, labels) -> list[dict]:
     return out
 
 
+def trace_summary(events: list[dict]) -> dict:
+    """Per-agent wall time, model calls, tokens in/out and retries from one run's events."""
+    out: dict[str, dict] = {}
+    for e in events:
+        a = out.setdefault(e["agent"], {"llm_calls": 0, "tokens_in": 0, "tokens_out": 0,
+                                         "llm_ms": 0, "retries": 0, "tool_calls": 0})  # fmt: skip
+        d = json.loads(e["detail"]) if e.get("detail") else {}
+        if e["event_type"] == "llm_call":
+            a["llm_calls"] += 1
+            a["tokens_in"] += d.get("tokens_in", 0)
+            a["tokens_out"] += d.get("tokens_out", 0) + d.get("tokens_thinking", 0)
+            a["llm_ms"] += e.get("latency_ms") or 0
+        elif e["event_type"] == "retry":
+            a["retries"] += 1
+        elif e["event_type"] == "tool_call":
+            a["tool_calls"] += 1
+    return out
+
+
 def run_case(deps, item: dict) -> dict:
-    run = investigate(deps, item["alert_id"], force=True, source="eval")
+    events: list[dict] = []
+    run = investigate(deps, item["alert_id"], force=True, source="eval", listeners=[events.append])
+    if run["status"] != "ok":
+        return {**item, "run": run, "trace": trace_summary(events)}
     t0 = time.monotonic()
     repeat = investigate(deps, item["alert_id"])  # cache hit: no agents, no tokens
     return {**item, "run": run, "repeat_ms": int((time.monotonic() - t0) * 1000),
-            "repeat_cached": repeat["cached"]}  # fmt: skip
+            "repeat_cached": repeat["cached"], "trace": trace_summary(events)}  # fmt: skip
 
 
 def adversarial(deps, alert_id: str) -> dict:
     deps.backend = InjectingBackend(deps.settings)
     deps.cases = MemoryCases()
     res = investigate(deps, alert_id, force=True, source="eval-adversarial")
+    if res["status"] != "ok":
+        return {"alert_id": alert_id, "status": res["status"], "error": res.get("error"),
+                "injected": len(INJECTED_TEXTS), "rejected": 0, "leaked_into_report": 0,
+                "passed": False, "tokens": res["tokens"], "tool_calls": res["tool_calls"]}  # fmt: skip
     report = res["report"]
     table_text = " ".join(row["claim"] for row in report["evidence_table"])
     rejected = [t for t in INJECTED_TEXTS if any(t in u for u in report["unsupported_claims"])]
@@ -162,6 +189,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--apply", action="store_true", help="spend Gemini tokens (default: dry run)")
     ap.add_argument("--max-runs", type=int, default=12, help="hard cap on investigations")
     ap.add_argument("--no-adversarial", action="store_true")
+    ap.add_argument("--only", default="", help="comma-separated alert ids to run")
+    ap.add_argument("--max-minutes", type=float, default=20.0, help="total wall-clock cap")
     args = ap.parse_args(argv)
 
     settings = Settings()
@@ -173,6 +202,9 @@ def main(argv: list[str] | None = None) -> int:
         bigquery.Client(project=settings.project, location="US"), settings.project
     )
     items = plan(deps, labels)
+    if args.only:
+        wanted = set(args.only.split(","))
+        items = [it for it in items if it["alert_id"] in wanted]
     n = len(items) + (0 if args.no_adversarial else 1)
     print(f"cases ({n} investigations):")
     for it in items:
@@ -188,17 +220,30 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     deps.graph.warm()
-    results = []
+    deps.store.warm()
+    started = time.monotonic()
+    results, failures, stopped = [], [], None
     for it in items:
+        if time.monotonic() - started > args.max_minutes * 60:
+            stopped = (
+                f"wall-clock cap of {args.max_minutes:.0f} min reached before {it['alert_id']}"
+            )
+            print(stopped, flush=True)
+            break
         print(f"running {it['alert_id']} ...", flush=True)
         r = run_case(deps, it)
+        run = r["run"]
+        if run["status"] != "ok":
+            failures.append({"alert_id": it["alert_id"], "status": run["status"],
+                             "error": run.get("error"), "latency_ms": run["latency_ms"]})  # fmt: skip
+            print(f"  {run['status']}: {run.get('error')} after {run['latency_ms']} ms", flush=True)
+            continue
         results.append(r)
-        rep = r["run"]["report"]
-        print(f"  {rep['decision']} tokens={r['run']['tokens']} {r['run']['latency_ms']} ms "
-              f"engines={r['run']['engines']}", flush=True)  # fmt: skip
+        print(f"  {run['report']['decision']} tokens={run['tokens']} {run['latency_ms']} ms "
+              f"engines={run['engines']} trace={json.dumps(r['trace'])}", flush=True)  # fmt: skip
     real_backend, real_cases = deps.backend, deps.cases
     adv = None
-    if not args.no_adversarial:
+    if not args.no_adversarial and stopped is None:
         wash = next(
             a["alert_id"] for a in deps.store.alerts() if a["scenario_hint"] == "wash_trading"
         )
@@ -213,10 +258,13 @@ def main(argv: list[str] | None = None) -> int:
         "retrieval": "keyword",
         "metrics": metrics.compute(results, labels),
         "adversarial": adv,
+        "failures": failures,
+        "stopped": stopped,
         "cases": [
             {
                 "alert_id": r["alert_id"],
                 "kind": r["kind"],
+                "trace": r["trace"],
                 "decision": r["run"]["report"]["decision"],
                 "tokens": r["run"]["tokens"],
                 "latency_ms": r["run"]["latency_ms"],
@@ -229,6 +277,7 @@ def main(argv: list[str] | None = None) -> int:
             for r in results
         ],
     }
+    drain_all()
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(summary, indent=2), encoding="utf-8", newline="\n")
     OUT_MD.write_text(render_md(summary), encoding="utf-8", newline="\n")

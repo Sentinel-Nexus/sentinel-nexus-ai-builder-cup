@@ -15,6 +15,7 @@ import argparse
 import sys
 import time
 
+from services.app.audit import drain_all
 from services.app.config import Settings
 from services.app.cost import estimate, format_estimate
 from services.app.main import default_deps
@@ -50,12 +51,17 @@ def main(argv: list[str] | None = None) -> int:
         t0 = time.monotonic()
         res = investigate(deps, a["alert_id"], force=True, source="precompute")
         spent += res["tokens"]
+        if res["status"] != "ok":
+            print(f"{a['alert_id']} {res['status']}: {res.get('error')} (stopping)", flush=True)
+            drain_all()
+            return 1
         rep = res["report"]
         print(
             f"{a['alert_id']} {rep['decision']} conf={rep['confidence']} tokens={res['tokens']} "
             f"{time.monotonic() - t0:.0f}s engines={res['engines']} budget={res['budget_status']}",
             flush=True,
         )
+    drain_all()
     print(f"done: {len(todo)} cases cached, {spent:,} tokens")
     return 0
 

@@ -7,7 +7,7 @@ from services.app.cases import MemoryCases
 from services.app.config import Settings
 from services.app.data import DataStore
 from services.app.deps import Deps
-from services.app.models import Claim, Findings, PolicyRef
+from services.app.models import Claim, Findings
 from services.app.policy import PolicyIndex
 from services.app.ratelimit import ForceLimiter
 
@@ -90,8 +90,7 @@ class FakeGraph:
 class FakeBackend:
     """Scripted agents. ``first`` / ``second`` are the Investigator's two possible answers."""
 
-    models = {"investigator": "fake-fast", "policy": "fake-fast", "drafter": "fake-fast",
-              "critic": "fake-strong"}  # fmt: skip
+    models = {"investigator": "fake-fast", "drafter": "fake-fast", "critic": "fake-strong"}
 
     def __init__(self, first: Findings, second: Findings | None = None, critic_rejects=()):
         self.first, self.second = first, second
@@ -103,15 +102,8 @@ class FakeBackend:
     def investigate(self, ctx, tools, brief, feedback):
         self.investigations += 1
         self.feedbacks.append(feedback)
-        by_name = {t.__name__: t for t in tools}
-        if feedback is None:
-            by_name["get_alert_context"](brief["alert_id"])
-            by_name["graph"]("ring_subgraph", brief["ring_id"])
-            by_name["trades_for"](["W001", "W002"], "M05")
+        self.briefs = getattr(self, "briefs", []) + [brief]
         return (self.second if feedback and self.second else self.first).model_copy(deep=True)
-
-    def choose_policy(self, ctx, summary, candidates):
-        return [PolicyRef(clause_id=c["clause_id"], title=c["title"]) for c in candidates[:2]]
 
     def critic_check(self, ctx, items):
         self.critic_calls.append(items)
@@ -123,7 +115,9 @@ class FakeBackend:
 
     def draft(self, ctx, material):
         return {"summary": "Summary [c1].", "pattern": "p", "hint_note": "agrees",
-                "recommended_action": "analyst_review", "confidence": 0.9}  # fmt: skip
+                "recommended_action": "analyst_review", "confidence": 0.9,
+                "policy_refs": [{"clause_id": "SP-2.1", "why": "wash trading"},
+                                {"clause_id": "SP-99.9", "why": "not a real clause"}]}  # fmt: skip
 
 
 def good_findings(decision="escalate") -> Findings:
