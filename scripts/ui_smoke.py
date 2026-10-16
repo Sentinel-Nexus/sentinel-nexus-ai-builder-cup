@@ -144,6 +144,7 @@ def run(base: str, write: bool = False, out: Checks | None = None) -> Checks:
         s, b, ms, _ = call(base, "/cases/AL_NOPE/investigate", "POST")
         c.check("POST investigate unknown alert is a 404", s == 404, f"{s}", ms)
         if write:
+            _, before, _, _ = call(base, "/summary")
             body = {"analyst": "smoke-test", "decision": "approve", "note": "ui_smoke audit check"}
             s, b, ms, _ = call(base, f"/cases/{aid}/approve", "POST", body)
             c.check(
@@ -156,6 +157,46 @@ def run(base: str, write: bool = False, out: Checks | None = None) -> Checks:
             s, a2, ms, _ = call(base, f"/audit?alert_id={aid}&event_type=approval&limit=50")
             found = s == 200 and any("smoke-test" in (e.get("detail") or "") for e in a2["events"])
             c.check("approval is readable from the audit table", found, "", ms)
+            ok2 = found and all(
+                e["test_record"] for e in a2["events"] if "smoke-test" in (e.get("detail") or "")
+            )
+            c.check("audit marks smoke-test events as test records", ok2, "", ms)
+            _, after, _, _ = call(base, "/summary")
+            c.check(
+                "test records do not change decided or lanes",
+                after["decided"] == before["decided"] and after["lanes"] == before["lanes"],
+                f"decided {before['decided']} -> {after['decided']}",
+            )
+            cleared = lanes["agent_cleared"]
+            if cleared:
+                cid = cleared[0]["alert_id"]
+                body = {
+                    "analyst": "smoke-test",
+                    "decision": "override_to_escalate",
+                    "note": "ui_smoke override check",
+                }
+                s, b, ms, _ = call(base, f"/cases/{cid}/override", "POST", body)
+                c.check(
+                    "POST override moves a cleared case to escalated",
+                    s == 200 and b.get("lane") == "escalated",
+                    f"{cid}",
+                    ms,
+                )
+                time.sleep(2)
+                _, tv, _, _ = call(base, "/lanes?include_test=true")
+                _, dv, _, _ = call(base, "/lanes")
+                c.check(
+                    "test view shows the override", cid in [x["alert_id"] for x in tv["escalated"]]
+                )
+                c.check(
+                    "default view is unchanged (the test reset)",
+                    cid in [x["alert_id"] for x in dv["agent_cleared"]],
+                )
+                s, tr, _, _ = call(base, f"/audit?alert_id={cid}&event_type=override&limit=20")
+                c.check(
+                    "override is in the audit table",
+                    s == 200 and any(e["test_record"] for e in tr["events"]),
+                )
     return c
 
 

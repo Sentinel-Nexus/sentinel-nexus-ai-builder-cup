@@ -10,13 +10,16 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import queue
 import threading
 import time
+import traceback
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
 from services.app.audit import BigQueryAudit, drain_all
@@ -73,12 +76,18 @@ class Override(BaseModel):
     note: str = ""
 
 
+WARM_ATTEMPTS = 3
+
+
 def need_reason(note: str) -> str:
     """Every analyst action carries a written reason (it goes to the audit trail)."""
     note = note.strip()
     if len(note) < 3:
         raise HTTPException(422, "a reason is required (at least 3 characters)")
     return note
+
+
+log = logging.getLogger("uvicorn.error")
 
 
 def sse(event: str, data) -> str:
@@ -89,7 +98,7 @@ def create_app(deps: Deps | None = None) -> FastAPI:
     state: dict = {"deps": deps, "ready": False, "warm_error": None}
     slots = threading.BoundedSemaphore(2)  # investigations running at once; the rest wait
 
-    def warm() -> None:
+    def warm(attempt: int = 1) -> None:
         t0 = time.monotonic()
         try:
             d = state["deps"]
@@ -103,8 +112,13 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             print(f"warm: ready after {time.monotonic() - t0:.1f}s", flush=True)
             state["prefetch"]()  # graph, trades and timelines of the cached cases
             print(f"warm: views prefetched after {time.monotonic() - t0:.1f}s", flush=True)
+            state["warm_error"] = None
         except Exception as e:  # noqa: BLE001  reported on /health, requests still work
             state["warm_error"] = f"{type(e).__name__}: {str(e)[:200]}"
+            print(f"warm: failed: {state['warm_error']}", flush=True)
+            if attempt < WARM_ATTEMPTS:  # a transient BigQuery or Vertex error at start-up
+                time.sleep(10)
+                warm(attempt + 1)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
@@ -117,6 +131,20 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         drain_all()  # queued audit inserts
 
     app = FastAPI(title="MarketSentinel agents", lifespan=lifespan)
+
+    @app.exception_handler(Exception)
+    async def unhandled(request: Request, exc: Exception):
+        """Any 500: log the traceback with a request id and give the caller the same id."""
+        rid = uuid.uuid4().hex[:12]
+        tb = "".join(traceback.format_exception(exc))
+        log.error(
+            "unhandled error request_id=%s %s %s\n%s", rid, request.method, request.url.path, tb
+        )
+        return JSONResponse(
+            {"detail": f"Internal error (request id {rid}), logged.", "request_id": rid},
+            status_code=500,
+            headers={"X-Request-Id": rid},
+        )
 
     def d() -> Deps:
         return state["deps"]
@@ -134,7 +162,11 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             d().audit_reader.invalidate()
 
     @app.get("/health")
-    def health():
+    def health(response: Response):
+        """200 only once the service is warm: the Cloud Run startup probe uses this, so no
+        traffic reaches an instance that is listening but not ready."""
+        if not state["ready"]:
+            response.status_code = 503
         return {
             "status": "ok",
             "service": "marketsentinel-agents",

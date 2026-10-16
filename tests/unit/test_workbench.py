@@ -226,3 +226,60 @@ def test_audit_limit_is_a_ceiling_even_if_the_reader_returns_more():
     deps.audit_reader = Greedy()
     with c:
         assert c.get("/audit", params={"limit": 15}).json()["n"] == 15
+
+
+# ---- 500 handler and readiness ----
+
+
+def test_an_unexpected_error_is_logged_with_a_request_id_and_returned_as_json(caplog):
+    deps, _, _ = client_with_case()
+
+    def boom():
+        raise RuntimeError("table read exploded")
+
+    deps.store.alerts = boom
+    with TestClient(create_app(deps), raise_server_exceptions=False) as c:
+        r = c.get("/queue")
+    assert r.status_code == 500
+    rid = r.json()["request_id"]
+    assert rid and rid in r.json()["detail"] and r.headers["x-request-id"] == rid
+    logged = [m for m in caplog.messages if rid in m]
+    assert logged and "RuntimeError: table read exploded" in logged[0] and "/queue" in logged[0]
+
+
+def test_health_is_503_until_the_service_is_warm_and_200_after():
+    import time
+
+    deps, _, _ = client_with_case()
+    with TestClient(create_app(deps)) as c:
+        for _ in range(100):
+            r = c.get("/health")
+            if r.status_code == 200:
+                break
+            assert r.status_code == 503 and r.json()["ready"] is False
+            time.sleep(0.05)
+        assert r.status_code == 200 and r.json()["ready"] is True
+
+
+def test_warm_is_retried_after_a_transient_failure(monkeypatch):
+    import time
+
+    monkeypatch.setattr(time, "sleep", lambda s: None)
+    deps, _, _ = client_with_case()
+    calls = {"n": 0}
+    real = deps.store.warm
+
+    def flaky():
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise RuntimeError("bigquery hiccup")
+        real()
+
+    deps.store.warm = flaky
+    with TestClient(create_app(deps)) as c:
+        for _ in range(200):
+            if c.get("/health").status_code == 200:
+                break
+            time.sleep(0.02)
+        h = c.get("/health").json()
+    assert calls["n"] == 2 and h["ready"] is True and h["warm_error"] is None
