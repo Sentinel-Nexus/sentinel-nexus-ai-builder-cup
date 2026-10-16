@@ -30,7 +30,13 @@ SERVICE = "sentinel-hello"
 # Written by the Cloud Shell detect.py (P2 replaces them); a mismatch is a warning, not drift.
 SOFT_ROWS = {"eval.benchmark": 3, "eval.benchmark_runs": 12}
 # Detector outputs (P2): schema is checked, row counts are results, not drift.
-OUTPUT_TABLES = ("risk_curated.alerts", "risk_curated.account_scores", "eval.detector_results")
+OUTPUT_TABLES = (
+    "risk_curated.alerts",
+    "risk_curated.account_scores",
+    "eval.detector_results",
+    "risk_curated.case_reports",  # P4 agents
+    "audit.agent_events",
+)
 EXPECTED_TOPICS = {"trades", "trades-dlq"}
 EXPECTED_SUBS = {
     "trades-sub": {"ack": 60, "dlq": "trades-dlq", "attempts": 5},
@@ -196,7 +202,7 @@ def bigquery_checks(project: str, run_query: bool):
 
     try:
         client.get_dataset(f"{project}.audit")
-        results.append(("dataset audit exists", OK, "empty by design until P4"))
+        results.append(("dataset audit exists", OK, "agent_events written by services/app"))
     except Exception as e:  # noqa: BLE001
         results.append(("dataset audit exists", FAIL, str(e)[:120]))
 
