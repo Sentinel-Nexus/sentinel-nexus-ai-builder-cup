@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS `__P__.audit.agent_events` (
 -- retrieval: policy retrieval used (keyword | vertex_ai_search)
 -- budget_status: ok | budget_exhausted
 -- source: live | precompute | eval
+-- lane: escalated | agent_cleared | needs_analyst (added last by sql/migrations/p4_20_case_lane.sql)
 CREATE TABLE IF NOT EXISTS `__P__.risk_curated.case_reports` (
   case_id STRING,
   alert_id STRING,
@@ -46,5 +47,6 @@ CREATE TABLE IF NOT EXISTS `__P__.risk_curated.case_reports` (
   tokens_total INT64,
   latency_ms INT64,
   forced BOOL,
-  source STRING
+  source STRING,
+  lane STRING
 );

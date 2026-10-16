@@ -21,7 +21,9 @@ from pydantic import BaseModel
 from services.app.audit import BigQueryAudit, drain_all
 from services.app.cases import BigQueryCases
 from services.app.config import Settings
+from services.app.decisions import BigQueryDecisions, decision_row, effective_lane
 from services.app.deps import Deps
+from services.app.models import LANES
 from services.app.pipeline import investigate
 from services.app.policy import PolicyIndex
 from services.app.ratelimit import ForceLimiter
@@ -43,12 +45,19 @@ def default_deps(settings: Settings | None = None) -> Deps:
         cases=BigQueryCases(s.project),
         audit_factory=lambda: BigQueryAudit(s.project),
         limiter=ForceLimiter(s.force_per_hour, s.force_per_day),
+        decisions=BigQueryDecisions(s.project),
     )
 
 
 class Decision(BaseModel):
     analyst: str
     decision: str  # approve | reject
+    note: str = ""
+
+
+class Override(BaseModel):
+    analyst: str
+    decision: str  # override_to_escalate | confirm_clear
     note: str = ""
 
 
@@ -66,6 +75,7 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             d.graph.warm()  # BigQuery client up before the first GQL call
             d.store.warm()
             d.cases.latest()
+            d.decisions.latest()
             if hasattr(d.backend, "warm"):
                 d.backend.warm()  # model clients up before the first investigation
             state["ready"] = True
@@ -86,6 +96,12 @@ def create_app(deps: Deps | None = None) -> FastAPI:
 
     def d() -> Deps:
         return state["deps"]
+
+    def _report(row: dict) -> dict:
+        """The stored report; the lane is derived from the decision for rows written before it."""
+        report = json.loads(row["report"])
+        report.setdefault("lane", LANES.get(report["decision"], "needs_analyst"))
+        return report
 
     @app.get("/health")
     def health():
@@ -182,10 +198,81 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         case = {"run_id": row["run_id"], "report": json.loads(row["report"])}
         try:
             return record_decision(
-                d().audit_factory(), case, body.analyst, body.decision, body.note
+                d().audit_factory(),
+                case,
+                body.analyst,
+                body.decision,
+                body.note,
+                override=d().decisions.latest().get(alert_id),
             )
         except ValueError as e:
             raise HTTPException(422, str(e)) from e
+
+    @app.post("/cases/{alert_id}/override")
+    def override(alert_id: str, body: Override):
+        """The analyst disagrees with an agent clear (or confirms it). Audited and stored; an
+        override moves the case to the escalated lane but still needs approval to act."""
+        row = d().cases.get(alert_id)
+        if row is None:
+            raise HTTPException(404, "no case; investigate first")
+        case = {"run_id": row["run_id"], "report": _report(row)}
+        try:
+            rec = decision_row(case, body.analyst, body.decision, body.note)
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        d().decisions.put(rec)
+        audit = d().audit_factory()
+        audit.write(
+            {
+                "event_id": f"{rec['decision_id']}:1",
+                "run_id": rec["decision_id"],
+                "seq": 1,
+                "ts": rec["ts"],
+                "alert_id": alert_id,
+                "agent": "analyst",
+                "event_type": "override",
+                "tool": None,
+                "args": None,
+                "summary": f"{body.decision} by {rec['analyst']} (was {rec['previous_lane']})",
+                "evidence_ids": [],
+                "engine": None,
+                "cached": None,
+                "latency_ms": None,
+                "tokens": None,
+                "detail": json.dumps({"note": rec["note"], "case_run": case["run_id"]}),
+            }
+        )
+        audit.flush()
+        lane, _ = effective_lane(case["report"], rec)
+        return {"recorded": True, "decision": rec["decision"], "lane": lane}
+
+    @app.get("/lanes")
+    def lanes():
+        """Cached cases grouped by lane. Agent-cleared cases keep their own lane with the clear
+        reason and evidence, and an analyst override moves a case to `escalated`."""
+        out: dict[str, list] = {"escalated": [], "agent_cleared": [], "needs_analyst": []}
+        decisions = d().decisions.latest()
+        for alert_id, row in sorted(d().cases.latest().items()):
+            report = _report(row)
+            dec = decisions.get(alert_id)
+            lane, changed = effective_lane(report, dec)
+            out[lane].append(
+                {
+                    "alert_id": alert_id,
+                    "ring_id": report["ring_id"],
+                    "alert_status": report["alert_status"],
+                    "agent_decision": report["decision"],
+                    "agent_lane": report.get("lane"),
+                    "confidence": report["confidence"],
+                    "summary": report["summary"],
+                    "clear_reason": report.get("clear_reason", ""),
+                    "clear_evidence_ids": report.get("clear_evidence_ids", []),
+                    "analyst_decision": dec["decision"] if dec else None,
+                    "analyst": dec["analyst"] if dec else None,
+                    "analyst_changed": changed,
+                }
+            )
+        return out
 
     return app
 

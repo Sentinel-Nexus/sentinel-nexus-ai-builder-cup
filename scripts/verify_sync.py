@@ -36,6 +36,7 @@ OUTPUT_TABLES = (
     "eval.detector_results",
     "risk_curated.case_reports",  # P4 agents
     "audit.agent_events",
+    "risk_curated.case_decisions",
 )
 EXPECTED_TOPICS = {"trades", "trades-dlq"}
 EXPECTED_SUBS = {

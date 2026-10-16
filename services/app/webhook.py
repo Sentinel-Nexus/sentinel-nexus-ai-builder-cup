@@ -17,7 +17,12 @@ ALLOWED_DECISIONS = ("approve", "reject")
 
 
 def record_decision(
-    audit: AuditSink, case: dict, analyst: str, decision: str, note: str = ""
+    audit: AuditSink,
+    case: dict,
+    analyst: str,
+    decision: str,
+    note: str = "",
+    override: dict | None = None,
 ) -> dict:
     """Audit the analyst's decision; on approval of an escalation, audit the mocked webhook."""
     if decision not in ALLOWED_DECISIONS:
@@ -51,12 +56,21 @@ def record_decision(
             ),
         }
     )
-    fired = decision == "approve" and report["decision"] == "escalate"
+    overridden = bool(override and override["decision"] == "override_to_escalate")
+    escalated = report["decision"] == "escalate" or overridden
+    fired = decision == "approve" and escalated
     if fired:
+        # an analyst override of an agent clear has no agent-chosen accounts: use the members
+        accounts = report["escalate_accounts"] or sorted(
+            set(report.get("members_alert", [])) | set(report.get("members_linked", []))
+        )
         payload = {
             "alert_id": report["alert_id"],
-            "action": report["recommended_action"],
-            "accounts": report["escalate_accounts"],
+            "action": report["recommended_action"]
+            if report["decision"] == "escalate"
+            else "analyst_review",
+            "accounts": accounts,
+            "analyst_override": overridden,
             "approved_by": analyst,
             "mock": True,
         }
