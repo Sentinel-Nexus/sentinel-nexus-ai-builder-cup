@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>MarketSentinel Workbench</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d5bbf'/%3E%3Cpath d='M8 20l5-6 4 4 7-9' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <script>
+    // set the theme before first paint to avoid a flash
+    try {
+      var t = localStorage.getItem('ms-theme');
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js"
+          integrity="sha384-IWROdLKRsN1UuJywMlWl7/blXQ8GEooN2n7dzTxfEPd7ybYIKCUJ2Ol/1Gpf3YV4"
+          crossorigin="anonymous" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"
+          integrity="sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t"
+          crossorigin="anonymous" defer></script>
+  <script type="module" src="/static/js/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#view">Skip to content</a>
+  <header class="topbar">
+    <div class="brand">MarketSentinel<small>Analyst workbench</small></div>
+    <nav class="nav" aria-label="Main">
+      <a href="#/" data-nav="command">Command centre</a>
+      <a href="#/lanes" data-nav="lanes">Lanes</a>
+      <a href="#/benchmark" data-nav="benchmark">Benchmark</a>
+      <a href="#/governance" data-nav="governance">Governance</a>
+    </nav>
+    <div class="bar-actions">
+      <button class="btn small ghost" id="help-btn" type="button" aria-label="Keyboard shortcuts">?</button>
+      <button class="btn small" id="theme-btn" type="button" aria-label="Switch colour theme">Theme</button>
+    </div>
+  </header>
+  <div class="banner" role="note">Synthetic data only. Every scenario, account and trade here is generated; agents recommend, analysts decide.</div>
+  <main id="view" tabindex="-1" aria-live="polite"></main>
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+  <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
+  <noscript><main><p>The workbench needs JavaScript.</p></main></noscript>
+</body>
+</html>

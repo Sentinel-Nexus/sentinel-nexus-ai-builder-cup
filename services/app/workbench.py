@@ -247,7 +247,11 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
             }
             with lock:
                 graph_cache[alert_id] = hit
-        return {**hit, "cached": True}
+        trade_accounts: dict[str, str] = {}
+        # lets an evidence chip with a trade id light up the account that made it
+        with contextlib.suppress(HTTPException):
+            trade_accounts = {t["id"]: t["account_id"] for t in _trades(alert_id)["trades"]}
+        return {**hit, "cached": True, "trade_accounts": trade_accounts}
 
     def _trades(alert_id: str) -> dict:
         alert = alert_or_404(alert_id)
