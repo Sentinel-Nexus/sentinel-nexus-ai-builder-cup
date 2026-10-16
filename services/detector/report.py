@@ -118,12 +118,14 @@ def build(
     evaluation: int,
     robustness: list[int],
     profiles: dict[int, dict],
+    validation_gaps: dict[str, float],
 ) -> dict[str, Any]:
     seeds = {s: seed_report(inputs[s], threshold, margin) for s in inputs}
     heldout = [evaluation, *robustness]
     return {
         "threshold": threshold,
         "review_margin": margin,
+        "validation_gaps": validation_gaps,
         "validation_seeds": validation,
         "evaluation_seed": evaluation,
         "robustness_seeds": robustness,

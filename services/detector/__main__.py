@@ -254,6 +254,7 @@ def cmd_report(args, project) -> None:
         inputs,
         threshold=frozen["threshold"],
         margin=frozen["review_margin"],
+        validation_gaps=frozen["review_gap_by_seed"],
         validation=list(VALIDATION_SEEDS),
         evaluation=42,
         robustness=sorted(profiles),

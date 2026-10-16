@@ -12,6 +12,11 @@ import json
 import os
 from pathlib import Path
 
+try:
+    from scripts import hardening_doc
+except ImportError:  # run as `python scripts/benchmark.py`
+    import hardening_doc
+
 ROOT = Path(__file__).resolve().parents[1]
 METHODS = ("baseline_flat_rule", "detector_v1")
 LABELS = {"baseline_flat_rule": "Flat rule (funding shared by 5+)", "detector_v1": "Detector v1"}
@@ -111,7 +116,7 @@ def chart(rows, out: Path) -> None:
     fig.savefig(out, dpi=160, facecolor=LIGHT["bg"])
 
 
-def markdown(rows, frozen: dict, iteration: int) -> str:
+def markdown(rows, frozen: dict, iteration: int, hardening: dict) -> str:
     ev = "evaluation"
     lines = [
         "# Benchmark: flat rule vs detector v1",
@@ -168,26 +173,9 @@ def markdown(rows, frozen: dict, iteration: int) -> str:
             lines.append(
                 f"| {seed} | {LABELS[m]} | {pct(r['precision'])} | {pct(r['recall'])} | {pct(r['f1'])} |"  # noqa: E501
             )
-    lines += [
-        "",
-        "![baseline vs detector per scenario](img/benchmark.png)",
-        "",
-        "## Caveats",
-        "",
-        "- The data is synthetic and the scenarios, decoys and detector come from the same",
-        "  project. Perfect validation scores show this set is separable, not that the detector",
-        "  generalises to real markets.",
-        "- The margin is thin. On seed 42 one evaded coordination account scored 42.99 against",
-        "  the 43.0 threshold and was missed. On validation seed 23 a busy-but-honest decoy",
-        "  scored 42.2 while the weakest attacker scored 43.0.",
-        "- Weights were set a priori and never fitted; only the threshold came from data, and only",
-        "  from the validation seeds. Seed 42 was scored once per iteration, not used to tune.",
-        "- `scenario_hint` is not measured here. In the seed 42 alerts the wash ring is hinted as",
-        "  `mule_funding` because its fresh-account features outweigh matched-fill reciprocity.",
-        "- The flat rule scores the same on every seed because the decoys and evasions are",
-        "  generated identically; only the background trades differ.",
-        "",
-    ]
+    lines += ["", "![baseline vs detector per scenario](img/benchmark.png)", ""]
+    lines += hardening_doc.sections(hardening)
+    lines += hardening_doc.caveats(hardening)
     return "\n".join(lines)
 
 
@@ -198,12 +186,14 @@ def main() -> None:
     args = ap.parse_args()
     rows = fetch(args.project, args.iteration)
     frozen = json.loads((ROOT / "services/detector/threshold.json").read_text(encoding="utf-8"))
+    hardening = json.loads((ROOT / "docs/results/hardening.json").read_text(encoding="utf-8"))
     (ROOT / "docs").mkdir(exist_ok=True)
     (ROOT / "docs/benchmark.md").write_text(
-        markdown(rows, frozen, args.iteration), encoding="utf-8", newline="\n"
+        markdown(rows, frozen, args.iteration, hardening), encoding="utf-8", newline="\n"
     )
     chart(rows, ROOT / "docs/img/benchmark.png")
-    print("wrote docs/benchmark.md and docs/img/benchmark.png")
+    hardening_doc.sweep_chart(hardening, ROOT / "docs/img/threshold_sweep.png")
+    print("wrote docs/benchmark.md, docs/img/benchmark.png, docs/img/threshold_sweep.png")
 
 
 if __name__ == "__main__":
