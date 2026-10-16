@@ -2,19 +2,20 @@
 
 Live state of GCP and the repo. Update in the same commit as any cloud change.
 
-Last updated: 2026-10-14 (P1 gcp-sync)
+Last updated: 2026-10-16 (P2 detector: data reloaded per ADR 0002)
 
 ## Live GCP resources
 
 Project `project-f8544066-3df8-4f99-8ed`, region `us-central1`, BigQuery location `US`.
-Snapshot 2026-10-14; full detail in `infra/gcp/inventory.md`. The project was built by hand
+Snapshot 2026-10-14, data and graph reloaded 2026-10-16 (ADR 0002); full detail in `infra/gcp/inventory.md`. The project was built by hand
 in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 
 | Area | Live state |
 |---|---|
 | BigQuery datasets | `risk_raw`, `risk_curated`, `risk_graph`, `eval`, `audit` (empty) |
-| Data (seed 42) | accounts 2,039; trades 35,073; markets 20; ground truth 39 (8 wash, 6 coordination, 25 mule) |
-| Graph | 8 tables in `risk_graph` + property graph `market_graph` |
+| Pre-P2 backups | `eval.{trades,accounts,markets,ground_truth,alerts}_pre_p2` = 35,073 / 2,039 / 20 / 39 / 39 rows (`sql/migrations/p2_00_backup_pre_p2.sql`). Delete after P2 is accepted. |
+| Data (seed 42, ADR 0002) | accounts 2,039; trades 35,116; markets 20; ground truth 39 (8 wash, 6 coordination, 25 mule); `eval.decoy_groups` 23 (5 household, 8 exchange cluster, 10 busy-honest) |
+| Graph | 8 tables in `risk_graph` + property graph `market_graph`; device_nodes 1,870, traded_in 22,169, traded_with 54. GQL runs natively in BigQuery on reservation `gql-poc`. |
 | Eval tables | `eval.benchmark` (3), `eval.benchmark_runs` (12), `risk_curated.alerts` (39) |
 | Pub/Sub | topics `trades`, `trades-dlq`; subs `trades-sub` (DLQ, 5 attempts, ack 60 s), `trades-dlq-sub` |
 | Service accounts | `sa-agent` (aiplatform.user, bigquery.dataViewer, bigquery.jobUser), `sa-ingest` (bigquery.dataEditor, bigquery.jobUser, pubsub.subscriber) |
@@ -23,16 +24,20 @@ in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 | Reservation | `gql-poc` (ENTERPRISE, 0 baseline slots, autoscale max 50), QUERY assignment to the whole project |
 | APIs | 35 enabled, listed in the inventory |
 
-Note: the Phase 1 brief quoted 34,306 trades. That is the seed-7 count; live holds the
-seed-42 data (35,073) because the last Cloud Shell loop ended on seed 42.
+Note: the Phase 1 brief quoted 34,306 trades (seed 7). Live holds seed 42: 35,073 trades
+before ADR 0002, 35,116 after (43 decoy trades appended; earlier rows and ids unchanged).
 
-## Sync check (`python scripts/verify_sync.py`, 2026-10-14, exit 0)
+Flat rule (funding source shared by 5+ accounts) measured on live data after the reload:
+28 flagged, 20 of 39 attackers caught (wash 5/8, coordination 0/6, mule 15/25), 8 false
+positives (all of the exchange cluster). It matches the offline generator numbers.
 
-36 checks, 0 drift, 0 warnings. Highlights:
+## Sync check (`python scripts/verify_sync.py`, 2026-10-16, exit 0)
 
-- Row counts match repo/generator: trades 35,073, accounts 2,039, markets 20, ground truth 39;
-  graph tables and eval tables match the snapshot.
-- Trades fingerprint: live `SUM(size_usd)` = 2,989,086.94 = generator seed 42.
+38 checks, 0 drift, 0 warnings after the ADR 0002 reload. Highlights:
+
+- Row counts match repo/generator: trades 35,116, accounts 2,039, markets 20, ground truth 39,
+  decoy groups 23; graph row counts are derived from the generator, not a snapshot.
+- Trades fingerprint: live `SUM(size_usd)` = 3,014,521.32 = generator seed 42.
 - Ground truth by type: wash_trading 8, coordinated_accumulation 6, mule_funding 25.
 - `risk_graph.market_graph` exists; Pub/Sub topics, subscriptions and DLQ policy match.
 - Cloud Run `sentinel-hello` returns HTTP 200 `{"service":"marketsentinel","status":"ok"}`
@@ -53,8 +58,8 @@ Things in GCP that the repo cannot (yet) reproduce:
    `sentinel` registry repo is empty and unused so far. The service template caps at 2
    instances while the service-level annotation says 3.
 3. **`risk_curated.alerts`, `eval.benchmark`, `eval.benchmark_runs`** were written by the
-   Cloud Shell `detect.py` and a multi-seed loop. DDL is in `sql/schema/`, but their
-   contents cannot be regenerated until the detector lands in P2.
+   Cloud Shell `detect.py` and a multi-seed loop (they describe the pre-ADR-0002 data). DDL is
+   in `sql/schema/`; contents are replaced when the detector lands in P2.
 4. **Timestamps**: live data was generated with the wall clock at load time; the repo
    generator uses a fixed `--now`. Counts, ids and relative timing are identical; absolute
    timestamps are shifted by a constant.
@@ -72,7 +77,9 @@ Things in GCP that the repo cannot (yet) reproduce:
 - Scaffold, docs and the earlier scenario generator are merged to `main`; that older
   generator is replaced by the Cloud Shell one in this branch.
 - To reproduce live data: `python -m services.ingest.synth --apply`, then
-  `scripts/run_sql.py sql/schema/harden.sql --apply`, then `sql/graph/market_graph.sql --apply`.
+  `scripts/run_sql.py sql/graph/market_graph.sql --apply`. `harden.sql` is gone: decoys and
+  link evasion are generated (ADR 0002).
+- Branch `feat/detector` (P2) is stacked on `feat/gcp-sync`: `origin/main` does not yet contain P1.
 
 ## Known risks
 

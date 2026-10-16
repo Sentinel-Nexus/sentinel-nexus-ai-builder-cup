@@ -44,7 +44,7 @@ The 500-account generator and its modules were removed in the same change.
 - Lost with the old generator: the `transfers` table and the `ip_block`, `signup_date`
   and `funding_source` fields. Nothing live uses them. Funding links are `funding_source_id`
   on accounts.
-- `harden.sql` (hard negatives, partial links) is not part of the generator; it is applied after
-  load (`sql/schema/harden.sql`) and is required to match live.
-- Order to reproduce live data: generate/load seed 42, `harden.sql`, `market_graph.sql`.
+- `harden.sql` (hard negatives, partial links) was not part of the generator; it was applied after
+  load. **Superseded by ADR 0002**: those cases are now generated, and `harden.sql` is removed.
+- Order to reproduce live data: generate/load seed 42, then `market_graph.sql`.
 - Later phases that need other seeds (benchmarks over seeds 7, 11, 23, 42) use `--seed`.
