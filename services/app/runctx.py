@@ -35,6 +35,7 @@ class RunContext:
         self.cached_graph_calls = 0
         self.ring_members: dict[str, list[str]] = {}
         self.started = time.monotonic()
+        self.deadline = self.started + self.settings.limits.wall_clock_s
         self._seq = 0
         self._lock = threading.Lock()
         self.events: list[dict] = []
@@ -128,6 +129,9 @@ class RunContext:
             fallback_reason=full.get("fallback_reason"),
         )
         return compact
+
+    def remaining_s(self) -> float:
+        return self.deadline - time.monotonic()
 
     def elapsed_ms(self) -> int:
         return int((time.monotonic() - self.started) * 1000)

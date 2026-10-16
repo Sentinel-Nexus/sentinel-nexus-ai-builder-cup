@@ -18,7 +18,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from services.app.audit import BigQueryAudit
+from services.app.audit import BigQueryAudit, drain_all
 from services.app.cases import BigQueryCases
 from services.app.config import Settings
 from services.app.deps import Deps
@@ -58,6 +58,7 @@ def sse(event: str, data) -> str:
 
 def create_app(deps: Deps | None = None) -> FastAPI:
     state: dict = {"deps": deps, "ready": False, "warm_error": None}
+    slots = threading.BoundedSemaphore(2)  # investigations running at once; the rest wait
 
     def warm() -> None:
         try:
@@ -65,6 +66,8 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             d.graph.warm()  # BigQuery client up before the first GQL call
             d.store.warm()
             d.cases.latest()
+            if hasattr(d.backend, "warm"):
+                d.backend.warm()  # model clients up before the first investigation
             state["ready"] = True
         except Exception as e:  # noqa: BLE001  reported on /health, requests still work
             state["warm_error"] = f"{type(e).__name__}: {str(e)[:200]}"
@@ -73,8 +76,11 @@ def create_app(deps: Deps | None = None) -> FastAPI:
     async def lifespan(_: FastAPI):
         if state["deps"] is None:
             state["deps"] = default_deps()
+        slots_n = state["deps"].settings.run_concurrency
+        state["slots"] = threading.BoundedSemaphore(slots_n)
         threading.Thread(target=warm, daemon=True).start()
         yield
+        drain_all()  # queued audit inserts
 
     app = FastAPI(title="MarketSentinel agents", lifespan=lifespan)
 
@@ -128,8 +134,25 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         q: queue.Queue = queue.Queue()
 
         def work() -> None:
+            # a cache hit answers at once; a real run takes one of the few investigation slots
+            fresh = force or d().cases.get(alert_id) is None
+            sl = state.get("slots", slots)
             try:
-                q.put(("result", investigate(d(), alert_id, force=force, listeners=[q.put])))
+                if fresh and not sl.acquire(blocking=False):
+                    q.put(
+                        {
+                            "event_type": "queued",
+                            "agent": "orchestrator",
+                            "alert_id": alert_id,
+                            "summary": "waiting for a free investigation slot",
+                        }
+                    )
+                    sl.acquire()
+                try:
+                    q.put(("result", investigate(d(), alert_id, force=force, listeners=[q.put])))
+                finally:
+                    if fresh:
+                        sl.release()
             except Exception as e:  # noqa: BLE001
                 q.put(("error", {"error": type(e).__name__, "message": str(e)[:300]}))
             finally:

@@ -7,6 +7,10 @@ import threading
 from services.app.config import Limits
 
 
+class CaseTimeout(RuntimeError):
+    """The per-case wall-clock limit passed; the run ends with status timed_out."""
+
+
 class BudgetExceeded(RuntimeError):
     def __init__(self, what: str):
         super().__init__(what)

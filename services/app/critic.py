@@ -7,6 +7,7 @@ from __future__ import annotations
 import re
 
 from services.app.agents import Backend
+from services.app.budget import CaseTimeout
 from services.app.models import Claim, ClaimVerdict, Findings
 from services.app.runctx import RunContext
 
@@ -24,6 +25,30 @@ def _mentions(ctx: RunContext, ring_id: str, evidence_ids: list[str]) -> bool:
     return False
 
 
+_EDGE = re.compile(r"^(UsesDevice|FundedBy|TradedWith|TradedIn):[^>]+>[^>]+$")
+_NUM = re.compile(r"(?<![\w.:>-])(\d+\.\d+|\d{3,})(?![\w:>-])")
+_ANY_NUM = re.compile(r"\d+(?:\.\d+)?")
+
+
+def numbers_in_claim(text: str) -> list[float]:
+    """Decimals and numbers of 3+ digits in the claim (small counts are left to the LLM check)."""
+    return [float(n) for n in _NUM.findall(text.replace(",", ""))]
+
+
+def number_check(claim: Claim, rows: dict[str, dict]) -> str | None:
+    """Every such number in the claim must appear in the rows it cites."""
+    wanted = numbers_in_claim(claim.text)
+    if not wanted:
+        return None
+    seen = {
+        round(float(n), 6)
+        for eid, r in rows.items()
+        for n in _ANY_NUM.findall(f"{eid} {r.get('row', '')}")
+    }
+    missing = [n for n in wanted if round(n, 6) not in seen]
+    return f"numbers not in the cited rows: {missing[:4]}" if missing else None
+
+
 def ledger_check(ctx: RunContext, claim: Claim, findings: Findings) -> ClaimVerdict | None:
     """Return a rejection, or None when the claim passes the deterministic stage."""
     if not claim.evidence_ids:
@@ -38,6 +63,10 @@ def ledger_check(ctx: RunContext, claim: Claim, findings: Findings) -> ClaimVerd
             stage="ledger",
             reason=f"evidence ids not in this run's tool-call ledger: {missing[:6]}",
         )
+    found, _ = ctx.ledger.resolve(claim.evidence_ids)
+    bad_number = number_check(claim, found)
+    if bad_number:
+        return ClaimVerdict(claim_id=claim.id, accepted=False, stage="ledger", reason=bad_number)
     if claim.kind == "merge_proposal":
         own = ctx.alert["ring_id"]
         others = [r for r in findings.merge_with if r != own]
@@ -80,15 +109,24 @@ def review(ctx: RunContext, backend: Backend, findings: Findings) -> list[ClaimV
         items = []
         for c in survivors:
             rows, _ = ctx.ledger.resolve(c.evidence_ids)
+            # A graph edge id already states the fact (type:source>target), so every edge id is
+            # passed as a bare id (the Critic can count them); other rows are passed with content.
             items.append(
                 {
                     "claim_id": c.id,
                     "claim": c.text,
-                    "evidence": [{"id": i, "row": r["row"]} for i, r in rows.items()][:12],
+                    "edge_ids": [i for i in rows if _EDGE.match(i)],
+                    "evidence": [
+                        {"id": i, "row": r["row"][:220]}
+                        for i, r in rows.items()
+                        if not _EDGE.match(i)
+                    ][:40],
                 }
             )
         try:
             results = {r.get("claim_id"): r for r in backend.critic_check(ctx, items)}
+        except CaseTimeout:
+            raise
         except Exception as e:  # noqa: BLE001  an unverifiable claim is not accepted
             results = {}
             ctx.emit("critic", "error", f"critic LLM unavailable: {type(e).__name__}")

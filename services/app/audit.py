@@ -1,11 +1,15 @@
 """Audit sink: every step, tool call and verdict goes to audit.agent_events.
 
-Rows are buffered per run and flushed with streaming inserts (no query, no slots).
+Rows are buffered per run and flushed with streaming inserts (no query, no slots). ``flush()`` hands
+the rows to a single background worker so a response never waits for the insert; ``drain_all()``
+waits for the worker (call it before a script exits and at service shutdown).
 """
 
 from __future__ import annotations
 
+import sys
 import threading
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Protocol
 
 
@@ -25,6 +29,20 @@ class MemoryAudit:
         pass
 
 
+_worker = ThreadPoolExecutor(1, thread_name_prefix="audit-flush")  # one worker keeps order
+_pending: list[Future] = []
+_pending_lock = threading.Lock()
+failures: list[str] = []
+
+
+def drain_all(timeout: float = 60.0) -> None:
+    """Wait for every queued audit insert."""
+    with _pending_lock:
+        futures, _pending[:] = list(_pending), []
+    for f in futures:
+        f.result(timeout=timeout)
+
+
 class BigQueryAudit:
     TABLE = "audit.agent_events"
 
@@ -32,7 +50,6 @@ class BigQueryAudit:
         self.project, self._client = project, client
         self._buf: list[dict] = []
         self._lock = threading.Lock()
-        self.errors: list[str] = []
 
     @property
     def client(self):
@@ -49,9 +66,16 @@ class BigQueryAudit:
     def flush(self) -> None:
         with self._lock:
             rows, self._buf = self._buf, []
-        if not rows:
-            return
-        errs = self.client.insert_rows_json(f"{self.project}.{self.TABLE}", rows)
-        if errs:  # never lose the failure silently
-            self.errors.append(str(errs)[:300])
-            raise RuntimeError(f"audit insert failed: {str(errs)[:300]}")
+        if rows:
+            fut = _worker.submit(self._insert, rows)
+            with _pending_lock:
+                _pending.append(fut)
+
+    def _insert(self, rows: list[dict]) -> None:
+        try:
+            errs = self.client.insert_rows_json(f"{self.project}.{self.TABLE}", rows)
+            if errs:
+                raise RuntimeError(str(errs)[:300])
+        except Exception as e:  # noqa: BLE001  never lose the failure silently
+            failures.append(f"{type(e).__name__}: {str(e)[:200]}")
+            print(f"audit insert failed: {failures[-1]}", file=sys.stderr)

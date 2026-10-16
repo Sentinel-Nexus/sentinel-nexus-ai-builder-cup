@@ -18,7 +18,7 @@ PRICES = {  # model: (input, output) USD per 1M tokens
     "gemini-2.5-pro": (1.25, 10.00),
 }
 # measured tokens per run by agent, scaled by 1.3 for larger rings
-EXPECTED_TOKENS = {"investigator": 30_000, "policy": 1_500, "critic": 9_500, "drafter": 2_400}
+EXPECTED_TOKENS = {"investigator": 24_000, "critic": 5_000, "drafter": 3_000}
 OUTPUT_SHARE = {"expected": 0.25, "worst": 0.5}  # share of tokens billed at the output rate
 
 
@@ -30,9 +30,8 @@ def _usd(model: str, tokens: int, out_share: float) -> float:
 def models_by_agent(s: Settings) -> dict[str, str]:
     return {
         "investigator": s.model_fast,
-        "policy": s.model_fast,
         "drafter": s.model_fast,
-        "critic": s.model_strong,
+        "critic": s.model_critic,
     }
 
 

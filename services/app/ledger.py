@@ -27,7 +27,12 @@ def harvest(tool: str, result: Any) -> dict[str, dict]:
         if not isinstance(eid, str) or not eid or eid in found:
             return
         text = json.dumps(row, default=str) if not isinstance(row, str) else row
-        found[eid] = {"tool": tool, "row": text[:_MAX_SNIPPET]}
+        found[eid] = {
+            "tool": tool,
+            "row": text[:_MAX_SNIPPET],
+            # an id only listed by the detector has no content yet; a later tool row replaces it
+            "placeholder": isinstance(row, dict) and "listed_in" in row,
+        }
 
     def walk(node: Any, parent: dict | None) -> None:
         if isinstance(node, dict):
@@ -62,7 +67,9 @@ class Ledger:
         ids.update(extra or {})
         with self._lock:
             for eid, entry in ids.items():
-                self._entries.setdefault(eid, {**entry, "seq": seq})
+                old = self._entries.get(eid)
+                if old is None or (old.get("placeholder") and not entry["placeholder"]):
+                    self._entries[eid] = {**entry, "seq": seq}
         return sorted(ids)
 
     def has(self, evidence_id: str) -> bool:

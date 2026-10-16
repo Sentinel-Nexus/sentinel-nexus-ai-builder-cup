@@ -25,23 +25,21 @@ class Limits:
     # but still bounded.
     out_tokens: dict[str, int] = field(
         default_factory=lambda: {
-            "investigator": 4096,
-            "policy": 1024,
+            "investigator": 8192,
             "critic": 2048,
-            "drafter": 4096,
+            "drafter": 3072,
         }
     )
     # token ceiling per agent over the whole run (all its LLM calls); total_tokens bounds the sum
     agent_tokens: dict[str, int] = field(
         default_factory=lambda: {
-            "investigator": 36_000,
-            "policy": 4_000,
-            "critic": 12_000,
-            "drafter": 10_000,
+            "investigator": 40_000,
+            "critic": 14_000,
+            "drafter": 8_000,
         }
     )
     graph_budget_s: float = 15.0
-    wall_clock_s: float = 180.0
+    wall_clock_s: float = 120.0  # hard per-case timeout: the run ends as timed_out
 
 
 @dataclass(frozen=True)
@@ -52,7 +50,13 @@ class Settings:
     location: str = field(default_factory=lambda: os.environ.get("GCP_REGION", "us-central1"))
     model_fast: str = field(default_factory=lambda: os.environ.get("MODEL_FAST", MODEL_FAST))
     model_strong: str = field(default_factory=lambda: os.environ.get("MODEL_STRONG", MODEL_STRONG))
+    # The Critic runs on Flash unless MODEL_CRITIC says otherwise (see docs/agent-evals.md for the
+    # Flash vs Pro measurement).
+    model_critic: str = field(default_factory=lambda: os.environ.get("MODEL_CRITIC", MODEL_FAST))
     limits: Limits = field(default_factory=Limits)
     force_per_hour: int = 6  # rate limit for force=true re-investigations
     force_per_day: int = 30
-    thinking_budget: int = 512  # caps Gemini 2.5 thinking tokens per call
+    thinking_budget: int = 512  # caps Gemini 2.5 thinking tokens per call (Investigator)
+    thinking_small: int = 256  # Critic and Drafter
+    llm_concurrency: int = 2  # in-flight Gemini calls per process
+    run_concurrency: int = 2  # investigations running at once; the rest wait
