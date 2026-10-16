@@ -28,7 +28,9 @@ REGION = "us-central1"
 SERVICE = "sentinel-hello"
 
 # Written by the Cloud Shell detect.py (P2 replaces them); a mismatch is a warning, not drift.
-SOFT_ROWS = {"risk_curated.alerts": 39, "eval.benchmark": 3, "eval.benchmark_runs": 12}
+SOFT_ROWS = {"eval.benchmark": 3, "eval.benchmark_runs": 12}
+# Detector outputs (P2): schema is checked, row counts are results, not drift.
+OUTPUT_TABLES = ("risk_curated.alerts", "risk_curated.account_scores", "eval.detector_results")
 EXPECTED_TOPICS = {"trades", "trades-dlq"}
 EXPECTED_SUBS = {
     "trades-sub": {"ack": 60, "dlq": "trades-dlq", "attempts": 5},
@@ -84,6 +86,10 @@ def parse_ddl_columns(sql: str) -> dict[str, list[tuple[str, str]]]:
 
 def norm_type(t: str) -> str:
     return {"FLOAT": "FLOAT64", "INTEGER": "INT64", "BOOLEAN": "BOOL"}.get(t.upper(), t.upper())
+
+
+def _live_type(field) -> str:
+    return f"ARRAY<{field.field_type}>" if field.mode == "REPEATED" else field.field_type
 
 
 def compare_columns(live: list[tuple[str, str]], ddl: list[tuple[str, str]]) -> list[str]:
@@ -177,10 +183,15 @@ def bigquery_checks(project: str, run_query: bool):
         status = OK if t.num_rows == want else (WARN if soft else FAIL)
         results.append((f"rows {table}", status, f"live {t.num_rows:,} vs repo {want:,}"))
         if table in ddl:
-            diff = compare_columns([(f.name, f.field_type) for f in t.schema], ddl[table])
+            diff = compare_columns([(f.name, _live_type(f)) for f in t.schema], ddl[table])
             results.append((f"schema {table}", OK if not diff else FAIL, "; ".join(diff)))
+    for table in OUTPUT_TABLES:
+        t = client.get_table(f"{project}.{table}")
+        results.append((f"rows {table}", INFO, f"live {t.num_rows:,} (detector output)"))
+        diff = compare_columns([(f.name, _live_type(f)) for f in t.schema], ddl[table])
+        results.append((f"schema {table}", OK if not diff else FAIL, "; ".join(diff)))
     for ds_table in ddl:
-        if ds_table not in expected and ds_table not in SOFT_ROWS:
+        if ds_table not in expected and ds_table not in SOFT_ROWS and ds_table not in OUTPUT_TABLES:
             results.append((f"table {ds_table} in DDL", FAIL, "not checked"))
 
     try:

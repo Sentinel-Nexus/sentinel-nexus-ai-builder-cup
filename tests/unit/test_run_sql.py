@@ -44,4 +44,6 @@ def test_all_repo_sql_files_use_placeholder_not_project_id():
     for f in files:
         text = f.read_text(encoding="utf-8")
         assert "project-f8544066" not in text, f
-        assert "__P__" in text, f
+        # detector views name their tables through __OUT__/__TRADES__ etc., which the detector
+        # pipeline fills from the project id before run_sql renders __P__
+        assert "__P__" in text or "__OUT__" in text, f

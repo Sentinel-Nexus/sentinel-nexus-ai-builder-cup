@@ -31,3 +31,22 @@ CREATE TABLE IF NOT EXISTS `__P__.eval.benchmark_runs` (
   f1 FLOAT64,
   run_ts TIMESTAMP
 );
+-- Baseline and detector metrics: overall, per scenario (one-vs-rest) and per decoy group.
+CREATE TABLE IF NOT EXISTS `__P__.eval.detector_results` (
+  run_id STRING,
+  split STRING,
+  seed INT64,
+  method STRING,
+  group_kind STRING,
+  group_name STRING,
+  n_members INT64,
+  flagged INT64,
+  true_pos INT64,
+  false_pos INT64,
+  precision FLOAT64,
+  recall FLOAT64,
+  f1 FLOAT64,
+  threshold FLOAT64,
+  iteration INT64,
+  run_ts TIMESTAMP
+);
