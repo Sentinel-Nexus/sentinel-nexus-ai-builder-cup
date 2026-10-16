@@ -12,6 +12,7 @@ import asyncio
 import json
 import queue
 import threading
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -82,6 +83,7 @@ def create_app(deps: Deps | None = None) -> FastAPI:
     slots = threading.BoundedSemaphore(2)  # investigations running at once; the rest wait
 
     def warm() -> None:
+        t0 = time.monotonic()
         try:
             d = state["deps"]
             d.graph.warm()  # BigQuery client up before the first GQL call
@@ -91,7 +93,9 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             if hasattr(d.backend, "warm"):
                 d.backend.warm()  # model clients up before the first investigation
             state["ready"] = True
+            print(f"warm: ready after {time.monotonic() - t0:.1f}s", flush=True)
             state["prefetch"]()  # graph, trades and timelines of the cached cases
+            print(f"warm: views prefetched after {time.monotonic() - t0:.1f}s", flush=True)
         except Exception as e:  # noqa: BLE001  reported on /health, requests still work
             state["warm_error"] = f"{type(e).__name__}: {str(e)[:200]}"
 

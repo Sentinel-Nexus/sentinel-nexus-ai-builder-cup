@@ -14,6 +14,26 @@ uvicorn services.app.main:app --port 8080     # needs ADC; runs as sa-agent on C
 | `POST /cases/{alert_id}/investigate?force=false` | server-sent events: every step, then `result` with `status` `ok` / `timed_out` / `error`. Cached case unless `force=true` (rate limited: 6/h, 30/day, 429 with `Retry-After`). At most 2 investigations run at once; the rest get a `queued` event |
 | `POST /cases/{alert_id}/approve` | analyst decision `{analyst, decision: approve\|reject, note}`; audited. The mocked webhook fires only on approval of an escalation, and never leaves the process |
 
+## Workbench (P5)
+
+`GET /` serves the analyst workbench (vanilla ES modules in `static/`, hash routes: command centre,
+case, lanes, benchmark, governance, print view). Cytoscape.js and Chart.js load from pinned CDN
+versions with SRI. Extra endpoints it uses (all read-only except the three POSTs above):
+
+| Endpoint | What |
+|---|---|
+| `GET /summary`, `/queue` | KPI counts; alert queue with severity (display rule on the score), lane, analyst decision |
+| `GET /cases/{id}/detail` | cached case with run facts, effective lane, analyst override |
+| `GET /cases/{id}/graph`, `/trades?account=` | ring subgraph (GQL or fallback, cached in memory) and one account's trades |
+| `GET /cases/{id}/timeline`, `/export` | audit events of the case's run; one JSON file per case |
+| `GET /audit`, `/governance`, `/benchmark` | audit log, caps and guards, numbers built from `docs/benchmark.md` and `docs/agent-evals.md` (`scripts/build_ui_data.py`) |
+
+Public safety: cached cases are served by default. A run that is not a cache hit (`force=true` or no
+stored case) is a live run: 2 per client per hour, 6 per hour and 30 per day for the service, counted
+per instance (so up to 3x with 3 instances); 429 with a plain message and `Retry-After`. A forced
+result is returned to the caller only and does not replace the stored case. Approve, reject and
+override need a written reason (422 otherwise). Client ids are hashed and kept in memory only.
+
 ## Pipeline
 
 prefetch (3 tools in parallel) -> `Investigator` (more tools only if needed, <= 8 calls in total)

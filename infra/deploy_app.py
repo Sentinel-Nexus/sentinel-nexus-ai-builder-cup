@@ -9,7 +9,7 @@ staged context: only services/app, services/graph, data/policies). Runs as sa-ag
 max 3 instances, 1Gi, min 1 instance for the judging window (set back to 0 on Nov 6). It deletes
 nothing and changes no IAM except what `--allow-unauthenticated` does for this one service.
 Every command has a timeout. Build logs are not streamed (the operator may lack log-bucket
-viewer rights); read them in the console link if a build fails.
+viewer rights): the script polls the build status instead.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -54,6 +55,42 @@ def run(cmd: list[str], timeout: int, apply: bool) -> int:
         return 124
 
 
+def build(context: str, image: str, apply: bool) -> int:
+    """Submit asynchronously and poll: the operator cannot stream Cloud Build logs."""
+    cmd = ["gcloud", "builds", "submit", context, "--tag", image, "--project", PROJECT,
+           "--region", REGION, "--timeout", f"{BUILD_TIMEOUT_S - 30}s", "--async",
+           "--format", "value(id)", "--quiet"]  # fmt: skip
+    print("+", " ".join(cmd))
+    if not apply:
+        return 0
+    shell = os.name == "nt"
+    try:
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=120, shell=shell)
+    except subprocess.TimeoutExpired:
+        print("build submit timed out")
+        return 124
+    build_id = out.stdout.strip().splitlines()[-1] if out.stdout.strip() else ""
+    if out.returncode or not build_id:
+        print(out.stderr[-600:])
+        return out.returncode or 1
+    print(f"build {build_id} started (console: cloud-build/builds;region={REGION}/{build_id})")
+    deadline = time.monotonic() + BUILD_TIMEOUT_S
+    while time.monotonic() < deadline:
+        st = subprocess.run(
+            ["gcloud", "builds", "describe", build_id, "--project", PROJECT, "--region", REGION,
+             "--format", "value(status)"],
+            capture_output=True, text=True, timeout=60, shell=shell,
+        ).stdout.strip()  # fmt: skip
+        print(f"  build status: {st or 'unknown'}")
+        if st == "SUCCESS":
+            return 0
+        if st in ("FAILURE", "TIMEOUT", "CANCELLED", "INTERNAL_ERROR", "EXPIRED"):
+            return 1
+        time.sleep(10)
+    print("gave up waiting for the build (the build itself may still finish)")
+    return 124
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true", help="really build and deploy")
@@ -72,12 +109,7 @@ def main(argv: list[str]) -> int:
         with tempfile.TemporaryDirectory(prefix="sentinel-app-ctx-") as tmp:
             n = stage(Path(tmp))
             print(f"staged build context: {n} files")
-            rc = run(
-                ["gcloud", "builds", "submit", tmp, "--tag", image, "--project", PROJECT,
-                 "--region", REGION, "--timeout", f"{BUILD_TIMEOUT_S - 30}s", "--suppress-logs",
-                 "--quiet"],
-                BUILD_TIMEOUT_S, a.apply,
-            )  # fmt: skip
+            rc = build(tmp, image, a.apply)
         if rc:
             print("build failed: not deploying")
             return rc
