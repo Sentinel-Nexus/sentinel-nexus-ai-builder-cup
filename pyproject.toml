@@ -6,7 +6,7 @@ requires-python = ">=3.12"
 dependencies = ["google-cloud-bigquery"]
 
 [project.optional-dependencies]
-dev = ["ruff", "pytest", "pre-commit", "flask"]
+dev = ["ruff", "pytest", "pre-commit", "flask", "matplotlib"]
 
 [tool.ruff]
 line-length = 100
