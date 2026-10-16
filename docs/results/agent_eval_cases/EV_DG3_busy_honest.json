@@ -1,0 +1,143 @@
+{
+ "alert_id": "EV_DG3_busy_honest",
+ "kind": "decoy",
+ "status": "needs_review",
+ "run": {
+  "status": "ok",
+  "cached": false,
+  "run_id": "RUN_81fde826cc26",
+  "report": {
+   "alert_id": "EV_DG3_busy_honest",
+   "ring_id": "R_A0024",
+   "alert_status": "needs_review",
+   "scenario_hint": "coordinated_accumulation",
+   "decision": "uncertain",
+   "summary": "The detector hypothesized a coordinated accumulation scenario, and the investigation agrees with this finding. A significant portion of trades, specifically 24 out of 50, were executed on 2026-10-08. These trades were concentrated within a short timeframe, between 11:09 and 12:44 UTC, indicating coordinated timing [c3]. This suggests a potential attempt to manipulate market activity through synchronized trading.",
+   "pattern": "The observed pattern is coordinated accumulation, characterized by a high concentration of trades within a narrow time window.",
+   "hint_note": "The detector's hint of coordinated accumulation is strongly supported by the concentrated timing of trades found in the investigation.",
+   "evidence_table": [
+    {
+     "claim_id": "c3",
+     "kind": "observation",
+     "claim": "24 out of 50 trades occurred on 2026-10-08, concentrated between 11:09 and 12:44 UTC, showing coordinated timing.",
+     "evidence_ids": [
+      "T0035076",
+      "T0035075",
+      "T0035113",
+      "T0035116",
+      "T0035107",
+      "T0035078",
+      "T0035109",
+      "T0035111",
+      "T0035077",
+      "T0035097",
+      "T0035106",
+      "T0005124",
+      "T0035080",
+      "T0035099",
+      "T0035095",
+      "T0035086",
+      "T0035114",
+      "T0035088",
+      "T0035093",
+      "T0035105",
+      "T0035091",
+      "T0035098",
+      "T0035082",
+      "T0035115"
+     ]
+    }
+   ],
+   "policy_references": [
+    {
+     "clause_id": "SP-2.2",
+     "title": "Coordinated pre-resolution accumulation",
+     "why": "The concentration of trades within a short period, showing coordinated timing, aligns with the definition of coordinated accumulation."
+    },
+    {
+     "clause_id": "SP-4.1",
+     "title": "Evidence standard",
+     "why": "The accepted claim [c3] is backed by multiple trade evidence IDs, meeting the standard for independent signals."
+    },
+    {
+     "clause_id": "SP-6.1",
+     "title": "Analyst approval",
+     "why": "Given the 'uncertain' decision and the nature of the finding, analyst approval is required for any subsequent action."
+    }
+   ],
+   "recommended_action": "analyst_review",
+   "confidence": 0.51,
+   "escalate_accounts": [],
+   "cleared_accounts": [],
+   "unsupported_claims": [
+    "c1: All 10 member accounts (A0300, A0301, A0302, A0303, A0304, A0305, A0306, A0307, A0308, A0309) exhibit high 'late_concentration' and 'timing_zscore' features, with scores ranging from 4.4 to 13.1 for late_concentration and 5.7 to 10.0 for timing_zscore, as reported in the alert context. (claim has no evidence ids)",
+    "c2: Out of 50 trades in market M16, 46 were BUY orders and only 4 were SELL orders, indicating a strong accumulation pattern. (The evidence provided only contains 30 trade records, not 50. Out of these 30 trades, 24 are BUY orders and 6 are SELL orders. The claim's numbers (50 total, 46 BUY, 4 SELL) are not supported by the evidence.)",
+    "c4: Account A0304, a member of the alert, shares FundingSource:F0024 with account A0024. (The claim states that Account A0304 shares FundingSource:F0024 with account A0024. The edge_ids indicate 'FundedBy:A0304>F0024' and 'FundedBy:A0024>F0024', which would support the shared funding source. However, the provided evidence rows for 'Account:A0304' and 'Account:A0024' do not contain any in)"
+   ],
+   "merge_proposals": [],
+   "requires_analyst_approval": true,
+   "meta": {
+    "first_pass_claims": 4,
+    "first_pass_accepted": 1,
+    "critic_reviewed": 8,
+    "critic_rejected": 6,
+    "revised": true,
+    "claims_total": 4,
+    "claims_accepted": 1,
+    "pattern_agent": "coordinated_accumulation",
+    "agrees_with_hint": true
+   }
+  },
+  "tokens": 29310,
+  "latency_ms": 44719,
+  "tool_calls": 3,
+  "engines": "gql",
+  "cached_graph_calls": 0,
+  "budget_status": "ok"
+ },
+ "repeat_ms": 0,
+ "repeat_cached": true,
+ "trace": {
+  "orchestrator": {
+   "llm_calls": 0,
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "llm_ms": 0,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "investigator": {
+   "llm_calls": 2,
+   "tokens_in": 12923,
+   "tokens_out": 3585,
+   "llm_ms": 20499,
+   "retries": 0,
+   "tool_calls": 3
+  },
+  "critic": {
+   "llm_calls": 2,
+   "tokens_in": 9989,
+   "tokens_out": 1182,
+   "llm_ms": 10109,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "policy": {
+   "llm_calls": 0,
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "llm_ms": 0,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "drafter": {
+   "llm_calls": 1,
+   "tokens_in": 1073,
+   "tokens_out": 558,
+   "llm_ms": 3984,
+   "retries": 0,
+   "tool_calls": 0
+  }
+ },
+ "saved_ts": "2026-10-16 18:46:02 UTC"
+}

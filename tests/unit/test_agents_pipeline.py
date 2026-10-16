@@ -386,8 +386,165 @@ def test_cached_case_is_served_in_well_under_a_second():
     assert again["cached"] is True and time.monotonic() - t0 < 1.0
 
 
-def test_escalation_with_no_named_accounts_is_downgraded():
-    findings = good_findings()
-    findings.escalate_accounts = []
+def test_escalation_covers_every_alert_member_whatever_the_model_lists():
+    """The model no longer names accounts: a model that only 'remembers' two of three members
+    still escalates the whole ring, because membership comes from the alert and the graph."""
+    # an old-style answer that still lists accounts: the extra field is ignored
+    findings = Findings.model_validate(
+        {**good_findings().model_dump(), "escalate_accounts": ["W001"]}
+    )
     _, _, res = run(FakeBackend(findings, second=findings))
-    assert res["report"]["decision"] == "uncertain"
+    report = res["report"]
+    assert report["decision"] == "escalate" and report["lane"] == "escalated"
+    assert report["escalate_accounts"] == ["W001", "W002", "W003"]
+    assert report["members_alert"] == ["W001", "W002", "W003"] and report["members_linked"] == []
+
+
+def test_accounts_linked_in_ring_subgraph_but_missing_from_the_alert_are_added():
+    class Wider(FakeGraph):
+        def ring_subgraph(self, ring_id):
+            out = super().ring_subgraph(ring_id)
+            out["members"] = [*out["members"], "W004"]
+            return out
+
+    deps, _ = make_deps(FakeBackend(good_findings(), second=good_findings()))
+    deps.graph = Wider()
+    report = investigate(deps, "AL_W")["report"]
+    assert report["members_linked"] == ["W004"]
+    assert report["escalate_accounts"] == ["W001", "W002", "W003", "W004"]
+
+
+def test_exclusion_needs_a_supported_claim_naming_the_account():
+    plain = good_findings()
+    plain.exclusions = ["W003"]  # no exclusion claim: ignored
+    _, _, res = run(FakeBackend(plain, second=plain))
+    assert res["report"]["escalate_accounts"] == ["W001", "W002", "W003"]
+    assert res["report"]["exclusions"][0]["accepted"] is False
+
+    backed = good_findings()
+    backed.exclusions = ["W003"]
+    backed.claims.append(
+        Claim(
+            id="x",
+            kind="exclusion",
+            text="W003 trades independently",
+            evidence_ids=["Account:W003"],
+        )  # fmt: skip
+    )
+    _, _, res = run(FakeBackend(backed, second=backed))
+    report = res["report"]
+    assert report["escalate_accounts"] == ["W001", "W002"] and report["cleared_accounts"] == [
+        "W003"
+    ]
+    assert report["exclusions"][0]["accepted"] is True
+
+
+def test_clear_decision_is_stored_with_reason_evidence_and_its_own_lane():
+    cleared = good_findings("clear")
+    _, _, res = run(FakeBackend(cleared, second=cleared))
+    report = res["report"]
+    assert report["decision"] == "clear" and report["lane"] == "agent_cleared"
+    assert (
+        report["cleared_accounts"] == ["W001", "W002", "W003"] and report["escalate_accounts"] == []
+    )
+    assert report["clear_reason"] and report["clear_evidence_ids"]
+    assert report["analyst_override_allowed"] and report["requires_analyst_approval"]
+    assert res["lane"] == "agent_cleared" if "lane" in res else True
+
+
+def test_removed_claims_are_visible_and_the_report_only_holds_resolvable_claims():
+    findings = good_findings()
+    findings.claims.append(Claim(id="x", text="bogus", evidence_ids=["Nope:1"]))
+    _, _, res = run(FakeBackend(findings, second=findings))
+    report = res["report"]
+    assert [r["claim_id"] for r in report["removed_claims"]] == ["c3"]
+    assert "removed" in report["unverified_note"]
+    meta = report["meta"]
+    assert (
+        meta["report_claims"] == meta["report_claims_resolvable"] == len(report["evidence_table"])
+    )
+    assert all(row["evidence_ids"] for row in report["evidence_table"])
+
+
+def test_summary_citation_of_a_removed_claim_is_stripped():
+    class Citing(FakeBackend):
+        def draft(self, ctx, material):
+            out = super().draft(ctx, material)
+            out["summary"] = "Shared device [c1]. Mixer funding [c3]."
+            return out
+
+    findings = good_findings()
+    findings.claims.append(Claim(id="x", text="bogus", evidence_ids=["Nope:1"]))
+    _, _, res = run(Citing(findings, second=findings))
+    assert "[c3]" not in res["report"]["summary"] and "[c1]" in res["report"]["summary"]
+    assert res["report"]["meta"]["citations_stripped"] == 1
+
+
+def test_watchdog_ends_a_stuck_call_at_the_wall_clock_deadline():
+    import asyncio
+    import time
+
+    from services.app.agents import _LoopThread
+    from services.app.budget import CaseTimeout
+
+    async def stuck():
+        await asyncio.sleep(30)
+
+    deadline = time.time() + 1.5
+    t0 = time.time()
+    try:
+        _LoopThread.run(stuck(), lambda: deadline - time.time())
+        raise AssertionError("expected CaseTimeout")
+    except CaseTimeout:
+        pass
+    assert time.time() - t0 < 5
+
+
+def test_agent_cleared_lane_and_analyst_override_over_http():
+    cleared = good_findings("clear")
+    deps, audit = make_deps(FakeBackend(cleared, second=cleared))
+    with TestClient(create_app(deps)) as client:
+        client.post("/cases/AL_W/investigate")
+        lanes = client.get("/lanes").json()
+        assert [c["alert_id"] for c in lanes["agent_cleared"]] == ["AL_W"]
+        item = lanes["agent_cleared"][0]
+        assert (
+            item["clear_reason"] and item["clear_evidence_ids"] and item["analyst_decision"] is None
+        )
+        # approving a cleared case does not fire the webhook
+        out = client.post(
+            "/cases/AL_W/approve", json={"analyst": "a1", "decision": "approve"}
+        ).json()
+        assert out["webhook_fired"] is False
+        # the analyst overrides: the case moves to the escalated lane, an audit event is written
+        bad = client.post(
+            "/cases/AL_W/override", json={"analyst": " ", "decision": "confirm_clear"}
+        )
+        assert bad.status_code == 422
+        body = {"analyst": "a1", "decision": "override_to_escalate", "note": "household"}
+        ok = client.post("/cases/AL_W/override", json=body)
+        assert ok.json()["lane"] == "escalated"
+        lanes = client.get("/lanes").json()
+        assert [c["alert_id"] for c in lanes["escalated"]] == ["AL_W"] and not lanes[
+            "agent_cleared"
+        ]
+        assert lanes["escalated"][0]["analyst_changed"] is True
+        assert any(e["event_type"] == "override" for e in audit.events)
+        # now approval fires the (mock) webhook for the whole ring
+        out = client.post(
+            "/cases/AL_W/approve", json={"analyst": "a1", "decision": "approve"}
+        ).json()
+        assert out["webhook_fired"] is True
+        fired = [e for e in audit.events if e["event_type"] == "webhook_mock"][-1]
+        assert json.loads(fired["detail"])["analyst_override"] is True
+        assert json.loads(fired["detail"])["accounts"] == ["W001", "W002", "W003"]
+        # an escalated case cannot be 'overridden'
+        deps.cases.rows.clear()
+
+
+def test_a_case_already_escalated_cannot_be_overridden():
+    deps, _ = make_deps(FakeBackend(good_findings(), second=good_findings()))
+    with TestClient(create_app(deps)) as client:
+        client.post("/cases/AL_W/investigate")
+        r = client.post("/cases/AL_W/override", json={"analyst": "a1", "decision": "confirm_clear"})
+        assert r.status_code == 422

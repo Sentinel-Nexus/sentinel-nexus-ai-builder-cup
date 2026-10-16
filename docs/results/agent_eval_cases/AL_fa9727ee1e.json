@@ -1,0 +1,237 @@
+{
+ "alert_id": "AL_fa9727ee1e",
+ "kind": "real",
+ "status": "completed",
+ "run": {
+  "status": "ok",
+  "report": {
+   "alert_id": "AL_fa9727ee1e",
+   "ring_id": "R_M001",
+   "alert_status": "flagged",
+   "scenario_hint": "mule_funding",
+   "decision": "escalate",
+   "summary": "The detector hypothesized a mule funding scenario, and the investigation agrees with this assessment. 15 accounts within ring R_M001 share a common funding source, FundingSource:FM1 [c1]. All 25 accounts in the ring share one of three devices, indicating a strong connection [c2]. Specifically, 15 accounts are linked by both the shared funding source (FundingSource:FM1) and shared devices, and have all traded in market M08, which is indicative of coordinated activity [c4].",
+   "pattern": "The observed pattern is consistent with mule funding, characterized by shared funding sources and devices across multiple accounts.",
+   "hint_note": "The detector's scenario hint of 'mule_funding' is strongly supported by the evidence of shared funding sources and devices among the accounts.",
+   "evidence_table": [
+    {
+     "claim_id": "c1",
+     "kind": "observation",
+     "claim": "15 accounts in ring R_M001 share a common funding source, FundingSource:FM1.",
+     "evidence_ids": [
+      "FundedBy:M001>FM1",
+      "FundedBy:M002>FM1",
+      "FundedBy:M003>FM1",
+      "FundedBy:M004>FM1",
+      "FundedBy:M008>FM1",
+      "FundedBy:M009>FM1",
+      "FundedBy:M010>FM1",
+      "FundedBy:M012>FM1",
+      "FundedBy:M015>FM1",
+      "FundedBy:M017>FM1",
+      "FundedBy:M019>FM1",
+      "FundedBy:M020>FM1",
+      "FundedBy:M021>FM1",
+      "FundedBy:M022>FM1",
+      "FundedBy:M024>FM1"
+     ]
+    },
+    {
+     "claim_id": "c2",
+     "kind": "observation",
+     "claim": "All 25 accounts in ring R_M001 share one of three devices: Device:DM1 (8 accounts), Device:DM2 (9 accounts), or Device:DM3 (8 accounts).",
+     "evidence_ids": [
+      "UsesDevice:M003>DM1",
+      "UsesDevice:M006>DM1",
+      "UsesDevice:M009>DM1",
+      "UsesDevice:M012>DM1",
+      "UsesDevice:M015>DM1",
+      "UsesDevice:M018>DM1",
+      "UsesDevice:M021>DM1",
+      "UsesDevice:M024>DM1",
+      "UsesDevice:M001>DM2",
+      "UsesDevice:M004>DM2",
+      "UsesDevice:M007>DM2",
+      "UsesDevice:M010>DM2",
+      "UsesDevice:M013>DM2",
+      "UsesDevice:M016>DM2",
+      "UsesDevice:M019>DM2",
+      "UsesDevice:M022>DM2",
+      "UsesDevice:M025>DM2",
+      "UsesDevice:M002>DM3",
+      "UsesDevice:M005>DM3",
+      "UsesDevice:M008>DM3",
+      "UsesDevice:M011>DM3",
+      "UsesDevice:M014>DM3",
+      "UsesDevice:M017>DM3",
+      "UsesDevice:M020>DM3",
+      "UsesDevice:M023>DM3"
+     ]
+    },
+    {
+     "claim_id": "c4",
+     "kind": "pattern",
+     "claim": "Accounts M001, M002, M003, M004, M008, M009, M010, M012, M015, M017, M019, M020, M021, M022, M024 are linked by a shared funding source (FundingSource:FM1) and shared devices, and have all traded in market M08.",
+     "evidence_ids": [
+      "FundedBy:M001>FM1",
+      "FundedBy:M002>FM1",
+      "FundedBy:M003>FM1",
+      "FundedBy:M004>FM1",
+      "FundedBy:M008>FM1",
+      "FundedBy:M009>FM1",
+      "FundedBy:M010>FM1",
+      "FundedBy:M012>FM1",
+      "FundedBy:M015>FM1",
+      "FundedBy:M017>FM1",
+      "FundedBy:M019>FM1",
+      "FundedBy:M020>FM1",
+      "FundedBy:M021>FM1",
+      "FundedBy:M022>FM1",
+      "FundedBy:M024>FM1",
+      "UsesDevice:M001>DM2",
+      "UsesDevice:M002>DM3",
+      "UsesDevice:M003>DM1",
+      "UsesDevice:M004>DM2",
+      "UsesDevice:M008>DM3",
+      "UsesDevice:M009>DM1",
+      "UsesDevice:M010>DM2",
+      "UsesDevice:M012>DM1",
+      "UsesDevice:M015>DM1",
+      "UsesDevice:M017>DM3",
+      "UsesDevice:M019>DM2",
+      "UsesDevice:M020>DM3",
+      "UsesDevice:M021>DM1",
+      "UsesDevice:M022>DM2",
+      "UsesDevice:M024>DM1",
+      "TradedIn:M001>M08",
+      "TradedIn:M002>M08",
+      "TradedIn:M003>M08",
+      "TradedIn:M004>M08",
+      "TradedIn:M008>M08",
+      "TradedIn:M009>M08",
+      "TradedIn:M010>M08",
+      "TradedIn:M012>M08",
+      "TradedIn:M015>M08",
+      "TradedIn:M017>M08",
+      "TradedIn:M019>M08",
+      "TradedIn:M020>M08",
+      "TradedIn:M021>M08",
+      "TradedIn:M022>M08",
+      "TradedIn:M024>M08"
+     ]
+    }
+   ],
+   "policy_references": [
+    {
+     "clause_id": "SP-2.3",
+     "title": "Mule-funded accounts",
+     "why": "This policy clause directly addresses mule-funded accounts, which are characterized by multiple accounts funded from one source or sharing devices and acting as a group, aligning with the findings in this case."
+    },
+    {
+     "clause_id": "SP-4.1",
+     "title": "Evidence standard",
+     "why": "The escalation is supported by multiple independent signals (shared funding source, shared devices, and coordinated trading in a specific market), each backed by evidence IDs, meeting the standard for escalation."
+    }
+   ],
+   "recommended_action": "analyst_review",
+   "confidence": 0.84,
+   "escalate_accounts": [
+    "M001",
+    "M002",
+    "M003",
+    "M004",
+    "M008",
+    "M009",
+    "M010",
+    "M012",
+    "M015",
+    "M017",
+    "M019",
+    "M020",
+    "M021",
+    "M022",
+    "M024"
+   ],
+   "cleared_accounts": [
+    "M005",
+    "M006",
+    "M007",
+    "M011",
+    "M013",
+    "M014",
+    "M016",
+    "M018",
+    "M023",
+    "M025"
+   ],
+   "unsupported_claims": [
+    "c3: 24 accounts in ring R_M001 have traded in market M08. (The claim states 24 accounts traded in market M08. However, the provided edge_ids list 25 distinct accounts (M001-M012, M014-M025) that traded in M08. The count does not match.)"
+   ],
+   "merge_proposals": [],
+   "requires_analyst_approval": true,
+   "meta": {
+    "first_pass_claims": 4,
+    "first_pass_accepted": 3,
+    "critic_reviewed": 8,
+    "critic_rejected": 2,
+    "revised": true,
+    "claims_total": 4,
+    "claims_accepted": 3,
+    "pattern_agent": "mule_funding",
+    "agrees_with_hint": true
+   }
+  },
+  "tokens": 32318,
+  "latency_ms": 47467,
+  "tool_calls": 3,
+  "engines": "gql",
+  "cached_graph_calls": 0,
+  "budget_status": "ok"
+ },
+ "trace": {
+  "orchestrator": {
+   "llm_calls": 0,
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "llm_ms": 0,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "investigator": {
+   "llm_calls": 2,
+   "tokens_in": 19085,
+   "tokens_out": 5434,
+   "llm_ms": 25763,
+   "retries": 0,
+   "tool_calls": 3
+  },
+  "critic": {
+   "llm_calls": 2,
+   "tokens_in": 3740,
+   "tokens_out": 1417,
+   "llm_ms": 11233,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "policy": {
+   "llm_calls": 0,
+   "tokens_in": 0,
+   "tokens_out": 0,
+   "llm_ms": 0,
+   "retries": 0,
+   "tool_calls": 0
+  },
+  "drafter": {
+   "llm_calls": 1,
+   "tokens_in": 2084,
+   "tokens_out": 558,
+   "llm_ms": 4703,
+   "retries": 0,
+   "tool_calls": 0
+  }
+ },
+ "repeat_ms": null,
+ "pipeline": "partial run 2026-10-16 (before the recall fix)",
+ "detail_source": "full report from risk_curated.case_reports",
+ "saved_ts": "2026-10-16 18:44:19 UTC"
+}

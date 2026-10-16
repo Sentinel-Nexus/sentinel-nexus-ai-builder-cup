@@ -42,6 +42,8 @@ def compute(results: list[dict], labels: dict) -> dict:
         sum(m.get("first_pass_claims", 0) for m in meta),
         sum(m.get("first_pass_accepted", 0) for m in meta),
     )
+    rep_c = sum(m.get("report_claims", 0) for m in meta)
+    rep_ok = sum(m.get("report_claims_resolvable", 0) for m in meta)
     reviewed, rejected = (
         sum(m.get("critic_reviewed", 0) for m in meta),
         sum(m.get("critic_rejected", 0) for m in meta),
@@ -64,10 +66,23 @@ def compute(results: list[dict], labels: dict) -> dict:
             "of": len(evaded),
             "rate": _rate(sum(a in escalated for a in evaded), len(evaded)),
         },
+        # Two different things, kept apart:
+        #  - investigator: claims the Critic accepted / claims the Investigator produced
+        #    (final = after the one send-back, first_pass = before it). Rejected claims are
+        #    removed from the report, so this is a quality measure of the Investigator.
+        #  - report: claims inside the finished reports whose evidence ids all resolve in that
+        #    run's ledger. 100% by construction (pipeline._final_claims), re-checked per run.
         "claim_support_rate": {
             "final": _rate(final_ok, final_c),
             "first_pass": _rate(first_ok, first_c),
             "claims": final_c,
+            "report": {
+                "claims": rep_c,
+                "resolvable": rep_ok,
+                "rate": _rate(rep_ok, rep_c),
+                "cases_measured": sum("report_claims" in m for m in meta),
+                "cases": len(meta),
+            },
         },
         "critic_rejection_rate": {
             "rejected": rejected,
@@ -130,6 +145,6 @@ def _latency(results: list[dict]) -> dict:
         engines = run.get("engines") or "none"
         live = "graph_cached" if run.get("cached_graph_calls") else "graph_live"
         groups[f"engine={engines}, {live}"].append(run["latency_ms"])
-        if "repeat_ms" in r:
+        if r.get("repeat_ms") is not None:
             groups["case_cache_hit"].append(r["repeat_ms"])
     return {k: {"n": len(v), "avg": _avg(v), "max": max(v)} for k, v in sorted(groups.items())}
