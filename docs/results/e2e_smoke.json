@@ -1,0 +1,269 @@
+{
+ "base": "sentinel-app-tipo5b3mpa-uc",
+ "startup": {
+  "first_response_ms": 806.6751002334058,
+  "ready_after_s": 0.8070100001059473,
+  "health": {
+   "status": "ok",
+   "service": "marketsentinel-agents",
+   "ready": true,
+   "warm_error": null,
+   "models": {
+    "investigator": "gemini-2.5-flash",
+    "drafter": "gemini-2.5-flash",
+    "critic": "gemini-2.5-flash"
+   }
+  }
+ },
+ "cached_case": {
+  "error": "status 404"
+ },
+ "checks": [
+  {
+   "name": "GET /",
+   "ok": true,
+   "detail": "200",
+   "ms": 919
+  },
+  {
+   "name": "GET /static/css/app.css",
+   "ok": true,
+   "detail": "200",
+   "ms": 680
+  },
+  {
+   "name": "GET /static/js/app.js",
+   "ok": true,
+   "detail": "200",
+   "ms": 602
+  },
+  {
+   "name": "GET /static/js/views/case.js",
+   "ok": true,
+   "detail": "200",
+   "ms": 740
+  },
+  {
+   "name": "GET /health",
+   "ok": true,
+   "detail": "ready=True",
+   "ms": 661
+  },
+  {
+   "name": "GET /summary",
+   "ok": true,
+   "detail": "{'escalated': 4, 'agent_cleared': 0, 'needs_analyst': 0}",
+   "ms": 1532
+  },
+  {
+   "name": "GET /queue",
+   "ok": true,
+   "detail": "4 alerts",
+   "ms": 715
+  },
+  {
+   "name": "GET /alerts",
+   "ok": true,
+   "detail": "",
+   "ms": 677
+  },
+  {
+   "name": "GET /lanes",
+   "ok": true,
+   "detail": "",
+   "ms": 609
+  },
+  {
+   "name": "GET /benchmark",
+   "ok": true,
+   "detail": "",
+   "ms": 800
+  },
+  {
+   "name": "GET /governance",
+   "ok": true,
+   "detail": "",
+   "ms": 647
+  },
+  {
+   "name": "GET /audit",
+   "ok": true,
+   "detail": "20 events",
+   "ms": 1476
+  },
+  {
+   "name": "cached cases exist",
+   "ok": true,
+   "detail": "4 of 4",
+   "ms": 0
+  },
+  {
+   "name": "GET /cases/AL_584807441a/detail",
+   "ok": true,
+   "detail": "",
+   "ms": 614
+  },
+  {
+   "name": "GET /cases/AL_584807441a",
+   "ok": true,
+   "detail": "",
+   "ms": 611
+  },
+  {
+   "name": "GET /cases/AL_584807441a/graph",
+   "ok": true,
+   "detail": "engine=gql",
+   "ms": 810
+  },
+  {
+   "name": "GET /cases/AL_584807441a/timeline",
+   "ok": true,
+   "detail": "34 events",
+   "ms": 811
+  },
+  {
+   "name": "GET /cases/AL_584807441a/trades",
+   "ok": true,
+   "detail": "45 trades",
+   "ms": 622
+  },
+  {
+   "name": "GET /cases/AL_584807441a/export",
+   "ok": true,
+   "detail": "",
+   "ms": 1967
+  },
+  {
+   "name": "GET /cases/AL_3df9da0276/detail",
+   "ok": true,
+   "detail": "",
+   "ms": 692
+  },
+  {
+   "name": "GET /cases/AL_3df9da0276",
+   "ok": true,
+   "detail": "",
+   "ms": 717
+  },
+  {
+   "name": "GET /cases/AL_3df9da0276/graph",
+   "ok": true,
+   "detail": "engine=gql",
+   "ms": 717
+  },
+  {
+   "name": "GET /cases/AL_3df9da0276/timeline",
+   "ok": true,
+   "detail": "30 events",
+   "ms": 663
+  },
+  {
+   "name": "GET /cases/AL_3df9da0276/trades",
+   "ok": true,
+   "detail": "7 trades",
+   "ms": 667
+  },
+  {
+   "name": "GET /cases/AL_3df9da0276/export",
+   "ok": true,
+   "detail": "",
+   "ms": 1819
+  },
+  {
+   "name": "GET /cases/AL_fa9727ee1e/detail",
+   "ok": true,
+   "detail": "",
+   "ms": 725
+  },
+  {
+   "name": "GET /cases/AL_fa9727ee1e",
+   "ok": true,
+   "detail": "",
+   "ms": 632
+  },
+  {
+   "name": "GET /cases/AL_fa9727ee1e/graph",
+   "ok": true,
+   "detail": "engine=gql",
+   "ms": 830
+  },
+  {
+   "name": "GET /cases/AL_fa9727ee1e/timeline",
+   "ok": true,
+   "detail": "36 events",
+   "ms": 723
+  },
+  {
+   "name": "GET /cases/AL_fa9727ee1e/trades",
+   "ok": true,
+   "detail": "2 trades",
+   "ms": 593
+  },
+  {
+   "name": "GET /cases/AL_fa9727ee1e/export",
+   "ok": true,
+   "detail": "",
+   "ms": 1843
+  },
+  {
+   "name": "GET /cases/AL_5a1a959872/detail",
+   "ok": true,
+   "detail": "",
+   "ms": 640
+  },
+  {
+   "name": "GET /cases/AL_5a1a959872",
+   "ok": true,
+   "detail": "",
+   "ms": 612
+  },
+  {
+   "name": "GET /cases/AL_5a1a959872/graph",
+   "ok": true,
+   "detail": "engine=gql",
+   "ms": 684
+  },
+  {
+   "name": "GET /cases/AL_5a1a959872/timeline",
+   "ok": true,
+   "detail": "21 events",
+   "ms": 629
+  },
+  {
+   "name": "GET /cases/AL_5a1a959872/trades",
+   "ok": true,
+   "detail": "8 trades",
+   "ms": 606
+  },
+  {
+   "name": "GET /cases/AL_5a1a959872/export",
+   "ok": true,
+   "detail": "",
+   "ms": 1370
+  },
+  {
+   "name": "404 for an unknown alert",
+   "ok": true,
+   "detail": "",
+   "ms": 642
+  },
+  {
+   "name": "POST approve without a reason is refused",
+   "ok": true,
+   "detail": "422",
+   "ms": 650
+  },
+  {
+   "name": "POST override without a reason is refused",
+   "ok": true,
+   "detail": "422",
+   "ms": 919
+  },
+  {
+   "name": "POST investigate unknown alert is a 404",
+   "ok": true,
+   "detail": "404",
+   "ms": 717
+  }
+ ]
+}

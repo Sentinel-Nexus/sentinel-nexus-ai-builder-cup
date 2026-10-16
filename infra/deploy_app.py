@@ -8,7 +8,8 @@ Image: us-central1-docker.pkg.dev/<project>/sentinel/sentinel-app:<tag> (built b
 staged context: only services/app, services/graph, data/policies). Runs as sa-agent, public,
 max 3 instances, 1Gi, min 1 instance for the judging window (set back to 0 on Nov 6). It deletes
 nothing and changes no IAM except what `--allow-unauthenticated` does for this one service.
-Every command has a timeout.
+Every command has a timeout. Build logs are not streamed (the operator may lack log-bucket
+viewer rights); read them in the console link if a build fails.
 """
 
 from __future__ import annotations
@@ -73,7 +74,8 @@ def main(argv: list[str]) -> int:
             print(f"staged build context: {n} files")
             rc = run(
                 ["gcloud", "builds", "submit", tmp, "--tag", image, "--project", PROJECT,
-                 "--region", REGION, "--timeout", f"{BUILD_TIMEOUT_S - 30}s", "--quiet"],
+                 "--region", REGION, "--timeout", f"{BUILD_TIMEOUT_S - 30}s", "--suppress-logs",
+                 "--quiet"],
                 BUILD_TIMEOUT_S, a.apply,
             )  # fmt: skip
         if rc:
