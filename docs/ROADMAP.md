@@ -20,7 +20,7 @@ Schedule: P1 and P2 Oct 14, P3 and P4 Oct 15, P5 and P6 Oct 16, P7 Oct 17. Submi
   - Must clearly beat baseline. If it does not, report that honestly and iterate on
     scenario-agnostic features only.
 
-- [ ] **P3 graph-tools** (Oct 15)
+- [x] **P3 graph-tools** (Oct 15)
   - `services/graph` module: GQL first on `market_graph`; automatic fallback to SQL plus
     NetworkX if the reservation is off or errors.
   - Unit tests cover the fallback.

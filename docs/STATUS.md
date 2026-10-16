@@ -2,7 +2,7 @@
 
 Live state of GCP and the repo. Update in the same commit as any cloud change.
 
-Last updated: 2026-10-16 (P2 detector)
+Last updated: 2026-10-16 (P3 graph-tools)
 
 ## Live GCP resources
 
@@ -98,6 +98,15 @@ Full tables and caveats: `docs/benchmark.md`. The margin is thin (one evaded coo
 account scored 42.99 and was missed) and `scenario_hint` mislabels the wash ring as
 `mule_funding`. Weights are fixed a priori; only the threshold came from data (validation
 seeds 7, 11, 23). Pre-P2 backups (`eval.*_pre_p2`) can be deleted once P2 is accepted.
+
+## P3 graph tools (`services/graph`)
+
+No cloud changes: read-only queries on `market_graph` and `risk_graph.*` (100 MB billed cap,
+15 s timeout). `neighbors`, `ring_subgraph`, `trades_for`; GQL first, SQL + NetworkX fallback,
+`engine` on every reply. Live check (`GRAPH_LIVE_TESTS=1`): GQL and fallback return identical
+rings for the wash (8), coordination (4) and mule (25) rings. Latency: warm GQL 3-10 s, fallback
+instant after a ~9 s cold load. GQL variable-length quantified paths are not used: the graph's
+edge types mix node types, so traversal is one GQL query set per hop.
 
 ## Known risks
 

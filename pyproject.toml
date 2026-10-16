@@ -3,7 +3,7 @@ name = "marketsentinel"
 version = "0.1.0"
 description = "Surveillance and investigation for prediction markets"
 requires-python = ">=3.12"
-dependencies = ["google-cloud-bigquery"]
+dependencies = ["google-cloud-bigquery", "networkx"]
 
 [project.optional-dependencies]
 dev = ["ruff", "pytest", "pre-commit", "flask", "matplotlib"]
