@@ -1,0 +1,117 @@
+{
+  "_note": "Robustness profiles, fixed before any detector run on these seeds. Never used to tune weights or the 43.0 threshold.",
+  "profiles": {
+    "101": {
+      "wash_size": 5,
+      "coord_size": 4,
+      "mule_size": 12,
+      "evasion": 0.2,
+      "household_size": 3,
+      "exchange_size": 5,
+      "busy_size": 6,
+      "bg_trades": [
+        2,
+        15
+      ],
+      "device_noise": 0.04
+    },
+    "102": {
+      "wash_size": 12,
+      "coord_size": 10,
+      "mule_size": 40,
+      "evasion": 0.6,
+      "household_size": 8,
+      "exchange_size": 12,
+      "busy_size": 14,
+      "bg_trades": [
+        8,
+        50
+      ],
+      "device_noise": 0.15
+    },
+    "103": {
+      "wash_size": 6,
+      "coord_size": 8,
+      "mule_size": 30,
+      "evasion": 0.3,
+      "household_size": 6,
+      "exchange_size": 10,
+      "busy_size": 12,
+      "bg_trades": [
+        4,
+        30
+      ],
+      "device_noise": 0.1
+    },
+    "104": {
+      "wash_size": 10,
+      "coord_size": 5,
+      "mule_size": 18,
+      "evasion": 0.5,
+      "household_size": 4,
+      "exchange_size": 6,
+      "busy_size": 8,
+      "bg_trades": [
+        6,
+        40
+      ],
+      "device_noise": 0.06
+    },
+    "105": {
+      "wash_size": 7,
+      "coord_size": 9,
+      "mule_size": 22,
+      "evasion": 0.6,
+      "household_size": 7,
+      "exchange_size": 9,
+      "busy_size": 14,
+      "bg_trades": [
+        2,
+        15
+      ],
+      "device_noise": 0.12
+    },
+    "106": {
+      "wash_size": 9,
+      "coord_size": 4,
+      "mule_size": 35,
+      "evasion": 0.2,
+      "household_size": 5,
+      "exchange_size": 12,
+      "busy_size": 6,
+      "bg_trades": [
+        8,
+        50
+      ],
+      "device_noise": 0.04
+    },
+    "107": {
+      "wash_size": 5,
+      "coord_size": 7,
+      "mule_size": 15,
+      "evasion": 0.45,
+      "household_size": 8,
+      "exchange_size": 5,
+      "busy_size": 10,
+      "bg_trades": [
+        3,
+        20
+      ],
+      "device_noise": 0.15
+    },
+    "108": {
+      "wash_size": 12,
+      "coord_size": 6,
+      "mule_size": 26,
+      "evasion": 0.35,
+      "household_size": 3,
+      "exchange_size": 8,
+      "busy_size": 12,
+      "bg_trades": [
+        5,
+        35
+      ],
+      "device_noise": 0.08
+    }
+  }
+}

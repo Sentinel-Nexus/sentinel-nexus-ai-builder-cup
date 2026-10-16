@@ -1,7 +1,8 @@
 """CLI for the P2 detector. Everything is dry-run unless --apply is given.
 
 python -m services.detector val-load [--apply]            # validation seeds -> eval_val
-python -m services.detector pipeline --target live|7 [--apply]
+python -m services.detector robust-load [--apply]         # robustness seeds -> eval_val
+python -m services.detector pipeline --target live|7|101 [--apply]
 python -m services.detector select --iteration 1 [--apply]  # threshold from validation
 python -m services.detector score-live --iteration 1 [--apply]
 python -m services.detector margin [--apply]               # review band from validation
@@ -20,6 +21,7 @@ from pathlib import Path
 from services.detector import evaluate, pipeline, scoring
 from services.ingest.synth.generator import generate
 from services.ingest.synth.load import load, validation_destinations
+from services.ingest.synth.profiles import load_profiles
 
 THRESHOLD_FILE = Path(__file__).with_name("threshold.json")
 VALIDATION_SEEDS = (7, 11, 23)
@@ -142,6 +144,18 @@ def cmd_val_load(args, project) -> None:
         data = generate(seed)
         counts = load(
             data,
+            project,
+            apply=args.apply,
+            destinations=validation_destinations(seed),
+        )
+        print(f"seed {seed}: {'loaded' if args.apply else 'dry run'} {counts}")
+
+
+def cmd_robust_load(args, project) -> None:
+    """Generate the robustness seeds (varied parameters) into eval_val.s<seed>_*."""
+    for seed, params in load_profiles().items():
+        counts = load(
+            generate(seed, params=params),
             project,
             apply=args.apply,
             destinations=validation_destinations(seed),
@@ -283,7 +297,7 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="python -m services.detector", description=__doc__)
     ap.add_argument("--project", default=os.environ.get("PROJECT_ID"))
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name in ("val-load", "pipeline", "select", "score-live", "margin"):
+    for name in ("val-load", "pipeline", "select", "score-live", "margin", "robust-load"):
         sp = sub.add_parser(name)
         sp.add_argument("--apply", action="store_true")
         if name == "pipeline":
@@ -299,6 +313,7 @@ def main(argv: list[str] | None = None) -> None:
         "select": cmd_select,
         "score-live": cmd_score_live,
         "margin": cmd_margin,
+        "robust-load": cmd_robust_load,
     }[args.cmd](args, args.project)
 
 
