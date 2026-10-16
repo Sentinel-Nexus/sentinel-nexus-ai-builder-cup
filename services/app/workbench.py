@@ -10,6 +10,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import json
+import re
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -19,7 +20,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from services.app.audit_read import DECISION_TYPES, MemoryAuditReader
-from services.app.decisions import effective_lane
+from services.app.decisions import effective_lane, is_test_analyst, latest_visible
 from services.app.deps import Deps
 from services.app.models import LANES
 
@@ -33,6 +34,29 @@ def severity(alert: dict) -> str:
     if alert["status"] == "needs_review":
         return "review"
     return next((name for cut, name in SEVERITY if float(alert["score"]) >= cut), "medium")
+
+
+def event_analyst(e: dict) -> str | None:
+    """Who made an analyst event (approval, override, mock webhook), from its audit row."""
+    try:
+        detail = (
+            json.loads(e["detail"]) if isinstance(e.get("detail"), str) else (e.get("detail") or {})
+        )
+    except ValueError:
+        detail = {}
+    kind = e.get("event_type")
+    if kind == "approval":
+        return detail.get("analyst")
+    if kind == "webhook_mock":
+        return detail.get("approved_by")
+    if kind == "override":
+        m = re.search(r" by (.+?) \(was ", e.get("summary") or "")
+        return m.group(1) if m else None
+    return None
+
+
+def is_test_event(e: dict) -> bool:
+    return is_test_analyst(event_analyst(e))
 
 
 def client_id(request: Request) -> str:
@@ -69,7 +93,7 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         report.setdefault("lane", LANES.get(report["decision"], "needs_analyst"))
         return report
 
-    def decided() -> dict[str, dict]:
+    def decided(include_test: bool = False) -> dict[str, dict]:
         """Latest analyst approval or rejection per alert (audit trail plus this instance)."""
         rows: dict[str, dict] = {}
         try:
@@ -77,11 +101,13 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         except Exception:  # noqa: BLE001  the queue still renders if the audit read fails
             events = []
         for e in events:
+            if not include_test and is_test_event(e):
+                continue
             word = e["summary"].split(" ")[0]
             if e["event_type"] == "approval" or word == "confirm_clear":
                 rows[e["run_id"]] = {"alert_id": e["alert_id"], "decision": word, "ts": e["ts"]}
         for run_id, r in log.items():
-            if r["kind"] == "approval":
+            if r["kind"] == "approval" and (include_test or not is_test_analyst(r.get("analyst"))):
                 rows[run_id] = r
         latest: dict[str, dict] = {}
         for r in sorted(rows.values(), key=lambda r: r["ts"]):
@@ -91,11 +117,11 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
     # ---- views ----
 
     @app.get("/summary")
-    def summary():
+    def summary(include_test: bool = False):
         """Counts for the KPI strip. Lanes use the analyst override; `open` means no analyst
         approve or reject is on record."""
-        decisions = d().decisions.latest()
-        done = decided()
+        decisions = latest_visible(d().decisions, include_test)
+        done = decided(include_test)
         alerts, lanes = d().store.alerts(), {"escalated": 0, "agent_cleared": 0, "needs_analyst": 0}
         no_case = 0
         have = d().cases.latest()
@@ -124,9 +150,10 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         return report
 
     @app.get("/queue")
-    def queue():
+    def queue(include_test: bool = False):
         """The alert queue with severity, lane and any analyst decision."""
-        have, decisions, done = d().cases.latest(), d().decisions.latest(), decided()
+        have, done = d().cases.latest(), decided(include_test)
+        decisions = latest_visible(d().decisions, include_test)
         out = []
         for a in d().store.alerts():
             row = have.get(a["alert_id"])
@@ -142,6 +169,7 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
                     "score": round(float(a["score"]), 2),
                     "threshold": a.get("threshold"),
                     "severity": severity(a),
+                    "injected": bool(a.get("injected")),
                     "has_case": row is not None,
                     "lane": lane,
                     "agent_decision": row["decision"] if row else None,
@@ -152,13 +180,13 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         return sorted(out, key=lambda r: (order[r["severity"]], -r["score"]))
 
     @app.get("/cases/{alert_id}/detail")
-    def case_detail(alert_id: str):
+    def case_detail(alert_id: str, include_test: bool = False):
         """The cached case with its run facts, the alert and the analyst's decisions."""
         alert = alert_or_404(alert_id)
         row = d().cases.get(alert_id)
         if row is None:
             return {"cached": False, "alert": _alert_view(alert), "report": None}
-        dec = d().decisions.latest().get(alert_id)
+        dec = latest_visible(d().decisions, include_test).get(alert_id)
         report = _lane_report(row)
         lane, changed = effective_lane(report, dec)
         return {
@@ -198,6 +226,7 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         }
         view["score"] = round(float(a["score"]), 2)
         view["severity"] = severity(a)
+        view["injected"] = bool(a.get("injected"))
         try:
             view["top_features"] = json.loads(a["top_features"]) if a.get("top_features") else {}
         except (TypeError, ValueError):
@@ -314,10 +343,10 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         }
 
     @app.get("/cases/{alert_id}/export")
-    def export_case(alert_id: str):
+    def export_case(alert_id: str, include_test: bool = False):
         """One JSON file with the alert, case, timeline and analyst decisions."""
         alert = alert_or_404(alert_id)
-        detail = case_detail(alert_id)
+        detail = case_detail(alert_id, include_test)
         run_id = detail.get("run_id")
         try:
             events = reader().run_events(run_id) if run_id else []
@@ -330,7 +359,12 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
             "alert": _alert_view(alert),
             "case": detail,
             "timeline": events,
-            "analyst_events": [e for e in trail if e["event_type"] in DECISION_TYPES],
+            "analyst_events": [
+                e
+                for e in trail
+                if e["event_type"] in (*DECISION_TYPES, "webhook_mock")
+                and (include_test or not is_test_event(e))
+            ],
         }
         return Response(
             json.dumps(body, indent=1, default=str),
@@ -343,6 +377,7 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         alert_id: str | None = Query(default=None, max_length=64),
         limit: int = Query(default=150, ge=1, le=500),
         event_type: str | None = Query(default=None, max_length=32),
+        hide_test: bool = False,
     ):
         try:
             events = reader().recent(limit, alert_id=alert_id)
@@ -350,6 +385,10 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
             raise HTTPException(502, f"audit read failed: {type(e).__name__}") from e
         if event_type:
             events = [e for e in events if e["event_type"] == event_type]
+        events = [{**e, "test_record": is_test_event(e)} for e in events]
+        if hide_test:
+            events = [e for e in events if not e["test_record"]]
+        events = events[:limit]  # the limit is a ceiling whatever the reader returned
         return {"events": events, "n": len(events)}
 
     @app.get("/benchmark")

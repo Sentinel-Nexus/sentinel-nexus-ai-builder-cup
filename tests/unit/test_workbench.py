@@ -101,7 +101,7 @@ def test_live_runs_are_limited_per_client_and_per_service_with_a_clear_message()
         r = c.post("/cases/AL_W/investigate?force=true", headers=h1)
         assert r.status_code == 429 and "this hour" in r.json()["detail"]
         assert int(r.headers["retry-after"]) > 0
-        assert "Cached cases are still available" in r.json()["detail"]
+        assert "real recorded agent runs" in r.json()["detail"]
         assert c.post("/cases/AL_W/investigate?force=true", headers=h2).status_code == 200
         assert c.post("/cases/AL_W/investigate", headers=h1).status_code == 200  # cached: free
         deps.limiter = ForceLimiter(1, 10, per_client_hour=5)
@@ -147,3 +147,82 @@ def test_graph_failure_is_a_502_with_a_message():
 
 def test_ui_data_file_matches_the_docs():
     assert build_ui_data.main(["--check"]) == 0
+
+
+# ---- test records, limits from the environment, audit ceiling ----
+
+
+def test_smoke_analyst_decisions_are_excluded_from_state_unless_asked_for():
+    deps, audit, c = client_with_case()
+    cleared = good_findings("clear")
+    deps.backend = FakeBackend(cleared, second=cleared)
+    with c:
+        c.post("/cases/AL_W/investigate")
+        base = {"analyst": "smoke-test", "note": "ui_smoke audit check"}
+        assert (
+            c.post("/cases/AL_W/approve", json={**base, "decision": "approve"}).status_code == 200
+        )
+        ov = c.post("/cases/AL_W/override", json={**base, "decision": "override_to_escalate"})
+        assert ov.json()["lane"] == "escalated"  # the call reports the effect of this record
+        # but no state shows it: lanes, queue, summary and the case page ignore test records
+        assert [x["alert_id"] for x in c.get("/lanes").json()["agent_cleared"]] == ["AL_W"]
+        assert c.get("/summary").json()["decided"] == 0
+        assert c.get("/summary").json()["lanes"]["agent_cleared"] == 1
+        q = next(a for a in c.get("/queue").json() if a["alert_id"] == "AL_W")
+        assert q["analyst_decision"] is None and q["lane"] == "agent_cleared"
+        assert c.get("/cases/AL_W/detail").json()["analyst_override"] is None
+        trail = c.get("/audit", params={"alert_id": "AL_W", "hide_test": "true"}).json()
+        assert not [e for e in trail["events"] if e["event_type"] in ("approval", "override")]
+        # the rows are still there (audit is never edited) and flagged as test records
+        full = c.get("/audit", params={"alert_id": "AL_W", "limit": 200}).json()["events"]
+        assert any(e["event_type"] == "approval" and e["test_record"] for e in full)
+        # the test view shows the effect, which is how Override is verified without real state
+        assert [x["alert_id"] for x in c.get("/lanes?include_test=true").json()["escalated"]] == [
+            "AL_W"
+        ]
+        assert c.get("/summary?include_test=true").json()["decided"] == 1
+        # a real analyst's decision does count
+        real = {"analyst": "analyst-1", "decision": "confirm_clear", "note": "agree with the clear"}
+        c.post("/cases/AL_W/override", json=real)
+        assert c.get("/summary").json()["decided"] == 1
+
+
+def test_live_limits_come_from_the_environment(monkeypatch):
+    from services.app.config import Settings
+
+    monkeypatch.setenv("LIVE_PER_CLIENT_HOUR", "7")
+    monkeypatch.setenv("LIVE_PER_HOUR", "11")
+    monkeypatch.setenv("LIVE_PER_DAY", "55")
+    s = Settings()
+    assert (s.client_per_hour, s.force_per_hour, s.force_per_day) == (7, 11, 55)
+    monkeypatch.delenv("LIVE_PER_CLIENT_HOUR")
+    monkeypatch.delenv("LIVE_PER_HOUR")
+    monkeypatch.delenv("LIVE_PER_DAY")
+    s = Settings()
+    assert (s.client_per_hour, s.force_per_hour, s.force_per_day) == (3, 20, 120)
+
+
+def test_audit_limit_is_a_ceiling_even_if_the_reader_returns_more():
+    deps, _, c = client_with_case()
+
+    class Greedy:
+        def recent(self, limit=200, alert_id=None):
+            return [
+                {"event_id": str(i), "run_id": "r", "seq": i, "ts": "2026-10-16T00:00:00Z",
+                 "alert_id": "AL_W", "agent": "a", "event_type": "step", "summary": "x",
+                 "detail": None}
+                for i in range(40)
+            ]  # fmt: skip
+
+        def decisions(self):
+            return []
+
+        def run_events(self, run_id):
+            return []
+
+        def invalidate(self):
+            pass
+
+    deps.audit_reader = Greedy()
+    with c:
+        assert c.get("/audit", params={"limit": 15}).json()["n"] == 15

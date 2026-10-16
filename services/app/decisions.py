@@ -15,6 +15,24 @@ from typing import Protocol
 from services.app.runctx import now_iso
 
 DECISIONS = ("override_to_escalate", "confirm_clear")
+TEST_PREFIX = "smoke"  # analyst names that start with this are test records
+
+
+def is_test_analyst(name) -> bool:
+    return str(name or "").strip().lower().startswith(TEST_PREFIX)
+
+
+def latest_visible(store, include_test: bool = False) -> dict[str, dict]:
+    """Latest decision per alert. Test records (analyst "smoke...") are left out unless asked
+    for, so a smoke test never changes lanes, queue or counts; the rows stay in the table."""
+    store.latest()  # makes sure the rows are loaded
+    out: dict[str, dict] = {}
+    for r in getattr(store, "rows", []):
+        if not include_test and is_test_analyst(r.get("analyst")):
+            continue
+        if r["alert_id"] not in out or r["ts"] >= out[r["alert_id"]]["ts"]:
+            out[r["alert_id"]] = r
+    return out
 
 
 class DecisionStore(Protocol):

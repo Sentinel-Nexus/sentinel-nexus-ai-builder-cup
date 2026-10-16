@@ -10,6 +10,9 @@ export const SCENARIO = {
   wash_trading: 'Wash trading', coordinated_accumulation: 'Coordinated buying', mule_funding: 'Mule funding',
 };
 
+export const INJECTED_LABEL = 'Injected review case (evaluation), not detector output';
+export const injectedChip = () => h('span', { class: 't-review chip', title: INJECTED_LABEL }, 'Injected (eval)');
+
 export const sevChip = (s) => h('span', { class: `chip dot ${(SEVERITY[s] || ['t-neutral'])[0]}` }, (SEVERITY[s] || [0, s])[1]);
 export const laneChip = (l) => (l
   ? h('span', { class: `chip ${(LANE[l] || ['t-neutral'])[0]}` }, (LANE[l] || [0, l])[1])

@@ -135,10 +135,10 @@ def run(base: str, write: bool = False, out: Checks | None = None) -> Checks:
 
     if cased:
         aid = cased[0]["alert_id"]
-        body = {"analyst": "smoke", "decision": "approve", "note": ""}
+        body = {"analyst": "smoke-test", "decision": "approve", "note": ""}
         s, b, ms, _ = call(base, f"/cases/{aid}/approve", "POST", body)
         c.check("POST approve without a reason is refused", s == 422, f"{s}", ms)
-        body = {"analyst": "smoke", "decision": "override_to_escalate", "note": ""}
+        body = {"analyst": "smoke-test", "decision": "override_to_escalate", "note": ""}
         s, b, ms, _ = call(base, f"/cases/{aid}/override", "POST", body)
         c.check("POST override without a reason is refused", s == 422, f"{s}", ms)
         s, b, ms, _ = call(base, "/cases/AL_NOPE/investigate", "POST")

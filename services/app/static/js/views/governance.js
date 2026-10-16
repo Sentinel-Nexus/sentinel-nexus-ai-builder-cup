@@ -47,7 +47,7 @@ export async function render(root) {
     try {
       const res = await get(`/audit?limit=200${t ? `&event_type=${encodeURIComponent(t)}` : ''}`, { fresh: true });
       auditBox.replaceChildren(res.events.length
-        ? table(['Time', 'Alert', 'Agent', 'Event', 'Summary'], res.events.map((e) => [fmtTime(e.ts), h('span', { class: 'mono' }, e.alert_id), e.agent, e.event_type, (e.summary || '').slice(0, 220)]), { dense: true, caption: 'Audit events, newest first' })
+        ? table(['Time', 'Alert', 'Agent', 'Event', 'Summary'], res.events.map((e) => [fmtTime(e.ts), h('span', { class: 'mono' }, e.alert_id), e.agent, e.test_record ? `${e.event_type} (test record)` : e.event_type, (e.summary || '').slice(0, 220)]), { dense: true, caption: 'Audit events, newest first' })
         : h('div', { class: 'state' }, h('strong', null, 'No events'), 'Nothing matches this filter.'));
     } catch (e) {
       auditBox.replaceChildren(errorState(e, loadAudit));

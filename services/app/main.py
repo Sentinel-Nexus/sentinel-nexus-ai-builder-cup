@@ -23,7 +23,13 @@ from services.app.audit import BigQueryAudit, drain_all
 from services.app.audit_read import BigQueryAuditReader
 from services.app.cases import BigQueryCases
 from services.app.config import Settings
-from services.app.decisions import BigQueryDecisions, decision_row, effective_lane
+from services.app.decisions import (
+    BigQueryDecisions,
+    decision_row,
+    effective_lane,
+    is_test_analyst,
+    latest_visible,
+)
 from services.app.deps import Deps
 from services.app.models import LANES
 from services.app.pipeline import investigate
@@ -171,7 +177,8 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             if not ok:
                 raise HTTPException(
                     429,
-                    f"{MESSAGES.get(scope, 'Rate limited.')} Cached cases are still available. "
+                    f"{MESSAGES.get(scope, 'Rate limited.')} The cached cases are real recorded "
+                    "agent runs and are still available to browse. "
                     f"Try again in about {max(1, retry // 60)} min.",
                     headers={"Retry-After": str(retry)},
                 )
@@ -235,7 +242,7 @@ def create_app(deps: Deps | None = None) -> FastAPI:
                 body.analyst,
                 body.decision,
                 note,
-                override=d().decisions.latest().get(alert_id),
+                override=latest_visible(d().decisions, is_test_analyst(body.analyst)).get(alert_id),
             )
         except ValueError as e:
             raise HTTPException(422, str(e)) from e
@@ -243,6 +250,7 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             "kind": "approval",
             "alert_id": alert_id,
             "decision": body.decision,
+            "analyst": body.analyst,
             "ts": now_iso(),
         }
         _invalidate()
@@ -289,6 +297,7 @@ def create_app(deps: Deps | None = None) -> FastAPI:
                 "kind": "approval",
                 "alert_id": alert_id,
                 "decision": body.decision,
+                "analyst": body.analyst,
                 "ts": rec["ts"],
             }
         _invalidate()
@@ -296,11 +305,11 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         return {"recorded": True, "decision": rec["decision"], "lane": lane}
 
     @app.get("/lanes")
-    def lanes():
+    def lanes(include_test: bool = False):
         """Cached cases grouped by lane. Agent-cleared cases keep their own lane with the clear
         reason and evidence, and an analyst override moves a case to `escalated`."""
         out: dict[str, list] = {"escalated": [], "agent_cleared": [], "needs_analyst": []}
-        decisions = d().decisions.latest()
+        decisions = latest_visible(d().decisions, include_test)
         for alert_id, row in sorted(d().cases.latest().items()):
             report = _report(row)
             dec = decisions.get(alert_id)
@@ -308,6 +317,7 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             out[lane].append(
                 {
                     "alert_id": alert_id,
+                    "injected": bool((d().store.get_alert(alert_id) or {}).get("injected")),
                     "ring_id": report["ring_id"],
                     "alert_status": report["alert_status"],
                     "agent_decision": report["decision"],

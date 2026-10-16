@@ -1,6 +1,6 @@
 import { get } from '../api.js';
 import { $$, h, table } from '../dom.js';
-import { empty, errorState, fmtPct, laneChip, scenarioChip, sevChip, statusChip } from '../ui.js';
+import { empty, errorState, fmtPct, injectedChip, laneChip, scenarioChip, sevChip, statusChip } from '../ui.js';
 
 export const title = 'Command centre';
 
@@ -51,7 +51,7 @@ export async function render(root, { keys }) {
     ? empty('No alerts', 'The detector has not produced any alert.')
     : table(
       ['Severity', 'Alert', 'Ring', 'Scenario hint', ['Score', 'num'], ['Members', 'num'], 'Detector', 'Agent lane'],
-      queue.map((a) => [sevChip(a.severity), h('a', { href: `#/case/${encodeURIComponent(a.alert_id)}`, class: 'mono' }, a.alert_id),
+      queue.map((a) => [sevChip(a.severity), h('span', null, h('a', { href: `#/case/${encodeURIComponent(a.alert_id)}`, class: 'mono' }, a.alert_id), a.injected ? [' ', injectedChip()] : null),
         h('span', { class: 'mono' }, a.ring_id), scenarioChip(a.scenario_hint), a.score.toFixed(1), a.n_members,
         statusChip(a.status), a.analyst_decision ? h('span', null, laneChip(a.lane), ' ', h('span', { class: 'chip t-neutral' }, a.analyst_decision)) : laneChip(a.lane)]),
       { caption: 'Alert queue', rowAttrs: (i) => ({ class: 'row-link', 'data-id': queue[i].alert_id, tabindex: 0 }) });

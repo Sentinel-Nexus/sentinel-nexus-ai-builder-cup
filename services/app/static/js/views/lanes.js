@@ -1,6 +1,6 @@
 import { forget, get, post } from '../api.js';
 import { h } from '../dom.js';
-import { closeDialog, dialog, empty, errorState, loading, scenarioChip, statusChip, store, toast } from '../ui.js';
+import { closeDialog, dialog, empty, errorState, injectedChip, loading, statusChip, store, toast } from '../ui.js';
 
 export const title = 'Lanes';
 const enc = encodeURIComponent;
@@ -43,7 +43,7 @@ function overrideDialog(item, kind, reload) {
 
 function laneItem(lane, item, reload) {
   const body = [
-    h('div', { class: 'row' }, h('a', { class: 'mono', href: `#/case/${enc(item.alert_id)}` }, item.alert_id), h('span', { class: 'chip t-neutral mono' }, item.ring_id),
+    h('div', { class: 'row' }, h('a', { class: 'mono', href: `#/case/${enc(item.alert_id)}` }, item.alert_id), h('span', { class: 'chip t-neutral mono' }, item.ring_id), item.injected ? injectedChip() : null,
       statusChip(item.alert_status), item.analyst_changed ? h('span', { class: 'chip t-high' }, `analyst: ${(item.analyst_decision || '').replaceAll('_', ' ')}`) : null,
       h('span', { class: 'small muted' }, `${Math.round(item.confidence * 100)}% confidence`)),
     h('p', { class: 'small', style: 'margin:6px 0' }, item.summary),

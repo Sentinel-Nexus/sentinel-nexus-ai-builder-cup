@@ -3,7 +3,7 @@ import { ApiError, forget, get, post, stream } from '../api.js';
 import { $, clear, h, table } from '../dom.js';
 import { createGraph } from '../graph.js';
 import {
-  closeDialog, dialog, download, empty, errorState, fmtMs, fmtN, fmtTime, laneChip, loading,
+  INJECTED_LABEL, closeDialog, dialog, download, empty, errorState, fmtMs, fmtN, fmtTime, laneChip, loading,
   scenarioChip, sevChip, sourceBadge, statusChip, store, toast,
 } from '../ui.js';
 
@@ -157,6 +157,10 @@ export async function render(root, { args, keys }) {
     );
     if (printMode) page.append(h('div', { class: 'print-only small' }, `MarketSentinel case report, generated ${fmtTime(new Date().toISOString())}. Synthetic data; the agent recommends, an analyst decides.`));
 
+    if (alert.injected || detail.source === 'eval_injected') {
+      page.append(h('div', { class: 'notice warn', role: 'note' }, h('strong', null, `${INJECTED_LABEL}. `),
+        'This alert was built for the evaluation from real accounts at their real detector scores; the detector did not raise it.'));
+    }
     if (live) page.append(liveNotice());
     if (!report) {
       page.append(empty('No cached case yet', 'No case is stored for this alert. Use "Investigate live" to run one (limited).'));
@@ -275,7 +279,7 @@ export async function render(root, { args, keys }) {
 
   function trailCard() {
     const box = h('div', { id: 'trail' }, h('div', { class: 'state small' }, 'Loading analyst decisions…'));
-    get(`/audit?alert_id=${enc(alertId)}&limit=100`, { fresh: true }).then((res) => {
+    get(`/audit?alert_id=${enc(alertId)}&limit=100&hide_test=true`, { fresh: true }).then((res) => {
       const rows = res.events.filter((e) => ['approval', 'override', 'webhook_mock'].includes(e.event_type));
       clear(box).append(rows.length ? table(['When', 'Event', 'Detail'], rows.map((e) => [fmtTime(e.ts), e.event_type.replace('_', ' '), e.summary]), { dense: true, caption: 'Analyst decisions' })
         : h('div', { class: 'state small' }, 'No analyst decision yet.'));

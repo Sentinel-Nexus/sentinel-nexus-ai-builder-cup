@@ -15,6 +15,13 @@ MODEL_FAST = "gemini-2.5-flash"
 MODEL_STRONG = "gemini-2.5-pro"
 
 
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(name, default))
+    except ValueError:
+        return default
+
+
 @dataclass(frozen=True)
 class Limits:
     """Hard per-run limits. Hitting one ends the run as budget_exhausted, never silently."""
@@ -54,9 +61,11 @@ class Settings:
     # Flash vs Pro measurement).
     model_critic: str = field(default_factory=lambda: os.environ.get("MODEL_CRITIC", MODEL_FAST))
     limits: Limits = field(default_factory=Limits)
-    force_per_hour: int = 6  # live investigations, whole service (per instance), per hour
-    force_per_day: int = 30
-    client_per_hour: int = 2  # live investigations per client per hour
+    # live investigations (about $0.01-0.02 each); env: LIVE_PER_HOUR, LIVE_PER_DAY,
+    # LIVE_PER_CLIENT_HOUR. Counted per service instance.
+    force_per_hour: int = field(default_factory=lambda: _env_int("LIVE_PER_HOUR", 20))
+    force_per_day: int = field(default_factory=lambda: _env_int("LIVE_PER_DAY", 120))
+    client_per_hour: int = field(default_factory=lambda: _env_int("LIVE_PER_CLIENT_HOUR", 3))
     # a live run answers the requester only; it does not replace the cached case for everyone
     persist_forced: bool = field(default_factory=lambda: os.environ.get("PERSIST_FORCED") == "1")
     thinking_budget: int = 512  # caps Gemini 2.5 thinking tokens per call (Investigator)
