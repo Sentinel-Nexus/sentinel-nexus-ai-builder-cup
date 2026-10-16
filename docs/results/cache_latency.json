@@ -1,0 +1,26 @@
+{
+ "per_alert": {
+  "AL_3df9da0276": {
+   "n": 25,
+   "median_ms": 0.078,
+   "max_ms": 0.212
+  },
+  "AL_5a1a959872": {
+   "n": 25,
+   "median_ms": 0.068,
+   "max_ms": 0.089
+  },
+  "AL_fa9727ee1e": {
+   "n": 25,
+   "median_ms": 0.064,
+   "max_ms": 0.082
+  },
+  "AL_584807441a": {
+   "n": 25,
+   "median_ms": 0.045,
+   "max_ms": 0.058
+  }
+ },
+ "worst_ms": 0.212,
+ "note": "service-side cache hit, perf_counter; excludes HTTP"
+}

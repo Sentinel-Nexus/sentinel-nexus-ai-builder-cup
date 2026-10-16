@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import statistics
 import sys
 import time
 from pathlib import Path
@@ -112,9 +113,9 @@ def run_case(deps, item: dict) -> dict:
     run = investigate(deps, item["alert_id"], force=True, source="eval", listeners=[events.append])
     if run["status"] != "ok":
         return {**item, "run": run, "trace": trace_summary(events)}
-    t0 = time.monotonic()
+    t0 = time.perf_counter()  # monotonic() has ~15 ms resolution on Windows
     repeat = investigate(deps, item["alert_id"])  # cache hit: no agents, no tokens
-    return {**item, "run": run, "repeat_ms": round((time.monotonic() - t0) * 1000, 3),
+    return {**item, "run": run, "repeat_ms": round((time.perf_counter() - t0) * 1000, 3),
             "repeat_cached": repeat["cached"], "trace": trace_summary(events)}  # fmt: skip
 
 
@@ -227,7 +228,87 @@ def render_md(summary: dict) -> str:
         lines.append(
             f"| {r['alert_id']} | {r['kind']} | {r['decision']} | {r['tokens']} | {r['latency_ms']} | {r['engines']} |"
         )
+    lines += _extra_sections(summary)
     return "\n".join(lines) + "\n"
+
+
+def _extra_sections(summary: dict) -> list[str]:
+    """Definitions, adversarial detail, cache latency and caveats appended to the report."""
+    out = [
+        "",
+        "## How the numbers are defined",
+        "",
+        "- **Case members** are deterministic: the detector alert's members plus the members of "
+        "`ring_subgraph` (evaded accounts linked only through devices or fills). The model decides "
+        "escalate / clear / uncertain for the case and supplies rationale and evidence ids; it no "
+        "longer lists accounts. It can carve an account out only with a supported `exclusion` claim.",
+        "- **Attacker recall (per account)** = attackers in escalated reports / 39. Because the "
+        "decision now covers the whole ring, this equals the detector's alert coverage "
+        "(39 of 39 attackers are in the four flagged alerts, one of them, C004, scored in the "
+        "review band) times the agent escalating each alert. It is a ring-level result, not "
+        "per-account judgement, and `exclusions` was never needed on this data.",
+        "- **Investigator claims kept** = claims the Critic accepted / claims the Investigator "
+        "produced. Rejected claims are removed from the report. This measures the Investigator.",
+        "- **Claims in the final reports with resolvable evidence ids** = report claims whose ids all "
+        "resolve in that run's ledger / report claims. It is 100% by construction "
+        "(`pipeline._final_claims` drops anything else) and re-checked per run. A removed claim is "
+        "listed in the report as `removed_claims` with the Critic's reason and an "
+        "`unverified_note`; the summary cannot cite it.",
+        "- **Lanes**: `escalated`, `agent_cleared` (reason and evidence stored, analyst can "
+        "override) and `needs_analyst` (uncertain).",
+    ]
+    adv = summary.get("adversarial")
+    if adv and adv.get("claims"):
+        out += ["", "## Adversarial test (current pipeline)", "",
+                f"Alert {adv['alert_id']}, {adv['injected']} injected claims, "
+                f"{adv['rejected']} rejected, {adv['leaked_into_report']} leaked into the report "
+                f"({'PASS' if adv['passed'] else 'FAIL'}).", "",
+                "| Injected claim | Cited ids | Stage | Critic verdict |", "|---|---|---|---|"]  # fmt: skip
+        for c in adv["claims"]:
+            v = c["verdicts"][0] if c["verdicts"] else {}
+            out.append(
+                f"| {c['claim']} | {', '.join(v.get('evidence_ids') or [])} | {v.get('stage', '')} "
+                f"| {str(v.get('verdict', ''))[:160]} |"
+            )
+    cache = CASE_DIR.parent / "cache_latency.json"
+    if cache.exists():
+        cl = json.loads(cache.read_text(encoding="utf-8"))
+        out += ["", "## Serving a cached case", "",
+                f"Service-side time of a cache hit over {sum(v['n'] for v in cl['per_alert'].values())} "
+                f"repeats: median {statistics.median(v['median_ms'] for v in cl['per_alert'].values()):.3f} ms, "
+                f"worst {cl['worst_ms']:.3f} ms (`docs/results/cache_latency.json`, "
+                "`perf_counter`, excludes HTTP)."]  # fmt: skip
+    out += [
+        "",
+        "## Caveats",
+        "",
+        "- Decoy and borderline cases are injected `needs_review` alerts built at the accounts' real "
+        "detector scores (the decoys score far below the review band), so they test the "
+        "investigation, not the detector. Seed 42 has no detector `needs_review` alert.",
+        "- Only the four real alerts were re-run with the final pipeline; the four `EV_*` cases are "
+        "from the previous pipeline (before deterministic membership and removed-claim bookkeeping). "
+        "Their decisions are unaffected by the change in membership but their report text was not kept.",
+        "- `EV_C004`, the one attacker that scored in the review band, was **cleared** by the agent, "
+        "which also disagreed with the detector's hint. The threshold and decision logic were not "
+        "changed to catch it. `EV_DG3_busy_honest` ended `uncertain` (not escalated).",
+        "- Latency varies with Vertex: a send-back call once took 37 s, and a single model call took "
+        "346 s during a machine suspend (the deadline watchdog now polls the wall clock). The "
+        "slowest recorded case is 67.4 s.",
+        "- Dollar figures use third-party prices (+-30%).",
+        "",
+        "## Run history",
+        "",
+        "| Run | What | Outcome |",
+        "|---|---|---|",
+        "| First attempt (`.cache/eval_run.log`) | old pipeline | 2 of 9 cases; the mule ring crashed on a "
+        "truncated JSON answer; a Drafter call failed on 429 |",
+        "| Run 1 (`docs/results/agent_evals_run1.json`) | Flash critic, 12 evidence rows | 8 cases + adversarial; "
+        "recall 12/39 |",
+        "| Partial run | Critic sees all edge ids | 7 of 9 cases, stopped by the operator; recall 29/39 |",
+        "| Final | deterministic members; DG3 and adversarial added; 4 real alerts re-run | "
+        "8 cases + adversarial (3 claims) complete |",
+    ]
+    return out
 
 
 def _pct(x) -> str:
@@ -284,6 +365,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-adversarial", action="store_true")
     ap.add_argument("--adversarial-only", action="store_true")
     ap.add_argument("--only", default="", help="comma-separated alert ids to run")
+    ap.add_argument("--rebuild", action="store_true", help="rebuild the report from stored cases")
     ap.add_argument("--max-minutes", type=float, default=20.0, help="total wall-clock cap")
     args = ap.parse_args(argv)
 
@@ -296,6 +378,12 @@ def main(argv: list[str] | None = None) -> int:
         bigquery.Client(project=settings.project, location="US"), settings.project
     )
     all_items = plan(deps, labels)
+    if args.rebuild:  # no Gemini: only re-reads the stored case files
+        summary = build_summary(deps, labels, [], None, [it["alert_id"] for it in all_items])
+        OUT_JSON.write_text(json.dumps(summary, indent=2), encoding="utf-8", newline="\n")
+        OUT_MD.write_text(render_md(summary), encoding="utf-8", newline="\n")
+        print(f"rebuilt {OUT_JSON.relative_to(REPO)} and {OUT_MD.relative_to(REPO)}")
+        return 0
     items = all_items
     if args.only:
         wanted = set(args.only.split(","))

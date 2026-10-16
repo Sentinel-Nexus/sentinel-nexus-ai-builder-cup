@@ -63,5 +63,5 @@ agents are ADK `LlmAgent`s (`agents.py`).
 
 `pytest tests/unit/test_agents_pipeline.py` runs the whole pipeline with a scripted backend (no
 Gemini). Evals: `python -m evals.agents.run` (dry run) / `--apply --max-minutes 20`. Precompute:
-`python scripts/precompute_cases.py` (dry run) / `--apply`. Both print a cost estimate first and
+`python -m scripts.precompute_cases` (dry run) / `--apply`. Both print a cost estimate first and
 have a hard cap on investigations.

@@ -1,7 +1,7 @@
 """Precompute case reports for every detector alert (flagged and needs_review).
 
-    python scripts/precompute_cases.py                 # dry run: lists alerts, prints the estimate
-    python scripts/precompute_cases.py --apply         # runs the agents (spends Gemini tokens)
+    python -m scripts.precompute_cases                 # dry run: lists alerts, prints the estimate
+    python -m scripts.precompute_cases --apply         # runs the agents (spends Gemini tokens)
 
 Safe by construction: a hard cap on investigations (--max-runs), the cost estimate is printed
 before anything is sent to Gemini, alerts that already have a cached case are skipped unless
