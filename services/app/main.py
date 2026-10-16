@@ -19,6 +19,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from services.app.audit import BigQueryAudit, drain_all
+from services.app.audit_read import BigQueryAuditReader
 from services.app.cases import BigQueryCases
 from services.app.config import Settings
 from services.app.decisions import BigQueryDecisions, decision_row, effective_lane
@@ -26,8 +27,10 @@ from services.app.deps import Deps
 from services.app.models import LANES
 from services.app.pipeline import investigate
 from services.app.policy import PolicyIndex
-from services.app.ratelimit import ForceLimiter
+from services.app.ratelimit import MESSAGES, ForceLimiter
+from services.app.runctx import now_iso
 from services.app.webhook import record_decision
+from services.app.workbench import client_id, register
 
 
 def default_deps(settings: Settings | None = None) -> Deps:
@@ -44,8 +47,9 @@ def default_deps(settings: Settings | None = None) -> Deps:
         backend=AdkBackend(s),
         cases=BigQueryCases(s.project),
         audit_factory=lambda: BigQueryAudit(s.project),
-        limiter=ForceLimiter(s.force_per_hour, s.force_per_day),
+        limiter=ForceLimiter(s.force_per_hour, s.force_per_day, per_client_hour=s.client_per_hour),
         decisions=BigQueryDecisions(s.project),
+        audit_reader=BigQueryAuditReader(s.project),
     )
 
 
@@ -59,6 +63,14 @@ class Override(BaseModel):
     analyst: str
     decision: str  # override_to_escalate | confirm_clear
     note: str = ""
+
+
+def need_reason(note: str) -> str:
+    """Every analyst action carries a written reason (it goes to the audit trail)."""
+    note = note.strip()
+    if len(note) < 3:
+        raise HTTPException(422, "a reason is required (at least 3 characters)")
+    return note
 
 
 def sse(event: str, data) -> str:
@@ -79,6 +91,7 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             if hasattr(d.backend, "warm"):
                 d.backend.warm()  # model clients up before the first investigation
             state["ready"] = True
+            state["prefetch"]()  # graph, trades and timelines of the cached cases
         except Exception as e:  # noqa: BLE001  reported on /health, requests still work
             state["warm_error"] = f"{type(e).__name__}: {str(e)[:200]}"
 
@@ -102,6 +115,12 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         report = json.loads(row["report"])
         report.setdefault("lane", LANES.get(report["decision"], "needs_analyst"))
         return report
+
+    register(app, d, state)
+
+    def _invalidate() -> None:
+        if d().audit_reader is not None:
+            d().audit_reader.invalidate()
 
     @app.get("/health")
     def health():
@@ -138,14 +157,19 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         }
 
     @app.post("/cases/{alert_id}/investigate")
-    async def run(alert_id: str, force: bool = False):
+    async def run(alert_id: str, request: Request, force: bool = False):
         if d().store.get_alert(alert_id) is None:
             raise HTTPException(404, f"unknown alert {alert_id}")
-        if force:
-            ok, retry = d().limiter.allow()
+        # a run that is not served from the cache spends Gemini tokens: it is limited
+        live = force or d().cases.get(alert_id) is None
+        if live:
+            ok, retry, scope = d().limiter.check(client_id(request))
             if not ok:
                 raise HTTPException(
-                    429, "force=true is rate limited", headers={"Retry-After": str(retry)}
+                    429,
+                    f"{MESSAGES.get(scope, 'Rate limited.')} Cached cases are still available. "
+                    f"Try again in about {max(1, retry // 60)} min.",
+                    headers={"Retry-After": str(retry)},
                 )
         q: queue.Queue = queue.Queue()
 
@@ -165,7 +189,10 @@ def create_app(deps: Deps | None = None) -> FastAPI:
                     )
                     sl.acquire()
                 try:
-                    q.put(("result", investigate(d(), alert_id, force=force, listeners=[q.put])))
+                    # a forced (live) result answers this caller; it does not replace the cache
+                    keep = not force or d().settings.persist_forced
+                    res = investigate(d(), alert_id, force=force, listeners=[q.put], persist=keep)
+                    q.put(("result", res))
                 finally:
                     if fresh:
                         sl.release()
@@ -196,17 +223,26 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         if row is None:
             raise HTTPException(404, "no case to approve; investigate first")
         case = {"run_id": row["run_id"], "report": json.loads(row["report"])}
+        note = need_reason(body.note)
         try:
-            return record_decision(
+            out = record_decision(
                 d().audit_factory(),
                 case,
                 body.analyst,
                 body.decision,
-                body.note,
+                note,
                 override=d().decisions.latest().get(alert_id),
             )
         except ValueError as e:
             raise HTTPException(422, str(e)) from e
+        state["decision_log"][out["decision_id"]] = {
+            "kind": "approval",
+            "alert_id": alert_id,
+            "decision": body.decision,
+            "ts": now_iso(),
+        }
+        _invalidate()
+        return out
 
     @app.post("/cases/{alert_id}/override")
     def override(alert_id: str, body: Override):
@@ -216,8 +252,9 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         if row is None:
             raise HTTPException(404, "no case; investigate first")
         case = {"run_id": row["run_id"], "report": _report(row)}
+        note = need_reason(body.note)
         try:
-            rec = decision_row(case, body.analyst, body.decision, body.note)
+            rec = decision_row(case, body.analyst, body.decision, note)
         except ValueError as e:
             raise HTTPException(422, str(e)) from e
         d().decisions.put(rec)
@@ -243,6 +280,14 @@ def create_app(deps: Deps | None = None) -> FastAPI:
             }
         )
         audit.flush()
+        if body.decision == "confirm_clear":  # the analyst has dealt with it
+            state["decision_log"][rec["decision_id"]] = {
+                "kind": "approval",
+                "alert_id": alert_id,
+                "decision": body.decision,
+                "ts": rec["ts"],
+            }
+        _invalidate()
         lane, _ = effective_lane(case["report"], rec)
         return {"recorded": True, "decision": rec["decision"], "lane": lane}
 

@@ -303,9 +303,13 @@ def test_http_sse_cache_force_and_approve():
         assert client.post("/cases/AL_NOPE/investigate").status_code == 404
         deps.limiter = ForceLimiter(0, 0)
         assert client.post("/cases/AL_W/investigate?force=true").status_code == 429
-        ok = client.post("/cases/AL_W/approve", json={"analyst": "a1", "decision": "approve"})
+        ok = client.post(
+            "/cases/AL_W/approve", json={"analyst": "a1", "decision": "approve", "note": "reviewed"}
+        )
         assert ok.json()["webhook_fired"] is True
-        bad = client.post("/cases/AL_W/approve", json={"analyst": "a1", "decision": "maybe"})
+        bad = client.post(
+            "/cases/AL_W/approve", json={"analyst": "a1", "decision": "maybe", "note": "x y z"}
+        )
         assert bad.status_code == 422
 
 
@@ -513,12 +517,13 @@ def test_agent_cleared_lane_and_analyst_override_over_http():
         )
         # approving a cleared case does not fire the webhook
         out = client.post(
-            "/cases/AL_W/approve", json={"analyst": "a1", "decision": "approve"}
+            "/cases/AL_W/approve", json={"analyst": "a1", "decision": "approve", "note": "reviewed"}
         ).json()
         assert out["webhook_fired"] is False
         # the analyst overrides: the case moves to the escalated lane, an audit event is written
         bad = client.post(
-            "/cases/AL_W/override", json={"analyst": " ", "decision": "confirm_clear"}
+            "/cases/AL_W/override",
+            json={"analyst": " ", "decision": "confirm_clear", "note": "reviewed"},
         )
         assert bad.status_code == 422
         body = {"analyst": "a1", "decision": "override_to_escalate", "note": "household"}
@@ -532,7 +537,7 @@ def test_agent_cleared_lane_and_analyst_override_over_http():
         assert any(e["event_type"] == "override" for e in audit.events)
         # now approval fires the (mock) webhook for the whole ring
         out = client.post(
-            "/cases/AL_W/approve", json={"analyst": "a1", "decision": "approve"}
+            "/cases/AL_W/approve", json={"analyst": "a1", "decision": "approve", "note": "reviewed"}
         ).json()
         assert out["webhook_fired"] is True
         fired = [e for e in audit.events if e["event_type"] == "webhook_mock"][-1]
@@ -546,5 +551,8 @@ def test_a_case_already_escalated_cannot_be_overridden():
     deps, _ = make_deps(FakeBackend(good_findings(), second=good_findings()))
     with TestClient(create_app(deps)) as client:
         client.post("/cases/AL_W/investigate")
-        r = client.post("/cases/AL_W/override", json={"analyst": "a1", "decision": "confirm_clear"})
+        r = client.post(
+            "/cases/AL_W/override",
+            json={"analyst": "a1", "decision": "confirm_clear", "note": "reviewed"},
+        )
         assert r.status_code == 422

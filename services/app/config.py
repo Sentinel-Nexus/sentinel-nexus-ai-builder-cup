@@ -54,8 +54,11 @@ class Settings:
     # Flash vs Pro measurement).
     model_critic: str = field(default_factory=lambda: os.environ.get("MODEL_CRITIC", MODEL_FAST))
     limits: Limits = field(default_factory=Limits)
-    force_per_hour: int = 6  # rate limit for force=true re-investigations
+    force_per_hour: int = 6  # live investigations, whole service (per instance), per hour
     force_per_day: int = 30
+    client_per_hour: int = 2  # live investigations per client per hour
+    # a live run answers the requester only; it does not replace the cached case for everyone
+    persist_forced: bool = field(default_factory=lambda: os.environ.get("PERSIST_FORCED") == "1")
     thinking_budget: int = 512  # caps Gemini 2.5 thinking tokens per call (Investigator)
     thinking_small: int = 256  # Critic and Drafter
     llm_concurrency: int = 2  # in-flight Gemini calls per process
