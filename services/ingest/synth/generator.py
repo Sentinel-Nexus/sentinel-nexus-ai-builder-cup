@@ -5,7 +5,8 @@ the same (seed, now) always gives the same rows. Seed 42 reproduces the live tab
 (2,039 accounts, 35,073 trades, 20 markets, 39 ground-truth accounts).
 
 The order of random calls is part of the contract. Do not reorder them; tests compare the
-output to the live counts.
+output to the live counts. Decoys and evasions (ADR 0002) draw from a separate RNG, run after
+everything else and only append rows, so the earlier rows keep their values and ids.
 """
 
 from __future__ import annotations
@@ -59,6 +60,17 @@ SIGNALS = {
 }
 
 
+# ADR 0002. Fraction of each scenario's attackers that stop sharing a funding source.
+EVASION_FRACTION = {"S1_wash_ring": 0.4, "S2_pre_resolution": 0.4, "S3_mule_funding": 0.4}
+# Innocent groups, drawn from the normal population A0001..A2000.
+HOUSEHOLD = [f"A{i:04d}" for i in range(100, 105)]  # 5 people, one home device
+EXCHANGE_CLUSTER = [f"A{i:04d}" for i in range(200, 208)]  # 8 users withdrawing from one CEX
+BUSY_HONEST = [f"A{i:04d}" for i in range(300, 310)]  # 10 independent users reacting to news
+EXCHANGE_FUNDING_ID = "FEX1"
+HOUSEHOLD_DEVICE_ID = "DH1"
+EVADED_SHARED_DEVICE = "DC_EV"
+
+
 @dataclass
 class SyntheticData:
     seed: int
@@ -67,6 +79,7 @@ class SyntheticData:
     markets: list[Row] = field(default_factory=list)
     trades: list[Row] = field(default_factory=list)
     ground_truth: list[Row] = field(default_factory=list)  # rows of eval.ground_truth
+    decoy_groups: list[Row] = field(default_factory=list)  # rows of eval.decoy_groups
     scenario_trade_ids: dict[str, list[str]] = field(default_factory=dict)
 
     def scenarios(self) -> dict[str, Row]:
@@ -234,7 +247,60 @@ def generate(seed: int = DEFAULT_SEED, now: dt.datetime = DEFAULT_NOW) -> Synthe
                 sid,
             )
 
+    _plant_decoys_and_evasions(data, now, resolve, base_price, trade)
     return data
+
+
+def _plant_decoys_and_evasions(data, now, resolve, base_price, trade) -> None:
+    """ADR 0002. Deterministic (own RNG), applied at generation time, never by SQL UPDATE.
+
+    Evasion: a share of each scenario's attackers stop sharing a funding source and stay
+    linked only through devices or matched fills. Decoys: three innocent groups that each look
+    suspicious on one signal. They go to ``decoy_groups``, used only for false-positive reports.
+    """
+    aux = random.Random(f"{data.seed}:decoys")
+    accounts = {a["account_id"]: a for a in data.accounts}
+
+    for sid, fraction in EVASION_FRACTION.items():
+        members = sorted(r["account_id"] for r in data.ground_truth if r["scenario_id"] == sid)
+        for a in sorted(aux.sample(members, round(len(members) * fraction))):
+            accounts[a]["funding_source_id"] = f"FE_{a}"
+            if sid == "S2_pre_resolution":
+                accounts[a]["device_id"] = EVADED_SHARED_DEVICE
+
+    def group(group_id, group_type, members, market_id=None):
+        for a in members:
+            data.decoy_groups.append(
+                dict(group_id=group_id, group_type=group_type, account_id=a, market_id=market_id)
+            )
+
+    for a in HOUSEHOLD:
+        accounts[a]["device_id"] = HOUSEHOLD_DEVICE_ID
+    group("DG1_household", "shared_device_household", HOUSEHOLD)
+
+    for a in EXCHANGE_CLUSTER:
+        accounts[a]["funding_source_id"] = EXCHANGE_FUNDING_ID
+    group("DG2_exchange_cluster", "shared_exchange_funding", EXCHANGE_CLUSTER)
+
+    # Busy but honest: aged, unlinked accounts piling into one outcome in the last hours of a
+    # market after public news. Same direction and timing as an insider ring, but no links.
+    attack_markets = {"M03", "M05", "M08", "M12"}
+    market = aux.choice(
+        sorted(m for m, r in resolve.items() if r < now and m not in attack_markets)
+    )
+    rt = resolve[market]
+    favoured = aux.choice(["YES", "NO"])
+    other = "NO" if favoured == "YES" else "YES"
+    for a in BUSY_HONEST:
+        for _ in range(aux.randint(3, 6)):
+            hours = aux.uniform(0.5, 5.0)
+            outcome = favoured if aux.random() < 0.85 else other
+            drift = 0.15 * (1 - hours / 5.0)
+            yes_p = base_price[market] + drift * (1 if favoured == "YES" else -1)
+            price = yes_p if outcome == "YES" else 1 - yes_p
+            size = min(aux.lognormvariate(6.2, 0.6), 3000)
+            trade(rt - dt.timedelta(hours=hours), market, a, "BUY", outcome, price, size)
+    group("DG3_busy_honest", "busy_but_honest", BUSY_HONEST, market)
 
 
 # ---- writers ----
@@ -253,6 +319,7 @@ def write_dataset(data: SyntheticData, out_dir: Path) -> None:
     for table in TABLES:
         _write_jsonl(out_dir / f"{table}.jsonl", getattr(data, table))
     _write_jsonl(out_dir / "ground_truth.jsonl", data.ground_truth)
+    _write_jsonl(out_dir / "decoy_groups.jsonl", data.decoy_groups)
 
 
 def write_ground_truth(data: SyntheticData, scenarios_dir: Path) -> None:
@@ -267,14 +334,15 @@ def sample(data: SyntheticData, baseline_trades: int = 300) -> SyntheticData:
     """Small committed sample: every scenario trade and account plus some baseline trades."""
     scenario_trades = {t for ids in data.scenario_trade_ids.values() for t in ids}
     scenario_accounts = {r["account_id"] for r in data.ground_truth}
+    decoy_accounts = {r["account_id"] for r in data.decoy_groups}
     trades, extra = [], 0
     for t in data.trades:
-        if t["trade_id"] in scenario_trades:
+        if t["trade_id"] in scenario_trades or t["account_id"] in decoy_accounts:
             trades.append(t)
         elif extra < baseline_trades:
             trades.append(t)
             extra += 1
-    used = scenario_accounts | {t["account_id"] for t in trades}
+    used = scenario_accounts | decoy_accounts | {t["account_id"] for t in trades}
     return SyntheticData(
         seed=data.seed,
         now=data.now,
@@ -282,5 +350,6 @@ def sample(data: SyntheticData, baseline_trades: int = 300) -> SyntheticData:
         markets=data.markets,
         trades=trades,
         ground_truth=data.ground_truth,
+        decoy_groups=data.decoy_groups,
         scenario_trade_ids=data.scenario_trade_ids,
     )

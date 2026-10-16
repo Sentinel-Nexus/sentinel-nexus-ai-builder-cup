@@ -1,4 +1,4 @@
-"""Canonical generator tests (ADR 0001). Seed 42 must reproduce the live BigQuery counts."""
+"""Canonical generator tests (ADR 0001, 0002): live counts, scenarios, decoys and evasions."""
 
 from __future__ import annotations
 
@@ -32,10 +32,10 @@ def _by_id(rows, key):
     return {r[key]: r for r in rows}
 
 
-def test_matches_live_counts(data):
-    """Live BigQuery (2026-10-14): 2,039 accounts, 35,073 trades, 20 markets, 39 truth rows."""
+def test_matches_expected_counts(data):
+    """2,039 accounts, 20 markets, 39 truth rows; 35,073 ADR 0001 trades plus 43 decoy trades."""
     assert len(data.accounts) == 2039
-    assert len(data.trades) == 35073
+    assert len(data.trades) == 35073 + 43
     assert len(data.markets) == 20
     assert len(data.ground_truth) == 39
     by_type = collections.Counter(r["scenario_type"] for r in data.ground_truth)
@@ -44,7 +44,7 @@ def test_matches_live_counts(data):
 
 def test_other_seed_differs(data):
     other = generate(7)
-    assert len(other.trades) == 34306  # the count quoted in the original P1 brief
+    assert len(other.trades) != len(data.trades)
     assert other.trades != data.trades
 
 
@@ -115,7 +115,7 @@ def test_wash_ring_is_closed_and_matched(data):
         )
         assert sell["account_id"] != buy["account_id"]
     accounts = _by_id(data.accounts, "account_id")
-    assert {accounts[a]["funding_source_id"] for a in ring} == {"FW1"}
+    assert {accounts[a]["funding_source_id"] for a in ring} <= {"FW1"} | {f"FE_{a}" for a in ring}
 
 
 def test_pre_resolution_buys_are_late_and_large(data):
@@ -139,7 +139,7 @@ def test_mule_funding_accounts_are_new_and_small(data):
     mules = set(gt["account_ids"])
     accounts = _by_id(data.accounts, "account_id")
     assert len(mules) == 25
-    assert {accounts[a]["funding_source_id"] for a in mules} == {"FM1"}
+    assert {accounts[a]["funding_source_id"] for a in mules} <= {"FM1"} | {f"FE_{a}" for a in mules}
     trades = _by_id(data.trades, "trade_id")
     for t in (trades[i] for i in gt["trade_ids"]):
         assert t["size_usd"] <= 200
@@ -181,5 +181,71 @@ def test_committed_scenarios_match_generator(data):
 def test_load_is_dry_run_by_default(data):
     client = MagicMock()
     counts = load(data, "p", apply=False, client=client)
-    assert counts["risk_raw.trades"] == 35073
+    assert counts["risk_raw.trades"] == 35073 + 43
+    assert counts["eval.decoy_groups"] == 23
     client.load_table_from_json.assert_not_called()
+
+
+def _funding_counts(data):
+    return collections.Counter(a["funding_source_id"] for a in data.accounts)
+
+
+def test_evasion_removes_funding_links_from_part_of_each_scenario(data):
+    accounts = _by_id(data.accounts, "account_id")
+    for name, evaded in zip(SCENARIO_NAMES, (3, 2, 10), strict=True):
+        ids = data.scenarios()[name]["account_ids"]
+        unique = [a for a in ids if accounts[a]["funding_source_id"] == f"FE_{a}"]
+        assert len(unique) == evaded
+    # evaded coordination accounts keep a link: a shared device
+    gt = data.scenarios()["pre_resolution_coordination"]["account_ids"]
+    assert sum(accounts[a]["device_id"] == "DC_EV" for a in gt) == 2
+
+
+def test_decoy_groups_are_innocent_and_labelled(data):
+    attackers = {r["account_id"] for r in data.ground_truth}
+    decoys = collections.defaultdict(list)
+    for r in data.decoy_groups:
+        decoys[r["group_id"]].append(r["account_id"])
+    assert {k: len(v) for k, v in decoys.items()} == {
+        "DG1_household": 5,
+        "DG2_exchange_cluster": 8,
+        "DG3_busy_honest": 10,
+    }
+    assert not attackers & {a for v in decoys.values() for a in v}
+    accounts = _by_id(data.accounts, "account_id")
+    assert {accounts[a]["device_id"] for a in decoys["DG1_household"]} == {"DH1"}
+    assert {accounts[a]["funding_source_id"] for a in decoys["DG2_exchange_cluster"]} == {"FEX1"}
+
+
+def test_busy_honest_trades_are_late_but_not_linked(data):
+    accounts = _by_id(data.accounts, "account_id")
+    busy = [r for r in data.decoy_groups if r["group_id"] == "DG3_busy_honest"]
+    market = busy[0]["market_id"]
+    resolve = dt.datetime.fromisoformat(_by_id(data.markets, "market_id")[market]["resolve_ts"])
+    ids = {r["account_id"] for r in busy}
+    late = [t for t in data.trades if t["account_id"] in ids and t["market_id"] == market]
+    assert len(late) >= 30
+    assert all(
+        dt.timedelta(0) < resolve - dt.datetime.fromisoformat(t["ts"]) <= dt.timedelta(hours=5)
+        for t in late
+        if t["trade_id"] > "T0035073"
+    )
+    assert len({accounts[a]["device_id"] for a in ids}) == len(ids)
+    assert len({accounts[a]["funding_source_id"] for a in ids}) == len(ids)
+
+
+def test_flat_funding_rule_is_no_longer_near_perfect(data):
+    """The shared-funding >= 5 rule: misses evaders and flags the exchange cluster."""
+    counts = _funding_counts(data)
+    accounts = _by_id(data.accounts, "account_id")
+    flagged = {a for a, r in accounts.items() if counts[r["funding_source_id"]] >= 5}
+    truth = {r["account_id"] for r in data.ground_truth}
+    tp = len(flagged & truth)
+    assert tp / len(truth) < 0.6
+    assert tp / len(flagged) < 0.8
+    assert len(flagged - truth) == 8
+
+
+def test_pre_adr0002_trades_are_unchanged(data):
+    ids = [t["trade_id"] for t in data.trades]
+    assert ids[:35073] == [f"T{i:07d}" for i in range(1, 35074)]

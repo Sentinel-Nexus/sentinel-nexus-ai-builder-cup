@@ -4,6 +4,14 @@ CREATE TABLE IF NOT EXISTS `__P__.eval.ground_truth` (
   account_id STRING,
   market_id STRING
 );
+-- Innocent groups that look suspicious on one signal (ADR 0002). False-positive reporting
+-- only: the detector never reads this table or ground_truth.
+CREATE TABLE IF NOT EXISTS `__P__.eval.decoy_groups` (
+  group_id STRING,
+  group_type STRING,
+  account_id STRING,
+  market_id STRING
+);
 CREATE TABLE IF NOT EXISTS `__P__.eval.benchmark` (
   method STRING,
   flagged INT64,

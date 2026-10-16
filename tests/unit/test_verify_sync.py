@@ -17,6 +17,7 @@ def test_parse_ddl_columns_covers_all_live_tables():
         "risk_curated.markets",
         "risk_curated.alerts",
         "eval.ground_truth",
+        "eval.decoy_groups",
         "eval.benchmark",
         "eval.benchmark_runs",
     }

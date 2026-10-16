@@ -52,18 +52,45 @@ TABLE_SPECS = {
             ("market_id", "STRING"),
         ],
     ),
+    "eval.decoy_groups": (
+        "decoy_groups",
+        [
+            ("group_id", "STRING"),
+            ("group_type", "STRING"),
+            ("account_id", "STRING"),
+            ("market_id", "STRING"),
+        ],
+    ),
 }
 
+VALIDATION_DATASET = "eval_val"
 
-def load(data: SyntheticData, project: str, apply: bool = False, client=None) -> dict[str, int]:
-    """WRITE_TRUNCATE each table. Returns {table: row count}. Nothing is written unless apply."""
-    counts = {table: len(getattr(data, attr)) for table, (attr, _) in TABLE_SPECS.items()}
+
+def validation_destinations(seed: int) -> dict[str, str]:
+    """Live table -> validation table for one seed, e.g. risk_raw.trades -> eval_val.s7_trades."""
+    return {t: f"{VALIDATION_DATASET}.s{seed}_{t.split('.')[1]}" for t in TABLE_SPECS}
+
+
+def load(
+    data: SyntheticData,
+    project: str,
+    apply: bool = False,
+    client=None,
+    destinations: dict[str, str] | None = None,
+) -> dict[str, int]:
+    """WRITE_TRUNCATE each table. Returns {table: row count}. Nothing is written unless apply.
+
+    ``destinations`` maps each TABLE_SPECS name to another dataset.table; validation seeds use
+    it to write ``eval_val.s<seed>_*`` instead of the live tables.
+    """
+    specs = {(destinations or {}).get(t, t): spec for t, spec in TABLE_SPECS.items()}
+    counts = {table: len(getattr(data, attr)) for table, (attr, _) in specs.items()}
     if not apply:
         return counts
     from google.cloud import bigquery
 
     client = client or bigquery.Client(project=project, location=LOCATION)
-    for table, (attr, cols) in TABLE_SPECS.items():
+    for table, (attr, cols) in specs.items():
         cfg = bigquery.LoadJobConfig(
             schema=[bigquery.SchemaField(n, t) for n, t in cols],
             write_disposition="WRITE_TRUNCATE",

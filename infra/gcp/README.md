@@ -29,9 +29,10 @@ Run it with the personal gcloud profile as a project owner. On Windows use Git B
    reservation, Cloud Run).
 2. Load data: `python -m services.ingest.synth --seed 42 --apply` (see ADR 0001; seed 42
    is what the live tables hold).
-3. `python scripts/run_sql.py sql/schema/harden.sql --apply` (hard negatives, partial links).
-4. `python scripts/run_sql.py sql/graph/market_graph.sql --apply` (graph tables + `market_graph`).
-5. `python scripts/verify_sync.py` should exit 0.
+3. `python scripts/run_sql.py sql/graph/market_graph.sql --apply` (graph tables + `market_graph`).
+4. `python scripts/verify_sync.py` should exit 0.
+
+Decoys and evasions are part of the generator (ADR 0002); there is no post-load patch step.
 
 `scripts/run_sql.py` renders `__P__` and is dry-run unless `--apply` is given.
 

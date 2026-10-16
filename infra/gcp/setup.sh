@@ -48,8 +48,7 @@ done
 
 # ---- 2. BigQuery datasets and tables (rendered by scripts/run_sql.py) ----
 # Tables are created empty with CREATE ... IF NOT EXISTS. Data is loaded by the generator
-# (python -m services.ingest.synth --apply), then sql/schema/harden.sql and
-# sql/graph/market_graph.sql are applied. See infra/gcp/README.md for the order.
+# (python -m services.ingest.synth --apply), then sql/graph/market_graph.sql is applied. See infra/gcp/README.md for the order.
 for f in sql/schema/00_datasets.sql sql/schema/10_risk_raw.sql sql/schema/20_risk_curated.sql \
          sql/schema/30_eval.sql; do
   if [ $APPLY = 1 ]; then python scripts/run_sql.py "$f" --project "$PROJECT_ID" --apply

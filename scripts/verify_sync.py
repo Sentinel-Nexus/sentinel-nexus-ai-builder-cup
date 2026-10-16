@@ -27,18 +27,7 @@ DEFAULT_PROJECT = "project-f8544066-3df8-4f99-8ed"
 REGION = "us-central1"
 SERVICE = "sentinel-hello"
 
-# Graph and eval table row counts from the 2026-10-14 snapshot (infra/gcp/inventory.md).
-SNAPSHOT_GRAPH_ROWS = {
-    "risk_graph.account_nodes": 2039,
-    "risk_graph.device_nodes": 1860,
-    "risk_graph.funding_nodes": 1967,
-    "risk_graph.market_nodes": 20,
-    "risk_graph.uses_device": 2039,
-    "risk_graph.funded_by": 2039,
-    "risk_graph.traded_in": 22164,
-    "risk_graph.traded_with": 54,
-}
-# Written by the Cloud Shell detect.py (P2 will replace); a mismatch is a warning, not drift.
+# Written by the Cloud Shell detect.py (P2 replaces them); a mismatch is a warning, not drift.
 SOFT_ROWS = {"risk_curated.alerts": 39, "eval.benchmark": 3, "eval.benchmark_runs": 12}
 EXPECTED_TOPICS = {"trades", "trades-dlq"}
 EXPECTED_SUBS = {
@@ -50,6 +39,32 @@ OK, FAIL, WARN, INFO = "ok", "FAIL", "warn", "info"
 
 
 # ---------- pure comparison helpers (unit tested) ----------
+
+
+def expected_graph_rows(data) -> dict[str, int]:
+    """Row counts sql/graph/market_graph.sql produces from the generated data."""
+    fills = {}
+    for t in data.trades:
+        fills.setdefault(
+            (t["market_id"], t["outcome"], t["ts"], t["price"], t["size_usd"]), {}
+        ).setdefault(t["side"], []).append(t["account_id"])
+    pairs = {
+        (s, b)
+        for sides in fills.values()
+        for s in sides.get("SELL", [])
+        for b in sides.get("BUY", [])
+        if s != b
+    }
+    return {
+        "risk_graph.account_nodes": len(data.accounts),
+        "risk_graph.device_nodes": len({a["device_id"] for a in data.accounts}),
+        "risk_graph.funding_nodes": len({a["funding_source_id"] for a in data.accounts}),
+        "risk_graph.market_nodes": len(data.markets),
+        "risk_graph.uses_device": len(data.accounts),
+        "risk_graph.funded_by": len(data.accounts),
+        "risk_graph.traded_in": len({(t["account_id"], t["market_id"]) for t in data.trades}),
+        "risk_graph.traded_with": len(pairs),
+    }
 
 
 def parse_ddl_columns(sql: str) -> dict[str, list[tuple[str, str]]]:
@@ -149,7 +164,8 @@ def bigquery_checks(project: str, run_query: bool):
         "risk_curated.accounts": len(data.accounts),
         "risk_curated.markets": len(data.markets),
         "eval.ground_truth": len(data.ground_truth),
-        **SNAPSHOT_GRAPH_ROWS,
+        "eval.decoy_groups": len(data.decoy_groups),
+        **expected_graph_rows(data),
     }
     ddl = {}
     for f in sorted((ROOT / "sql" / "schema").glob("*.sql")):
