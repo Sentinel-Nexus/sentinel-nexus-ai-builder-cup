@@ -24,7 +24,7 @@ in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 | Pub/Sub | topics `trades`, `trades-dlq`; subs `trades-sub` (DLQ, 5 attempts, ack 60 s), `trades-dlq-sub` |
 | Service accounts | `sa-agent` (aiplatform.user, bigquery.dataViewer, bigquery.jobUser), `sa-ingest` (bigquery.dataEditor, bigquery.jobUser, pubsub.subscriber) |
 | Artifact Registry | `sentinel` (`sentinel-app` images, one per deploy), `cloud-run-source-deploy` (auto-created) |
-| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker). **`sentinel-app`** (P5, the workbench and agents API) at `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, revision `sentinel-app-00004-6ph`, runs as `sa-agent`, **public**, min 1 / max 1 instance, 1Gi, 1 CPU always allocated, concurrency 40, request timeout 300 s, image in Artifact Registry `sentinel` |
+| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker). **`sentinel-app`** (P5, the workbench and agents API) at `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, revision `sentinel-app-00005-v85`, runs as `sa-agent`, **public**, min 1 / max 1 instance, 1Gi, 1 CPU always allocated, concurrency 40, request timeout 300 s, image in Artifact Registry `sentinel` |
 | Reservation | `gql-poc` (ENTERPRISE, 0 baseline slots, autoscale max 50), QUERY assignment to the whole project |
 | APIs | 35 enabled, listed in the inventory |
 
@@ -206,7 +206,7 @@ for the operator) and deploys. IAM: only what `--allow-unauthenticated` adds for
 `sa-agent` roles are unchanged (table-level `dataEditor` on the three agent tables, `dataViewer`,
 `jobUser`, `aiplatform.user`). Nothing was deleted and the reservation was not touched.
 
-- **Service** (revision `sentinel-app-00004-6ph`, 2026-10-16 21:04 UTC): `https://sentinel-app-tipo5b3mpa-uc.a.run.app`.
+- **Service** (revision `sentinel-app-00005-v85`, deployed 2026-10-16 21:16 UTC): `https://sentinel-app-tipo5b3mpa-uc.a.run.app`.
   Cloud Run configuration, read back with `gcloud run services describe`: **CPU 1, always allocated**
   (`--no-cpu-throttling`, instance-based billing) with startup CPU boost, **min instances 1, max
   instances 1**, 1Gi, concurrency 40, request timeout 300 s, runs as `sa-agent`, public. Env:
@@ -245,19 +245,28 @@ for the operator) and deploys. IAM: only what `--allow-unauthenticated` adds for
   logs): process start to listening 15 s, `ready` 76 s after process start (60.8 s warm-up: seven table
   reads, GQL client and model clients), views prefetched at 95 s. Requests work during warm-up but read
   tables lazily. With min-instances 1 a visitor should not meet a cold instance unless a scale-out happens.
-- **The intermittent 500s, explained**: three HTTP 500s (0 s latency, no application log) were seen
-  during smoke runs, at 20:19:11, 20:20:15 and 21:06:30 UTC. Cloud Run's request log names the revision
-  that served each: `sentinel-app-00001-k88` twice and `sentinel-app-00003-kkz` once, and both had
-  already logged "Application shutdown complete" (20:18:52 and 21:03:49) 20 s to 160 s before. So they
-  were requests routed to a retired revision's stopped instance in the minutes after a deploy, never
-  to the active revision. Not an application fault, and nothing in the app can catch it. Mitigation:
-  wait about 5 minutes after a deploy before testing or announcing, and avoid deploying during
-  judging. Since then every request to the active revision succeeded (300 of 300 in
-  `scripts/load_check.py`, 65/65 in the smoke tests). A global handler now logs any real 500 with a
-  traceback and a request id (`unhandled error request_id=...`) and returns the same id to the caller.
-- **Startup**: with the startup probe, a fresh instance (revision 00004) listened 7 s after process
-  start, answered 503 on `/health` five times, and became ready 35 s after process start (warm-up
-  24.9 s; views prefetched at 63 s). The earlier revision took 76 s, so the probe allows up to 240 s.
+- **The intermittent 500s, traced but not removed**: Cloud Run's request log names the revision that
+  served every 500 seen so far (HTTP 500, 0 s latency, no application log, a Google-style HTML error
+  page): 20:19:11 and 20:20:15 `sentinel-app-00001-k88`, 21:06:30, 21:20:15 and 21:22:07
+  `sentinel-app-00003-kkz`, plus one more at 21:24 in the IPv6 test below. None was ever served by the
+  active revision; the revisions named had logged "Application shutdown complete" (20:18:52 and
+  21:03:49), and traffic is 100% on the latest revision. So these are requests that a Google front-end
+  still routes to a retired revision's stopped instance. They persisted for at least 20 minutes after
+  the retirement and at a rate of about 1 in 300 requests from the test machine: a clean 300-request run
+  at concurrency 10 on revision 00004 (0 non-200), then 1 non-200 in each of two further runs on revision
+  00005. A split by address family: 150 requests over IPv4 all returned 200, 150 over IPv6 returned 149
+  and one 500, which points at one front-end reached over IPv6 from this network. The bar of zero
+  non-200 was therefore **not met** on every run. Nothing in the app can catch it. The remaining
+  lever is to delete the retired revisions (`sentinel-app-00001-k88` to `00004-6ph`), which was not done
+  because nothing may be deleted without an explicit go-ahead; one command, run by the project owner:
+  `gcloud run revisions delete sentinel-app-00001-k88 sentinel-app-00002-c46 sentinel-app-00003-kkz sentinel-app-00004-6ph --region us-central1`.
+  Also avoid a deploy during judging. A global handler logs any real 500 from the application with a
+  traceback and a request id (`unhandled error request_id=...`) and returns the same id to the caller;
+  none has occurred.
+- **Startup**: with the startup probe, revision 00004 listened 7 s after process start, answered 503
+  on `/health` five times and became ready 35 s after process start (warm-up 24.9 s); revision 00005
+  was ready 18 s after process start (warm-up 17.0 s, views prefetched at 49 s). Revision 00002, before
+  the probe, took 76 s, so the probe allows up to 240 s.
 - **Cost**: see the Cloud Run line above. With CPU always allocated and 1 instance, the service bills
   vCPU, memory and requests continuously (about 24 h a day) even when nobody visits.
 

@@ -1,8 +1,8 @@
 {
  "base": "sentinel-app-tipo5b3mpa-uc",
  "startup": {
-  "first_response_ms": 679.1551997885108,
-  "ready_after_s": 0.6794429998844862,
+  "first_response_ms": 770.9320997819304,
+  "ready_after_s": 0.7712245001457632,
   "health": {
    "status": "ok",
    "service": "marketsentinel-agents",
@@ -17,83 +17,83 @@
  },
  "cached_case": {
   "n": 30,
-  "first_ms": 737.4,
-  "median_ms": 307.4,
-  "p95_ms": 397.6,
-  "max_ms": 410.4
+  "first_ms": 832.3,
+  "median_ms": 309.1,
+  "p95_ms": 331.5,
+  "max_ms": 2258.7
  },
  "checks": [
   {
    "name": "GET /",
    "ok": true,
    "detail": "200",
-   "ms": 651
+   "ms": 716
   },
   {
    "name": "GET /static/css/app.css",
    "ok": true,
    "detail": "200",
-   "ms": 612
+   "ms": 702
   },
   {
    "name": "GET /static/js/app.js",
    "ok": true,
    "detail": "200",
-   "ms": 704
+   "ms": 734
   },
   {
    "name": "GET /static/js/views/case.js",
    "ok": true,
    "detail": "200",
-   "ms": 747
+   "ms": 823
   },
   {
    "name": "GET /health",
    "ok": true,
    "detail": "ready=True",
-   "ms": 606
+   "ms": 713
   },
   {
    "name": "GET /summary",
    "ok": true,
    "detail": "{'escalated': 7, 'agent_cleared': 1, 'needs_analyst': 0}",
-   "ms": 4152
+   "ms": 5220
   },
   {
    "name": "GET /queue",
    "ok": true,
    "detail": "8 alerts",
-   "ms": 2550
+   "ms": 770
   },
   {
    "name": "GET /alerts",
    "ok": true,
    "detail": "",
-   "ms": 715
+   "ms": 677
   },
   {
    "name": "GET /lanes",
    "ok": true,
    "detail": "",
-   "ms": 635
+   "ms": 712
   },
   {
    "name": "GET /benchmark",
    "ok": true,
    "detail": "",
-   "ms": 678
+   "ms": 602
   },
   {
    "name": "GET /governance",
    "ok": true,
    "detail": "",
-   "ms": 735
+   "ms": 720
   },
   {
    "name": "GET /audit",
    "ok": true,
    "detail": "20 events",
-   "ms": 1438
+   "ms": 1316
   },
   {
    "name": "cached cases exist",
@@ -105,313 +105,313 @@
    "name": "GET /cases/AL_584807441a/detail",
    "ok": true,
    "detail": "",
-   "ms": 640
+   "ms": 731
   },
   {
    "name": "GET /cases/AL_584807441a",
    "ok": true,
    "detail": "",
-   "ms": 673
+   "ms": 662
   },
   {
    "name": "GET /cases/AL_584807441a/graph",
    "ok": true,
    "detail": "engine=gql",
-   "ms": 800
+   "ms": 613
   },
   {
    "name": "GET /cases/AL_584807441a/timeline",
    "ok": true,
    "detail": "34 events",
-   "ms": 949
+   "ms": 726
   },
   {
    "name": "GET /cases/AL_584807441a/trades",
    "ok": true,
    "detail": "45 trades",
-   "ms": 615
+   "ms": 658
   },
   {
    "name": "GET /cases/AL_584807441a/export",
    "ok": true,
    "detail": "",
-   "ms": 1574
+   "ms": 1455
   },
   {
    "name": "GET /cases/AL_3df9da0276/detail",
    "ok": true,
    "detail": "",
-   "ms": 679
+   "ms": 596
   },
   {
    "name": "GET /cases/AL_3df9da0276",
    "ok": true,
    "detail": "",
-   "ms": 634
+   "ms": 633
   },
   {
    "name": "GET /cases/AL_3df9da0276/graph",
    "ok": true,
    "detail": "engine=gql",
-   "ms": 693
+   "ms": 694
   },
   {
    "name": "GET /cases/AL_3df9da0276/timeline",
    "ok": true,
    "detail": "30 events",
-   "ms": 720
+   "ms": 647
   },
   {
    "name": "GET /cases/AL_3df9da0276/trades",
    "ok": true,
    "detail": "7 trades",
-   "ms": 655
+   "ms": 645
   },
   {
    "name": "GET /cases/AL_3df9da0276/export",
    "ok": true,
    "detail": "",
-   "ms": 1493
+   "ms": 1353
   },
   {
    "name": "GET /cases/AL_fa9727ee1e/detail",
    "ok": true,
    "detail": "",
-   "ms": 698
+   "ms": 644
   },
   {
    "name": "GET /cases/AL_fa9727ee1e",
    "ok": true,
    "detail": "",
-   "ms": 746
+   "ms": 727
   },
   {
    "name": "GET /cases/AL_fa9727ee1e/graph",
    "ok": true,
    "detail": "engine=gql",
-   "ms": 614
+   "ms": 658
   },
   {
    "name": "GET /cases/AL_fa9727ee1e/timeline",
    "ok": true,
    "detail": "36 events",
-   "ms": 714
+   "ms": 861
   },
   {
    "name": "GET /cases/AL_fa9727ee1e/trades",
    "ok": true,
    "detail": "2 trades",
-   "ms": 705
+   "ms": 805
   },
   {
    "name": "GET /cases/AL_fa9727ee1e/export",
    "ok": true,
    "detail": "",
-   "ms": 1596
+   "ms": 1574
   },
   {
    "name": "GET /cases/AL_5a1a959872/detail",
    "ok": true,
    "detail": "",
-   "ms": 862
+   "ms": 680
   },
   {
    "name": "GET /cases/AL_5a1a959872",
    "ok": true,
    "detail": "",
-   "ms": 684
+   "ms": 716
   },
   {
    "name": "GET /cases/AL_5a1a959872/graph",
    "ok": true,
    "detail": "engine=gql",
-   "ms": 859
+   "ms": 662
   },
   {
    "name": "GET /cases/AL_5a1a959872/timeline",
    "ok": true,
    "detail": "21 events",
-   "ms": 1950
+   "ms": 716
   },
   {
    "name": "GET /cases/AL_5a1a959872/trades",
    "ok": true,
    "detail": "8 trades",
-   "ms": 702
+   "ms": 667
   },
   {
    "name": "GET /cases/AL_5a1a959872/export",
    "ok": true,
    "detail": "",
-   "ms": 3698
+   "ms": 1520
   },
   {
    "name": "GET /cases/EV_C004/detail",
    "ok": true,
    "detail": "",
-   "ms": 2771
+   "ms": 733
   },
   {
    "name": "GET /cases/EV_C004",
    "ok": true,
    "detail": "",
-   "ms": 696
+   "ms": 828
   },
   {
    "name": "GET /cases/EV_C004/graph",
    "ok": true,
    "detail": "engine=gql",
-   "ms": 618
+   "ms": 904
   },
   {
    "name": "GET /cases/EV_C004/timeline",
    "ok": true,
    "detail": "34 events",
-   "ms": 651
+   "ms": 1096
   },
   {
    "name": "GET /cases/EV_C004/trades",
    "ok": true,
    "detail": "6 trades",
-   "ms": 612
+   "ms": 3213
   },
   {
    "name": "GET /cases/EV_C004/export",
    "ok": true,
    "detail": "",
-   "ms": 1435
+   "ms": 2159
   },
   {
    "name": "GET /cases/EV_DG3_busy_honest/detail",
    "ok": true,
    "detail": "",
-   "ms": 816
+   "ms": 603
   },
   {
    "name": "GET /cases/EV_DG3_busy_honest",
    "ok": true,
    "detail": "",
-   "ms": 894
+   "ms": 717
   },
   {
    "name": "GET /cases/EV_DG3_busy_honest/graph",
    "ok": true,
    "detail": "engine=gql",
-   "ms": 1012
+   "ms": 661
   },
   {
    "name": "GET /cases/EV_DG3_busy_honest/timeline",
    "ok": true,
    "detail": "34 events",
-   "ms": 1182
+   "ms": 754
   },
   {
    "name": "GET /cases/EV_DG3_busy_honest/trades",
    "ok": true,
    "detail": "4 trades",
-   "ms": 865
+   "ms": 603
   },
   {
    "name": "GET /cases/EV_DG3_busy_honest/export",
    "ok": true,
    "detail": "",
-   "ms": 1633
+   "ms": 1493
   },
   {
    "name": "GET /cases/EV_DG1_household/detail",
    "ok": true,
    "detail": "",
-   "ms": 531
+   "ms": 704
   },
   {
    "name": "GET /cases/EV_DG1_household",
    "ok": true,
    "detail": "",
-   "ms": 721
+   "ms": 711
   },
   {
    "name": "GET /cases/EV_DG1_household/graph",
    "ok": true,
    "detail": "engine=gql",
-   "ms": 627
+   "ms": 702
   },
   {
    "name": "GET /cases/EV_DG1_household/timeline",
    "ok": true,
    "detail": "34 events",
-   "ms": 804
+   "ms": 819
   },
   {
    "name": "GET /cases/EV_DG1_household/trades",
    "ok": true,
    "detail": "0 trades",
-   "ms": 601
+   "ms": 715
   },
   {
    "name": "GET /cases/EV_DG1_household/export",
    "ok": true,
    "detail": "",
-   "ms": 1443
+   "ms": 1435
   },
   {
    "name": "GET /cases/EV_DG2_exchange_cluster/detail",
    "ok": true,
    "detail": "",
-   "ms": 937
+   "ms": 731
   },
   {
    "name": "GET /cases/EV_DG2_exchange_cluster",
    "ok": true,
    "detail": "",
-   "ms": 904
+   "ms": 686
   },
   {
    "name": "GET /cases/EV_DG2_exchange_cluster/graph",
    "ok": true,
    "detail": "engine=gql",
-   "ms": 899
+   "ms": 630
   },
   {
    "name": "GET /cases/EV_DG2_exchange_cluster/timeline",
    "ok": true,
    "detail": "34 events",
-   "ms": 803
+   "ms": 841
   },
   {
    "name": "GET /cases/EV_DG2_exchange_cluster/trades",
    "ok": true,
    "detail": "1 trades",
-   "ms": 857
+   "ms": 677
   },
   {
    "name": "GET /cases/EV_DG2_exchange_cluster/export",
    "ok": true,
    "detail": "",
-   "ms": 1779
+   "ms": 1411
   },
   {
    "name": "404 for an unknown alert",
    "ok": true,
    "detail": "",
-   "ms": 841
+   "ms": 753
   },
   {
    "name": "POST approve without a reason is refused",
    "ok": true,
    "detail": "422",
-   "ms": 884
+   "ms": 718
   },
   {
    "name": "POST override without a reason is refused",
    "ok": true,
    "detail": "422",
-   "ms": 906
+   "ms": 677
   },
   {
    "name": "POST investigate unknown alert is a 404",
    "ok": true,
    "detail": "404",
-   "ms": 934
+   "ms": 638
   }
  ]
 }
