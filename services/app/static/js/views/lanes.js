@@ -50,7 +50,8 @@ function laneItem(lane, item, reload) {
   ];
   if (lane === 'agent_cleared') {
     body.push(h('div', { class: 'notice' }, h('strong', null, 'Clear reason: '), item.clear_reason || 'none stored'),
-      h('div', { class: 'small muted', style: 'margin:6px 0' }, 'Evidence: ', (item.clear_evidence_ids || []).map((e) => h('code', { style: 'margin-right:6px' }, e))),
+      h('div', { class: 'row small muted', style: 'margin:6px 0;gap:4px' }, 'Evidence:', (item.clear_evidence_ids || []).slice(0, 12).map((e) => h('code', { class: 'ev-chip none' }, e)),
+        (item.clear_evidence_ids || []).length > 12 ? `+${item.clear_evidence_ids.length - 12} more (see the case)` : null),
       h('div', { class: 'row' }, h('button', { class: 'btn small danger', type: 'button', onclick: () => overrideDialog(item, 'override_to_escalate', reload) }, 'Override'),
         h('button', { class: 'btn small', type: 'button', onclick: () => overrideDialog(item, 'confirm_clear', reload) }, 'Confirm clear')));
   }

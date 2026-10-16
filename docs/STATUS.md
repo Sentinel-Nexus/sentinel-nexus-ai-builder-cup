@@ -24,7 +24,7 @@ in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 | Pub/Sub | topics `trades`, `trades-dlq`; subs `trades-sub` (DLQ, 5 attempts, ack 60 s), `trades-dlq-sub` |
 | Service accounts | `sa-agent` (aiplatform.user, bigquery.dataViewer, bigquery.jobUser), `sa-ingest` (bigquery.dataEditor, bigquery.jobUser, pubsub.subscriber) |
 | Artifact Registry | `sentinel` (`sentinel-app` images, one per deploy), `cloud-run-source-deploy` (auto-created) |
-| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker). **`sentinel-app`** (P5, the workbench and agents API) at `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, revision `sentinel-app-00003-kkz`, runs as `sa-agent`, **public**, min 1 / max 3 instances, 1Gi, 1 CPU always allocated, concurrency 40, request timeout 300 s, image in Artifact Registry `sentinel` |
+| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker). **`sentinel-app`** (P5, the workbench and agents API) at `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, revision `sentinel-app-00004-6ph`, runs as `sa-agent`, **public**, min 1 / max 1 instance, 1Gi, 1 CPU always allocated, concurrency 40, request timeout 300 s, image in Artifact Registry `sentinel` |
 | Reservation | `gql-poc` (ENTERPRISE, 0 baseline slots, autoscale max 50), QUERY assignment to the whole project |
 | APIs | 35 enabled, listed in the inventory |
 
@@ -172,7 +172,7 @@ per-case files in `docs/results/agent_eval_cases/`, `critic_ab.json`, `cache_lat
   `GET /lanes`, `POST /cases/{id}/override` (analyst override of a clear, audited). Approval is
   still required before the mock webhook fires.
 
-Final eval (seed 42, 8 cases + adversarial; `docs/agent-evals.md`):
+Final eval (seed 42, 8 cases + adversarial; `docs/agent-evals.md`; the four injected cases were re-run later with different results, see `docs/injected-rerun.md`):
 
 | Metric | Result |
 |---|---|
@@ -206,9 +206,20 @@ for the operator) and deploys. IAM: only what `--allow-unauthenticated` adds for
 `sa-agent` roles are unchanged (table-level `dataEditor` on the three agent tables, `dataViewer`,
 `jobUser`, `aiplatform.user`). Nothing was deleted and the reservation was not touched.
 
-- **Service**: `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, revision `sentinel-app-00003-kkz`,
-  env `PROJECT_ID`, `GCP_REGION`; `--no-cpu-throttling --cpu-boost` so the warm-up thread and the
-  background audit writer keep CPU between requests.
+- **Service** (revision `sentinel-app-00004-6ph`, 2026-10-16 21:04 UTC): `https://sentinel-app-tipo5b3mpa-uc.a.run.app`.
+  Cloud Run configuration, read back with `gcloud run services describe`: **CPU 1, always allocated**
+  (`--no-cpu-throttling`, instance-based billing) with startup CPU boost, **min instances 1, max
+  instances 1**, 1Gi, concurrency 40, request timeout 300 s, runs as `sa-agent`, public. Env:
+  `PROJECT_ID`, `GCP_REGION`, `LIVE_PER_CLIENT_HOUR=3`, `LIVE_PER_HOUR=20`, `LIVE_PER_DAY=120`.
+  **Startup probe** `GET /health` every 5 s, up to 48 failures (240 s): `/health` answers 503 until the
+  service is warm (tables read, graph and model clients up), so no traffic reaches an instance that is
+  listening but not ready. Always-allocated CPU keeps the warm-up thread and the background audit writer
+  running between requests.
+- **Why max 1 instance for the judging window**: the case and decision caches, the graph and trade
+  caches and the live-run limits are in memory per instance. With several instances a visitor could see
+  stale lanes for up to the 30 s cache TTL, and the live ceiling would multiply by the instance count.
+  One instance (1 vCPU, concurrency 40) handled 300 requests at concurrency 10 with no error
+  (median 0.8 s from a laptop). The cost is no scale-out: more than about 40 simultaneous requests queue.
 - **Screens**: command centre (KPIs, queue, replay control disabled: streaming ships in P6), case
   (ring graph, timeline, draft report with evidence chips, Approve / Reject / Escalate with a required
   reason, Investigate live, JSON export, print view), lanes, benchmark (numbers parsed from
@@ -216,9 +227,11 @@ for the operator) and deploys. IAM: only what `--allow-unauthenticated` adds for
   governance (caps, guards, audit log). Light and dark themes, keyboard shortcuts (`?`), AA contrast
   test (`tests/unit/test_ui_contrast.py`). Screenshots: `docs/img/ui_*.png` (and `_dark`).
 - **Cached versus live**: every case shows a CACHED or LIVE badge. Browsing never calls Gemini. A live
-  run is a cache miss or `force=true`; it is limited to 2 per client per hour, 6 per hour and 30 per
-  day for the service (counted per instance, so up to 3x with 3 instances), answers 429 with a plain
-  message and `Retry-After`, and its result goes to the requester only: the stored case is not
+  run is a cache miss or `force=true`; it is limited to 3 per client per hour, 20 per hour and 120 per
+  day for the service (env `LIVE_PER_CLIENT_HOUR`, `LIVE_PER_HOUR`, `LIVE_PER_DAY`; counted per
+  instance, and there is one). A live run costs about $0.01 to $0.02, so the worst case is about $2.40
+  a day. A refused run answers 429 with a plain message (including that the cached cases are real
+  recorded agent runs) and `Retry-After`, and its result goes to the requester only: the stored case is not
   replaced (`PERSIST_FORCED=1` would change that). The UI stops at 120 s with a clear message.
 - **Checks** (2026-10-17, no credentials): `scripts/e2e_smoke.py --write` 43/43 and 41/41 read-only
   (`docs/results/e2e_smoke.json`): every UI endpoint, audit write by the live service as `sa-agent` and
@@ -232,17 +245,59 @@ for the operator) and deploys. IAM: only what `--allow-unauthenticated` adds for
   logs): process start to listening 15 s, `ready` 76 s after process start (60.8 s warm-up: seven table
   reads, GQL client and model clients), views prefetched at 95 s. Requests work during warm-up but read
   tables lazily. With min-instances 1 a visitor should not meet a cold instance unless a scale-out happens.
-- **Seen once, not reproduced**: two HTTP 500s with 0 s latency and no application log (one at the
-  revision switch, one a minute later) during the first smoke runs; 180 repeated requests and two later
-  smoke runs saw none. Separately, an instance that read `case_reports` too early answered 404 for a
-  cached case; the case and decision caches now re-read the table (30 s TTL, and once on a miss), so
-  instances converge. Watch for it.
-- **Cost**: min-instances 1 with always-allocated CPU bills continuously.
+- **The intermittent 500s, explained**: three HTTP 500s (0 s latency, no application log) were seen
+  during smoke runs, at 20:19:11, 20:20:15 and 21:06:30 UTC. Cloud Run's request log names the revision
+  that served each: `sentinel-app-00001-k88` twice and `sentinel-app-00003-kkz` once, and both had
+  already logged "Application shutdown complete" (20:18:52 and 21:03:49) 20 s to 160 s before. So they
+  were requests routed to a retired revision's stopped instance in the minutes after a deploy, never
+  to the active revision. Not an application fault, and nothing in the app can catch it. Mitigation:
+  wait about 5 minutes after a deploy before testing or announcing, and avoid deploying during
+  judging. Since then every request to the active revision succeeded (300 of 300 in
+  `scripts/load_check.py`, 65/65 in the smoke tests). A global handler now logs any real 500 with a
+  traceback and a request id (`unhandled error request_id=...`) and returns the same id to the caller.
+- **Startup**: with the startup probe, a fresh instance (revision 00004) listened 7 s after process
+  start, answered 503 on `/health` five times, and became ready 35 s after process start (warm-up
+  24.9 s; views prefetched at 63 s). The earlier revision took 76 s, so the probe allows up to 240 s.
+- **Cost**: see the Cloud Run line above. With CPU always allocated and 1 instance, the service bills
+  vCPU, memory and requests continuously (about 24 h a day) even when nobody visits.
 
-**Nov 6 teardown reminder**: set min-instances back to 0 with
-`python infra/deploy_app.py --apply --skip-build --tag <current tag> --min-instances 0` (or
-`gcloud run services update sentinel-app --region us-central1 --min-instances 0`), then follow the
-teardown list below. Do not leave `sentinel-app` public and warm after the judging window.
+**Nov 6 teardown (stop idle billing)**: setting only min-instances to 0 is not enough while CPU is
+"always allocated"; both must change. Run `python infra/deploy_app.py --apply --teardown`, which runs
+
+    gcloud run services update sentinel-app --region us-central1 --project project-f8544066-3df8-4f99-8ed --min-instances 0 --cpu-throttling
+
+(`--cpu-throttling` returns to request-based billing, so with no traffic the service costs nothing).
+Check with `gcloud run services describe sentinel-app` that `minScale` is gone or 0 and
+`run.googleapis.com/cpu-throttling` is `true`. Then follow the teardown list below; do not leave
+`sentinel-app` public after the judging window.
+
+**Fixes made after the first deploy (2026-10-17)**:
+
+- Decisions by an analyst whose name starts with `smoke` are test records: they stay in
+  `audit.agent_events` and `case_decisions` (nothing was deleted) but are left out of lanes, queue,
+  summary and the case page. `?include_test=true` shows them and the Governance audit log marks them
+  "(test record)". The earlier `smoke-test` approvals on `AL_584807441a` no longer affect any state:
+  all eight cases show no analyst decision and `/summary` reports `decided 0`.
+- `/audit` caps the result at `limit` after filtering. A request with `limit=15` returned 15 on the
+  deployed revision before the change, so the 20-event report could not be reproduced; the ceiling is
+  now enforced in the endpoint and covered by a test.
+- Injected review cases are stored: see the next section.
+
+## Injected review cases (stored 2026-10-17, source `eval_injected`)
+
+`python -m scripts.injected_cases --apply --max-runs 4` (estimate first: expected $0.11, worst case
+$0.34; actual 83,525 tokens) wrote `data/injected_alerts.json` (detector fields only, no labels) and
+ran EV_C004, EV_DG1_household, EV_DG2_exchange_cluster and EV_DG3_busy_honest once each through the
+final pipeline into `risk_curated.case_reports`. The app loads the file as extra alerts and labels
+every such case "Injected review case (evaluation), not detector output". Result and what it means:
+`docs/injected-rerun.md`. **The re-run did not reproduce the earlier evaluation**: EV_C004 was
+escalated (earlier: cleared), EV_DG2 and EV_DG3 were escalated (earlier: cleared, uncertain), only
+EV_DG1 was cleared. So 2 of 3 innocent groups (18 accounts, 6 added from the ring subgraph) were falsely
+escalated on this run, and the "0 of 23" figure above belongs to the earlier run. Lanes now:
+**escalated 7, agent-cleared 1, needs-analyst 0**: the needs-analyst lane is empty. Nothing was tuned
+and no case was re-run to get a different mix. Override was checked on the live service with analyst
+`smoke-test` on EV_DG1: it moved to escalated in the test view (`/lanes?include_test=true`), was audited,
+and the default view still showed it agent-cleared (the test reset is the exclusion of test records).
 
 Pending for P6: the replay control, Model Armor and PII redaction (shown as "not deployed" on the
 Governance screen).
@@ -251,7 +306,7 @@ Governance screen).
 
 - Reservation `gql-poc` is assigned to the whole project: every query consumes slots and cost.
 - Cloud Run `sentinel-hello` and `sentinel-app` are publicly invokable (see Known drift). `sentinel-app` can spend Gemini tokens only through the limited live path; reads are free.
-- Live-run limits are per instance (max 3 instances), and a public visitor can still use up the hourly quota for others.
+- Live-run limits are per instance (one instance now), and a public visitor can still use up the hourly quota for others.
 - Vertex latency is uneven (one send-back call took 37 s; 429s under burst). Mitigated by caps,
   retries and a 120 s deadline, not removed.
 - The `sa-agent` write grants exist only on the three agent tables; the deploy that uses them was

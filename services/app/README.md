@@ -29,8 +29,8 @@ versions with SRI. Extra endpoints it uses (all read-only except the three POSTs
 | `GET /audit`, `/governance`, `/benchmark` | audit log, caps and guards, numbers built from `docs/benchmark.md` and `docs/agent-evals.md` (`scripts/build_ui_data.py`) |
 
 Public safety: cached cases are served by default. A run that is not a cache hit (`force=true` or no
-stored case) is a live run: 2 per client per hour, 6 per hour and 30 per day for the service, counted
-per instance (so up to 3x with 3 instances); 429 with a plain message and `Retry-After`. A forced
+stored case) is a live run: 3 per client per hour, 20 per hour and 120 per day for the service
+(env `LIVE_PER_CLIENT_HOUR`, `LIVE_PER_HOUR`, `LIVE_PER_DAY`), counted per instance; 429 with a plain message and `Retry-After`. A forced
 result is returned to the caller only and does not replace the stored case. Approve, reject and
 override need a written reason (422 otherwise). Client ids are hashed and kept in memory only.
 

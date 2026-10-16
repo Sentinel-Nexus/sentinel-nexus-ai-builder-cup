@@ -31,7 +31,7 @@ Schedule: P1 and P2 Oct 14, P3 and P4 Oct 15, P5 and P6 Oct 16, P7 Oct 17. Submi
     NetworkX if the reservation is off or errors.
   - Unit tests cover the fallback.
 
-- [ ] **P4 agents** (Oct 15)
+- [x] **P4 agents** (Oct 15, deployed 2026-10-17)
   - ADK agents on Gemini (Investigator, Critic, Drafter, Policy check) as one FastAPI
     service on Cloud Run under `sa-agent`.
   - Per-run token and tool-call caps.
@@ -40,7 +40,7 @@ Schedule: P1 and P2 Oct 14, P3 and P4 Oct 15, P5 and P6 Oct 16, P7 Oct 17. Submi
   - Evals against ground-truth scenarios.
   - Status 2026-10-17: code, tests and evals done (`docs/agent-evals.md`); Policy is folded into a
     retrieval step plus the Drafter; agent-cleared lane with analyst override added. The Cloud Run
-    criterion is now met by the P5 deploy (2026-10-17); the box is left for the human to tick. The `sa-agent` table grants are applied
+    criterion is now met by the P5 deploy (2026-10-17); both conditions are verified (the `sa-agent` table grants are on exactly the three agent tables, and `sentinel-app` is serving), so the box is ticked. The `sa-agent` table grants are applied
     (`sql/iam/sa_agent_agent_tables.sql`, table-level only). Cached cases for the four real
     alerts exist; the precompute script has nothing left to run.
 

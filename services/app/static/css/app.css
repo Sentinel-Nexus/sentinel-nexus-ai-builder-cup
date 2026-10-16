@@ -238,7 +238,8 @@ tr.row-link { cursor: pointer; }
 
 /* ---- lanes ---- */
 .lanes { display: grid; gap: var(--s4); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
-.lane-card { padding: var(--s3) var(--s4); border-top: 1px solid var(--border); }
+.lane-card { padding: var(--s3) var(--s4); border-top: 1px solid var(--border); min-width: 0; overflow-wrap: anywhere; }
+.lanes > .card { min-width: 0; }
 .lane-card:first-of-type { border-top: 0; }
 
 /* ---- dialog ---- */
