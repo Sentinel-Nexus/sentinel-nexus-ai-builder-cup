@@ -61,17 +61,25 @@ def bullets(text: str) -> list[str]:
 
 LIMITS = [
     {
-        "title": "Borderline attacker EV_C004 was cleared",
-        "text": "The one attacker that scored inside the review band (below the 43.0 threshold) "
-        "was cleared by the agent, which also disagreed with the detector's hint. The threshold "
-        "and the decision logic were not changed to catch it. Borderline attackers escalated: "
-        "0 of 1.",
+        "title": "Results moved between runs: decoys escalated on the re-run",
+        "text": " ".join(
+            [
+                "The evaluation run (2026-10-16) cleared two decoy groups, left the",
+                "busy-but-honest one uncertain and cleared the borderline attacker EV_C004.",
+                "A re-run of the four injected cases on the final pipeline (2026-10-17, one run",
+                "each) cleared only the household group and escalated EV_C004, the exchange",
+                "cluster and the busy-but-honest group: 2 of 3 innocent groups falsely",
+                "escalated (18 accounts, 6 of them added from the ring subgraph). The",
+                "0-of-23 false-escalation figure in the agent table is the earlier run's and",
+                "does not hold for the re-run. Nothing was tuned. See docs/injected-rerun.md.",
+            ]
+        ),
     },
     {
-        "title": "The busy-but-honest decoy ended uncertain",
-        "text": "EV_DG3_busy_honest was neither escalated nor cleared: the agent returned "
-        "uncertain and the case sits in the needs-analyst lane. No decoy was escalated "
-        "(0 of 3 groups, 0 of 23 accounts), but only 2 of 3 decoy groups were cleared.",
+        "title": "The needs-analyst lane is empty",
+        "text": "The earlier uncertain result for the busy-but-honest group was not reproduced, so "
+        "after the re-run no stored case is in the needs-analyst lane (7 escalated, 1 "
+        "agent-cleared).",
     },
     {
         "title": "Recall at ring level follows from escalating whole rings",
@@ -98,6 +106,21 @@ LIMITS = [
         "data.",
     },
 ]
+
+
+_RERUN_ROWS = [  # alert, evaluation run, re-run, tokens, latency s, linked members added
+    ("EV_C004", "clear", "escalate", 18946, 89.1, 1),
+    ("EV_DG1_household", "clear", "clear", 15065, 35.6, 0),
+    ("EV_DG2_exchange_cluster", "clear", "escalate", 22440, 38.5, 4),
+    ("EV_DG3_busy_honest", "uncertain", "escalate", 27074, 79.1, 2),
+]
+RERUN = {
+    "title": "Re-run of the injected cases on the final pipeline (2026-10-17, one run each)",
+    "rows": [
+        dict(zip(("alert", "before", "now", "tokens", "latency_s", "linked"), r, strict=True))
+        for r in _RERUN_ROWS
+    ],
+}
 
 
 def build() -> dict:
@@ -188,6 +211,7 @@ def build() -> dict:
         "adversarial": adversarial,
         "agent_caveats": bullets(ev["Caveats"]),
         "limits": LIMITS,
+        "rerun": RERUN,
     }
 
 

@@ -77,7 +77,11 @@ export async function render(root) {
           `${fmtPct(a.robustness_f1.min)} / ${fmtPct(a.robustness_f1.median)} / ${fmtPct(a.robustness_f1.max)}`, `${fmtPct(a.robustness_recall.min)} / ${fmtPct(a.robustness_recall.median)} / ${fmtPct(a.robustness_recall.max)}`]), { dense: true, caption: 'Ablation' }),
       h('div', { class: 'body' }, h('details', null, h('summary', null, 'Detector caveats'), h('ul', null, d.benchmark_caveats.map((c) => h('li', { class: 'small' }, c)))))),
 
-    h('section', { class: 'card' }, h('header', null, h('h2', null, 'Agent evaluation'), h('span', { class: 'chip t-neutral' }, d.agent_run)),
+    h('section', { class: 'card' }, h('header', null, h('h2', null, d.rerun.title), h('span', { class: 't-crit chip' }, 'differs from the table below')),
+      table(['Case', 'Evaluation run', 'Re-run', ['Tokens', 'num'], ['Latency', 'num'], ['Linked members added', 'num']],
+        d.rerun.rows.map((r) => [h('span', { class: 'mono' }, r.alert), r.before, h('strong', null, r.now), fmtN(r.tokens), `${r.latency_s.toFixed(1)} s`, r.linked]), { dense: true, caption: 'Re-run of injected cases' })),
+
+    h('section', { class: 'card' }, h('header', null, h('h2', null, 'Agent evaluation (run of 2026-10-16)'), h('span', { class: 'chip t-neutral' }, d.agent_run)),
       table(['Metric', 'Result'], d.agent_metrics.map((m) => [m.metric, m.result]), { dense: true, caption: 'Agent metrics' }),
       h('div', { class: 'body' }, h('h3', { style: 'margin-bottom:8px' }, 'Per case')),
       table(['Alert', 'Kind', 'Decision', ['Tokens', 'num'], ['Latency', 'num'], 'Engine'],
