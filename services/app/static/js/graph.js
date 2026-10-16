@@ -39,7 +39,7 @@ export function createGraph(container, graph, { onSelectNode } = {}) {
     container,
     elements: [...nodes, ...edges],
     style: styleSheet(),
-    layout: { name: 'cose', animate: false, nodeRepulsion: () => 12000, idealEdgeLength: () => 70, padding: 24, randomize: true },
+    layout: { name: 'cose', animate: false, nodeRepulsion: () => 60000, idealEdgeLength: () => 120, nodeOverlap: 40, gravity: 0.4, numIter: 1500, padding: 30, randomize: true },
     minZoom: 0.2,
     maxZoom: 3,
     wheelSensitivity: 0.3,

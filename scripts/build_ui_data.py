@@ -56,7 +56,7 @@ def bullets(text: str) -> list[str]:
             out.append(line[2:].strip())
         elif out and line.startswith("  ") and line.strip():
             out[-1] += " " + line.strip()
-    return out
+    return [re.sub(r"[*`]", "", b) for b in out]
 
 
 LIMITS = [

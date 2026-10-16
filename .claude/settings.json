@@ -14,7 +14,11 @@
       "Bash(pip install:*)",
       "Bash(bq ls:*)",
       "Bash(bq show:*)",
-      "Bash(bq head:*)"
+      "Bash(bq head:*)",
+      "Bash(python infra/deploy_app.py:*)",
+      "Bash(gcloud run services describe sentinel-app:*)",
+      "Bash(gcloud run revisions list --service sentinel-app:*)",
+      "Bash(gcloud run services logs read sentinel-app:*)"
     ],
     "deny": [
       "Read(./.env)",

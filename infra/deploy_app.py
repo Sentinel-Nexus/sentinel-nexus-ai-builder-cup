@@ -1,0 +1,99 @@
+"""Build and deploy the workbench service `sentinel-app` to Cloud Run.
+
+    python infra/deploy_app.py              # dry run: prints the plan and the commands
+    python infra/deploy_app.py --apply      # build the image, deploy, print the URL
+    python infra/deploy_app.py --apply --min-instances 0   # teardown step after Nov 6
+
+Image: us-central1-docker.pkg.dev/<project>/sentinel/sentinel-app:<tag> (built by Cloud Build from a
+staged context: only services/app, services/graph, data/policies). Runs as sa-agent, public,
+max 3 instances, 1Gi, min 1 instance for the judging window (set back to 0 on Nov 6). It deletes
+nothing and changes no IAM except what `--allow-unauthenticated` does for this one service.
+Every command has a timeout.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+PROJECT = os.environ.get("PROJECT_ID", "project-f8544066-3df8-4f99-8ed")
+REGION = os.environ.get("GCP_REGION", "us-central1")
+SERVICE = "sentinel-app"
+SA = f"sa-agent@{PROJECT}.iam.gserviceaccount.com"
+BUILD_TIMEOUT_S = 540
+DEPLOY_TIMEOUT_S = 540
+
+
+def stage(dest: Path) -> int:
+    """Copy exactly what the image needs into ``dest``; returns the file count."""
+    ignore = shutil.ignore_patterns("__pycache__", "*.pyc")
+    shutil.copy(REPO / "infra" / "app" / "Dockerfile", dest / "Dockerfile")
+    (dest / "services").mkdir()
+    shutil.copy(REPO / "services" / "__init__.py", dest / "services" / "__init__.py")
+    for rel in ("services/app", "services/graph", "data/policies"):
+        shutil.copytree(REPO / rel, dest / rel, ignore=ignore)
+    return sum(1 for p in dest.rglob("*") if p.is_file())
+
+
+def run(cmd: list[str], timeout: int, apply: bool) -> int:
+    print("+", " ".join(cmd))
+    if not apply:
+        return 0
+    try:
+        return subprocess.run(cmd, timeout=timeout, check=False, shell=(os.name == "nt")).returncode
+    except subprocess.TimeoutExpired:
+        print(f"timed out after {timeout}s: {' '.join(cmd[:4])}")
+        return 124
+
+
+def main(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--apply", action="store_true", help="really build and deploy")
+    ap.add_argument("--min-instances", type=int, default=1)
+    ap.add_argument("--max-instances", type=int, default=3)
+    ap.add_argument("--tag", default=dt.datetime.now(dt.UTC).strftime("%Y%m%d-%H%M%S"))
+    ap.add_argument("--skip-build", action="store_true", help="redeploy an existing --tag")
+    a = ap.parse_args(argv)
+    image = f"{REGION}-docker.pkg.dev/{PROJECT}/sentinel/{SERVICE}:{a.tag}"
+    print(f"mode: {'APPLY' if a.apply else 'DRY-RUN (nothing is built or changed)'}")
+    print(f"project {PROJECT}, region {REGION}, service {SERVICE}, image {image}")
+    print(f"min instances {a.min_instances}, max {a.max_instances}: revision cost grows with min>0")
+
+    rc = 0
+    if not a.skip_build:
+        with tempfile.TemporaryDirectory(prefix="sentinel-app-ctx-") as tmp:
+            n = stage(Path(tmp))
+            print(f"staged build context: {n} files")
+            rc = run(
+                ["gcloud", "builds", "submit", tmp, "--tag", image, "--project", PROJECT,
+                 "--region", REGION, "--timeout", f"{BUILD_TIMEOUT_S - 30}s", "--quiet"],
+                BUILD_TIMEOUT_S, a.apply,
+            )  # fmt: skip
+        if rc:
+            print("build failed: not deploying")
+            return rc
+    rc = run(
+        ["gcloud", "run", "deploy", SERVICE, "--image", image, "--project", PROJECT,
+         "--region", REGION, "--service-account", SA, "--allow-unauthenticated",
+         "--min-instances", str(a.min_instances), "--max-instances", str(a.max_instances),
+         "--memory", "1Gi", "--cpu", "1", "--concurrency", "40", "--timeout", "300",
+         "--no-cpu-throttling", "--cpu-boost",
+         "--set-env-vars", f"PROJECT_ID={PROJECT},GCP_REGION={REGION}", "--quiet"],
+        DEPLOY_TIMEOUT_S, a.apply,
+    )  # fmt: skip
+    if rc == 0 and a.apply:
+        run(["gcloud", "run", "services", "describe", SERVICE, "--project", PROJECT,
+             "--region", REGION, "--format", "value(status.url,status.latestReadyRevisionName)"],
+            60, True)  # fmt: skip
+    return rc
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
