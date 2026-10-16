@@ -80,3 +80,38 @@ def metrics(
     background = all_accounts - attackers - in_decoy
     row("background", "normal_accounts", len(background), 0, len(flagged & background), None, None)
     return rows
+
+
+def hint_accuracy(alerts: list[Row], truth: dict[str, str]) -> dict[str, Any]:
+    """Compare each alert's scenario_hint with the ground truth of its members.
+
+    An alert's true type is the most common scenario among its members; members that are not
+    attackers count as 'none' (a decoy-only or background-only alert has true type 'none' and
+    can never be hinted correctly). Returns per-alert rows, a per-scenario summary
+    (alerts, correct, accounts, accounts in correctly hinted alerts) and a confusion matrix
+    {true type: {hint: alerts}}.
+    """
+    rows, confusion = [], {}
+    summary: dict[str, dict[str, int]] = {}
+    for a in alerts:
+        kinds = [truth.get(m, "none") for m in a["member_accounts"]]
+        true_type = max(sorted(set(kinds)), key=kinds.count)
+        ok = a["scenario_hint"] == true_type
+        rows.append(
+            {
+                "alert_id": a["alert_id"],
+                "true_type": true_type,
+                "hint": a["scenario_hint"],
+                "correct": ok,
+                "n_members": len(kinds),
+                "purity": kinds.count(true_type) / len(kinds),
+            }
+        )
+        confusion.setdefault(true_type, {}).setdefault(a["scenario_hint"], 0)
+        confusion[true_type][a["scenario_hint"]] += 1
+        s = summary.setdefault(true_type, dict(alerts=0, correct=0, accounts=0, accounts_ok=0))
+        s["alerts"] += 1
+        s["correct"] += ok
+        s["accounts"] += len(kinds)
+        s["accounts_ok"] += len(kinds) if ok else 0
+    return {"alerts": rows, "by_scenario": summary, "confusion": confusion}

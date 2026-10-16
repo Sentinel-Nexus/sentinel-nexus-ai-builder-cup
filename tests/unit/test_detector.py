@@ -105,12 +105,46 @@ def test_alert_groups_flagged_accounts_by_ring_with_evidence_and_hint():
     assert list(json.loads(a["top_features"]))[0] == "fill_reciprocity"
 
 
-def test_hint_follows_the_contributing_pattern_not_labels():
-    late = {f.name: 0.0 for f in scoring.FEATURES} | {"late_concentration": 9.0}
-    fresh = {f.name: 0.0 for f in scoring.FEATURES} | {"account_freshness": 9.0}
-    assert scoring.scenario_hint(late) == "coordinated_accumulation"
-    assert scoring.scenario_hint(fresh) == "mule_funding"
-    assert scoring.scenario_hint({f.name: 0.0 for f in scoring.FEATURES}) == "unclassified"
+def test_hint_follows_ring_structure_not_labels():
+    zero = {f.name: 0.0 for f in scoring.FEATURES}
+    assert scoring.scenario_hint(zero | {"late_concentration": 0.9}) == "coordinated_accumulation"
+    assert scoring.scenario_hint(zero | {"fill_reciprocity": 0.9}) == "wash_trading"
+    assert scoring.scenario_hint(zero | {"fresh_funding_fanin": 1.0}) == "mule_funding"
+    # freshness, link size and density are shared by every pattern and never vote
+    shared = zero | {"account_freshness": 1.0, "link_size": 1.0, "link_density": 1.0}
+    assert scoring.scenario_hint(shared) == "unclassified"
+    assert scoring.scenario_hint(zero) == "unclassified"
+
+
+def test_specific_signature_outranks_generic_funding_fanin():
+    """The wash ring also has fresh funding fan-in; reciprocal fills must still win."""
+    wash_ring = {f.name: 1.0 for f in scoring.FEATURES} | {"late_concentration": 0.0}
+    assert scoring.scenario_hint(wash_ring) == "wash_trading"
+    stronger = {f.name: 0.0 for f in scoring.FEATURES}
+    stronger |= {"fill_reciprocity": 0.4, "late_concentration": 0.8, "fresh_funding_fanin": 1.0}
+    assert scoring.scenario_hint(stronger) == "coordinated_accumulation"
+
+
+def test_hint_accuracy_per_alert_with_confusion():
+    alerts = [
+        {"alert_id": "a1", "scenario_hint": "wash_trading", "member_accounts": ["w1", "w2"]},
+        {"alert_id": "a2", "scenario_hint": "mule_funding", "member_accounts": ["w3", "m1", "m2"]},
+        {"alert_id": "a3", "scenario_hint": "wash_trading", "member_accounts": ["d1"]},
+    ]
+    truth = {
+        "w1": "wash_trading",
+        "w2": "wash_trading",
+        "w3": "wash_trading",
+        "m1": "mule_funding",
+        "m2": "mule_funding",
+    }
+    res = evaluate.hint_accuracy(alerts, truth)
+    assert [r["correct"] for r in res["alerts"]] == [True, True, False]
+    assert res["alerts"][1]["true_type"] == "mule_funding" and res["alerts"][1]["purity"] == 2 / 3
+    assert res["by_scenario"]["wash_trading"] == dict(
+        alerts=1, correct=1, accounts=2, accounts_ok=2
+    )
+    assert res["confusion"]["none"] == {"wash_trading": 1}
 
 
 TRUTH = {"w1": "wash", "w2": "wash", "m1": "mule", "m2": "mule"}
