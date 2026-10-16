@@ -2,7 +2,7 @@
 
 Live state of GCP and the repo. Update in the same commit as any cloud change.
 
-Last updated: 2026-10-17 (P4 agents, branch `feat/agents`)
+Last updated: 2026-10-17 (P5 web workbench + first deploy, branch `feat/web-workbench`)
 
 ## Live GCP resources
 
@@ -23,8 +23,8 @@ in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 | Robustness | dataset `eval_val`: `s101_*` to `s108_*` (same layout, varied generator parameters from `evals/robustness_profiles.json`); scored only, never used for tuning |
 | Pub/Sub | topics `trades`, `trades-dlq`; subs `trades-sub` (DLQ, 5 attempts, ack 60 s), `trades-dlq-sub` |
 | Service accounts | `sa-agent` (aiplatform.user, bigquery.dataViewer, bigquery.jobUser), `sa-ingest` (bigquery.dataEditor, bigquery.jobUser, pubsub.subscriber) |
-| Artifact Registry | `sentinel` (empty), `cloud-run-source-deploy` (auto-created) |
-| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker) |
+| Artifact Registry | `sentinel` (`sentinel-app` images, one per deploy), `cloud-run-source-deploy` (auto-created) |
+| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker). **`sentinel-app`** (P5, the workbench and agents API) at `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, revision `sentinel-app-00003-kkz`, runs as `sa-agent`, **public**, min 1 / max 3 instances, 1Gi, 1 CPU always allocated, concurrency 40, request timeout 300 s, image in Artifact Registry `sentinel` |
 | Reservation | `gql-poc` (ENTERPRISE, 0 baseline slots, autoscale max 50), QUERY assignment to the whole project |
 | APIs | 35 enabled, listed in the inventory |
 
@@ -56,7 +56,7 @@ Things in GCP that the repo cannot (yet) reproduce:
 1. **Human IAM bindings**: the operator holds ~18 admin roles and another account holds
    `roles/owner`; a third external account holds `iam.devOps`, `iam.infrastructureAdmin`,
    `resourcemanager.projectIamAdmin`. Granted by hand; deliberately not scripted. Review.
-2. **Cloud Run is public** and was deployed with `--source`, which auto-created the
+2. **Cloud Run is public** (`sentinel-hello` and `sentinel-app`; the latter is scripted by `infra/deploy_app.py`). `sentinel-hello` was deployed with `--source`, which auto-created the
    `cloud-run-source-deploy` Artifact Registry repo and the GCS bucket
    `run-sources-<project>-us-central1`. `setup.sh` re-deploys but does not manage them. The
    `sentinel` registry repo is empty and unused so far. The service template caps at 2
@@ -145,7 +145,7 @@ edge types mix node types, so traversal is one GQL query set per hop.
 
 ## P4 agents (`services/app`, branch `feat/agents`)
 
-Code complete and tested locally (170 unit tests, ruff clean); **not deployed to Cloud Run yet**.
+Code complete and tested (189 unit tests with P5, ruff clean); deployed to Cloud Run with P5.
 Details: `services/app/README.md`; results: `docs/agent-evals.md`, `docs/results/agent_evals.json`,
 per-case files in `docs/results/agent_eval_cases/`, `critic_ab.json`, `cache_latency.json`.
 
@@ -194,17 +194,68 @@ IAM applied 2026-10-17: `sql/iam/sa_agent_agent_tables.sql` gave `sa-agent`
 `risk_curated.case_decisions`), verified on each table's policy; no dataset-level binding, and
 `risk_curated.alerts` is untouched (still read-only for `sa-agent`).
 
-Pending: deploy to Cloud Run as `sa-agent` (with P5). The forced precompute was skipped on
+Deployed with P5 (see below). The forced precompute was skipped on
 purpose (`python -m scripts.precompute_cases`; the four real alerts are already cached).
+
+## P5 web workbench and first deploy (`services/app/static`, branch `feat/web-workbench`)
+
+Deployed 2026-10-16/17 with `python infra/deploy_app.py --apply` (dry run by default). It stages a
+build context (`services/app`, `services/graph`, `data/policies`, `infra/app/Dockerfile`), builds with
+Cloud Build into `sentinel/sentinel-app:<timestamp>`, polls the build (log streaming is not permitted
+for the operator) and deploys. IAM: only what `--allow-unauthenticated` adds for this one service;
+`sa-agent` roles are unchanged (table-level `dataEditor` on the three agent tables, `dataViewer`,
+`jobUser`, `aiplatform.user`). Nothing was deleted and the reservation was not touched.
+
+- **Service**: `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, revision `sentinel-app-00003-kkz`,
+  env `PROJECT_ID`, `GCP_REGION`; `--no-cpu-throttling --cpu-boost` so the warm-up thread and the
+  background audit writer keep CPU between requests.
+- **Screens**: command centre (KPIs, queue, replay control disabled: streaming ships in P6), case
+  (ring graph, timeline, draft report with evidence chips, Approve / Reject / Escalate with a required
+  reason, Investigate live, JSON export, print view), lanes, benchmark (numbers parsed from
+  `docs/benchmark.md` and `docs/agent-evals.md` by `scripts/build_ui_data.py`, caveats and limits shown),
+  governance (caps, guards, audit log). Light and dark themes, keyboard shortcuts (`?`), AA contrast
+  test (`tests/unit/test_ui_contrast.py`). Screenshots: `docs/img/ui_*.png` (and `_dark`).
+- **Cached versus live**: every case shows a CACHED or LIVE badge. Browsing never calls Gemini. A live
+  run is a cache miss or `force=true`; it is limited to 2 per client per hour, 6 per hour and 30 per
+  day for the service (counted per instance, so up to 3x with 3 instances), answers 429 with a plain
+  message and `Retry-After`, and its result goes to the requester only: the stored case is not
+  replaced (`PERSIST_FORCED=1` would change that). The UI stops at 120 s with a clear message.
+- **Checks** (2026-10-17, no credentials): `scripts/e2e_smoke.py --write` 43/43 and 41/41 read-only
+  (`docs/results/e2e_smoke.json`): every UI endpoint, audit write by the live service as `sa-agent` and
+  read back from `audit.agent_events` (two `smoke-test` approvals now sit in the audit table), reads of
+  all tables, 180 of 180 repeated GETs returned 200. One real live run on `AL_5a1a959872` through the
+  deployed service: `ok`, 13.3 s, 10,329 tokens, 3 tool calls, GQL, about $0.01 to $0.02; the stored case
+  was unchanged and the client quota went 2 to 1. A rate-limited or failing model is covered by
+  `test_a_rate_limited_model_gives_a_clean_error_result_not_a_crash` (a real Vertex 429 was not forced).
+- **Latency** (from a laptop, includes the network): cached case median 308 ms, p95 329 ms
+  (service-side 0.07 ms); first request about 0.7 to 2 s (TLS). Cold instance (fresh revision, from the
+  logs): process start to listening 15 s, `ready` 76 s after process start (60.8 s warm-up: seven table
+  reads, GQL client and model clients), views prefetched at 95 s. Requests work during warm-up but read
+  tables lazily. With min-instances 1 a visitor should not meet a cold instance unless a scale-out happens.
+- **Seen once, not reproduced**: two HTTP 500s with 0 s latency and no application log (one at the
+  revision switch, one a minute later) during the first smoke runs; 180 repeated requests and two later
+  smoke runs saw none. Separately, an instance that read `case_reports` too early answered 404 for a
+  cached case; the case and decision caches now re-read the table (30 s TTL, and once on a miss), so
+  instances converge. Watch for it.
+- **Cost**: min-instances 1 with always-allocated CPU bills continuously.
+
+**Nov 6 teardown reminder**: set min-instances back to 0 with
+`python infra/deploy_app.py --apply --skip-build --tag <current tag> --min-instances 0` (or
+`gcloud run services update sentinel-app --region us-central1 --min-instances 0`), then follow the
+teardown list below. Do not leave `sentinel-app` public and warm after the judging window.
+
+Pending for P6: the replay control, Model Armor and PII redaction (shown as "not deployed" on the
+Governance screen).
 
 ## Known risks
 
 - Reservation `gql-poc` is assigned to the whole project: every query consumes slots and cost.
-- Cloud Run `sentinel-hello` is publicly invokable (see Known drift).
+- Cloud Run `sentinel-hello` and `sentinel-app` are publicly invokable (see Known drift). `sentinel-app` can spend Gemini tokens only through the limited live path; reads are free.
+- Live-run limits are per instance (max 3 instances), and a public visitor can still use up the hourly quota for others.
 - Vertex latency is uneven (one send-back call took 37 s; 429s under burst). Mitigated by caps,
   retries and a 120 s deadline, not removed.
-- The `sa-agent` write grants exist only on the three agent tables; the Cloud Run deploy that
-  uses them has not been done or tested yet.
+- The `sa-agent` write grants exist only on the three agent tables; the deploy that uses them was
+  tested on 2026-10-17 (audit write and read-back, see P5).
 - Tight schedule: submission Oct 18.
 
 ## Teardown after Nov 6
@@ -212,7 +263,7 @@ purpose (`python -m scripts.precompute_cases`; the four real alerts are already 
 Run only after the human confirms. Each step needs a script under `infra/` with `--apply`.
 
 1. Delete the reservation assignment, then reservation `gql-poc`.
-2. Delete Cloud Run services.
+2. Delete Cloud Run services (first set `sentinel-app` min-instances to 0, see P5).
 3. Delete Pub/Sub topics, subscriptions and the DLQ.
 4. Delete BigQuery datasets if desired (`eval_val` and the `eval.*_pre_p2` backups first).
 5. Delete Artifact Registry repo `sentinel` if desired.
