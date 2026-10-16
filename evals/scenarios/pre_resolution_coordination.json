@@ -1,65 +1,74 @@
 {
   "account_ids": [
-    "acct_0469",
-    "acct_0470",
-    "acct_0471",
-    "acct_0472",
-    "acct_0473",
-    "acct_0474"
+    "C001",
+    "C002",
+    "C003",
+    "C004",
+    "C005",
+    "C006"
   ],
-  "description": "Funding-linked accounts buy the winning outcome in the final hours.",
+  "description": "Newly created accounts with one funding source buy large YES positions in the minutes before the market resolves.",
   "expected_detection": {
-    "detector": "pre_resolution_coordination",
     "flag_accounts": [
-      "acct_0469",
-      "acct_0470",
-      "acct_0471",
-      "acct_0472",
-      "acct_0473",
-      "acct_0474"
+      "C001",
+      "C002",
+      "C003",
+      "C004",
+      "C005",
+      "C006"
     ],
-    "flag_market": "mkt_011",
     "min_cluster_size": 6,
-    "shared_funding_sources": [
-      "wallet_12b78271f76f",
-      "wallet_21b641e4c3a3"
-    ],
     "signals": [
-      "concentrated_buying_final_6h",
-      "same_outcome_direction",
+      "large_buys_before_resolution",
+      "rising_price",
       "shared_funding_source",
-      "recent_signup"
+      "young_accounts"
     ]
   },
   "market_ids": [
-    "mkt_011"
+    "M12"
   ],
   "name": "pre_resolution_coordination",
+  "scenario_id": "S2_pre_resolution",
+  "scenario_type": "coordinated_accumulation",
   "seed": 42,
   "trade_ids": [
-    "t_019598",
-    "t_019600",
-    "t_019601",
-    "t_019604",
-    "t_019606",
-    "t_019607",
-    "t_019609",
-    "t_019611",
-    "t_019613",
-    "t_019614",
-    "t_019615",
-    "t_019618",
-    "t_019619",
-    "t_019623",
-    "t_019624",
-    "t_019625"
-  ],
-  "transfer_ids": [
-    "x_000553",
-    "x_000554",
-    "x_000555",
-    "x_000556",
-    "x_000557",
-    "x_000558"
+    "T0034929",
+    "T0034930",
+    "T0034931",
+    "T0034932",
+    "T0034933",
+    "T0034934",
+    "T0034935",
+    "T0034936",
+    "T0034937",
+    "T0034938",
+    "T0034939",
+    "T0034940",
+    "T0034941",
+    "T0034942",
+    "T0034943",
+    "T0034944",
+    "T0034945",
+    "T0034946",
+    "T0034947",
+    "T0034948",
+    "T0034949",
+    "T0034950",
+    "T0034951",
+    "T0034952",
+    "T0034953",
+    "T0034954",
+    "T0034955",
+    "T0034956",
+    "T0034957",
+    "T0034958",
+    "T0034959",
+    "T0034960",
+    "T0034961",
+    "T0034962",
+    "T0034963",
+    "T0034964",
+    "T0034965"
   ]
 }
