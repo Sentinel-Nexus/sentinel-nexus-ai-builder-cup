@@ -1,34 +1,22 @@
 {
  "alert_id": "AL_584807441a",
  "kind": "real",
- "status": "completed",
+ "status": "flagged",
  "run": {
   "status": "ok",
+  "cached": false,
+  "run_id": "RUN_5deb943eb11b",
   "report": {
    "alert_id": "AL_584807441a",
    "ring_id": "R_W001",
    "alert_status": "flagged",
    "scenario_hint": "wash_trading",
    "decision": "escalate",
-   "summary": "The investigation into alert AL_584807441a hypothesized wash trading, and the findings agree with this hypothesis. All 8 accounts in the ring (W001-W008) are flagged with high scores, and 'fill_reciprocity' is a top contributing factor for all [c1]. Accounts W001, W003, W005, W007 share Device:DW1, while W002, W004, W006, W008 share Device:DW2 [c2]. Furthermore, accounts W003, W004, W005, W007, W008 share FundingSource:FW1 [c3].",
-   "pattern": "wash_trading",
-   "hint_note": "The detector's scenario hint of 'wash_trading' is strongly supported by the observed patterns of shared devices, funding sources, and high fill reciprocity among the accounts.",
+   "lane": "escalated",
+   "summary": "The detector hypothesized wash trading, and the investigation agrees with this hypothesis. Multiple accounts within the ring share common devices, with accounts W001, W003, W005, W007 sharing Device:DW1 and accounts W002, W004, W006, W008 sharing Device:DW2 [c2]. Additionally, accounts W003, W004, W005, W007, W008 share FundingSource:FW1 [c3]. The investigation found multiple instances of reciprocal trades between these ring members at identical timestamps and prices, such as W005 selling to W006, W001 selling to W002, and W001 selling to W004 [c5].",
+   "pattern": "Wash trading activity characterized by shared infrastructure and reciprocal trades.",
+   "hint_note": "The investigation's findings align with the detector's initial hint of wash trading.",
    "evidence_table": [
-    {
-     "claim_id": "c1",
-     "kind": "observation",
-     "claim": "All 8 accounts in the ring (W001, W002, W003, W004, W005, W006, W007, W008) are flagged and have scores above the threshold, with 'fill_reciprocity' being a top contributing factor for all.",
-     "evidence_ids": [
-      "Account:W001",
-      "Account:W002",
-      "Account:W003",
-      "Account:W004",
-      "Account:W005",
-      "Account:W006",
-      "Account:W007",
-      "Account:W008"
-     ]
-    },
     {
      "claim_id": "c2",
      "kind": "pattern",
@@ -55,27 +43,53 @@
       "FundedBy:W007>FW1",
       "FundedBy:W008>FW1"
      ]
+    },
+    {
+     "claim_id": "c5",
+     "kind": "pattern",
+     "claim": "Multiple instances of reciprocal trades between ring members at the same timestamp and price, such as T0034659 (W005 SELL) and T0034660 (W006 BUY), T0034825 (W001 SELL) and T0034826 (W002 BUY), and T0034721 (W001 SELL) and T0034722 (W004 BUY).",
+     "evidence_ids": [
+      "T0034659",
+      "T0034660",
+      "T0034825",
+      "T0034826",
+      "T0034721",
+      "T0034722"
+     ]
     }
    ],
    "policy_references": [
     {
      "clause_id": "SP-2.1",
      "title": "Wash trading",
-     "why": "The presence of matched buy and sell fills between accounts sharing devices and a funding source, with high fill reciprocity, directly aligns with the definition of wash trading."
+     "why": "The findings of shared devices, funding sources, and reciprocal matched buy and sell fills directly match the definition of wash trading outlined in this policy."
     },
     {
      "clause_id": "SP-4.1",
      "title": "Evidence standard",
-     "why": "The case provides multiple independent signals (shared devices, shared funding source, and fill reciprocity) each backed by evidence IDs, meeting the standard for escalation."
+     "why": "The escalation is supported by multiple independent signals (shared devices, shared funding source, and reciprocal trades), each backed by specific evidence IDs, meeting the evidence standard."
     },
     {
      "clause_id": "SP-6.1",
      "title": "Analyst approval",
-     "why": "As an agent, I recommend an analyst review for approval of any further action, in line with the policy that agents do not take direct action."
+     "why": "As an agent, I recommend analyst review for approval, as direct action on accounts requires human oversight."
     }
    ],
    "recommended_action": "analyst_review",
    "confidence": 0.74,
+   "members_alert": [
+    "W001",
+    "W002",
+    "W003",
+    "W004",
+    "W005",
+    "W006",
+    "W007",
+    "W008"
+   ],
+   "members_linked": [],
+   "member_basis": "members = detector alert members plus ring_subgraph members; the decision applies to all of them except accounts excluded with a supported claim",
+   "exclusions": [],
    "escalate_accounts": [
     "W001",
     "W002",
@@ -87,31 +101,52 @@
     "W008"
    ],
    "cleared_accounts": [],
+   "clear_reason": "",
+   "clear_evidence_ids": [],
+   "removed_claims": [
+    {
+     "claim_id": "c1",
+     "text": "All 8 accounts in the ring (W001, W002, W003, W004, W005, W006, W007, W008) are flagged with scores above the threshold (43.0), with 'fill_reciprocity' and 'link_size' being significant contributors to their scores.",
+     "reason": "evidence ids not in this run's tool-call ledger: ['Score:W001', 'Score:W002', 'Score:W003', 'Score:W004', 'Score:W005', 'Score:W006']"
+    },
+    {
+     "claim_id": "c4",
+     "text": "All 8 accounts traded in Market:M05, with 200 BUY and 200 SELL orders, indicating reciprocal trading activity.",
+     "reason": "numbers not in the cited rows: [200.0, 200.0]"
+    }
+   ],
+   "unverified_note": "2 claim(s) were not verified against this run's tool evidence and were removed from this report.",
    "unsupported_claims": [
-    "c4: All accounts in the ring have numerous 'TradedWith' links with each other, indicating a dense trading network. (The claim states 'All accounts in the ring have numerous 'TradedWith' links with each other'. While many 'TradedWith' links are provided, there are missing links that prevent it from being a complete 'dense trading network' where every account trades with every other account. Specifically, W004 does)",
-    "c5: The total number of trades in Market:M05 is 400, with an equal distribution of 200 BUY and 200 SELL orders, and many trades occurring in pairs with identical timestamps, prices, and sizes, such as T0034659 and T0034660. (numbers not in the cited rows: [400.0, 200.0, 200.0])"
+    "c1: All 8 accounts in the ring (W001, W002, W003, W004, W005, W006, W007, W008) are flagged with scores above the threshold (43.0), with 'fill_reciprocity' and 'link_size' being significant contributors to their scores. (evidence ids not in this run's tool-call ledger: ['Score:W001', 'Score:W002', 'Score:W003', 'Score:W004', 'Score:W005', 'Score:W006'])",
+    "c4: All 8 accounts traded in Market:M05, with 200 BUY and 200 SELL orders, indicating reciprocal trading activity. (numbers not in the cited rows: [200.0, 200.0])"
    ],
    "merge_proposals": [],
    "requires_analyst_approval": true,
+   "analyst_override_allowed": true,
    "meta": {
     "first_pass_claims": 5,
-    "first_pass_accepted": 2,
+    "first_pass_accepted": 3,
     "critic_reviewed": 10,
-    "critic_rejected": 5,
+    "critic_rejected": 4,
     "revised": true,
     "claims_total": 5,
     "claims_accepted": 3,
+    "report_claims": 3,
+    "report_claims_resolvable": 3,
+    "citations_stripped": 0,
     "pattern_agent": "wash_trading",
     "agrees_with_hint": true
    }
   },
-  "tokens": 28241,
-  "latency_ms": 44063,
+  "tokens": 24816,
+  "latency_ms": 27469,
   "tool_calls": 3,
   "engines": "gql",
   "cached_graph_calls": 0,
   "budget_status": "ok"
  },
+ "repeat_ms": 0.0,
+ "repeat_cached": true,
  "trace": {
   "orchestrator": {
    "llm_calls": 0,
@@ -123,17 +158,17 @@
   },
   "investigator": {
    "llm_calls": 2,
-   "tokens_in": 17356,
-   "tokens_out": 5375,
-   "llm_ms": 27217,
+   "tokens_in": 16389,
+   "tokens_out": 3089,
+   "llm_ms": 11562,
    "retries": 0,
    "tool_calls": 3
   },
   "critic": {
    "llm_calls": 2,
-   "tokens_in": 2563,
-   "tokens_out": 1138,
-   "llm_ms": 7891,
+   "tokens_in": 2444,
+   "tokens_out": 1054,
+   "llm_ms": 6373,
    "retries": 0,
    "tool_calls": 0
   },
@@ -147,15 +182,12 @@
   },
   "drafter": {
    "llm_calls": 1,
-   "tokens_in": 1181,
-   "tokens_out": 628,
-   "llm_ms": 4592,
+   "tokens_in": 1216,
+   "tokens_out": 624,
+   "llm_ms": 5125,
    "retries": 0,
    "tool_calls": 0
   }
  },
- "repeat_ms": null,
- "pipeline": "partial run 2026-10-16 (before the recall fix)",
- "detail_source": "full report from risk_curated.case_reports",
- "saved_ts": "2026-10-16 18:44:19 UTC"
+ "saved_ts": "2026-10-16 19:06:58 UTC"
 }

@@ -2,7 +2,7 @@
 
 Live state of GCP and the repo. Update in the same commit as any cloud change.
 
-Last updated: 2026-10-16 (P2 hardening)
+Last updated: 2026-10-17 (P4 agents, branch `feat/agents`)
 
 ## Live GCP resources
 
@@ -12,7 +12,8 @@ in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 
 | Area | Live state |
 |---|---|
-| BigQuery datasets | `risk_raw`, `risk_curated`, `risk_graph`, `eval`, `audit` (empty) |
+| BigQuery datasets | `risk_raw`, `risk_curated`, `risk_graph`, `eval`, `audit` (`agent_events`, P4) |
+| Agent tables (P4) | `audit.agent_events` (every step, tool call, LLM call, retry and verdict), `risk_curated.case_reports` (cached cases, append only, `lane` column), `risk_curated.case_decisions` (analyst overrides). DDL: `sql/schema/50_agents.sql`, `51_case_decisions.sql`, `sql/migrations/p4_20_case_lane.sql` |
 | Pre-P2 backups | `eval.{trades,accounts,markets,ground_truth,alerts}_pre_p2` = 35,073 / 2,039 / 20 / 39 / 39 rows (`sql/migrations/p2_00_backup_pre_p2.sql`). Delete after P2 is accepted. |
 | Data (seed 42, ADR 0002) | accounts 2,039; trades 35,116; markets 20; ground truth 39 (8 wash, 6 coordination, 25 mule); `eval.decoy_groups` 23 (5 household, 8 exchange cluster, 10 busy-honest) |
 | Graph | 8 tables in `risk_graph` + property graph `market_graph`; device_nodes 1,870, traded_in 22,169, traded_with 54. GQL runs natively in BigQuery on reservation `gql-poc`. |
@@ -94,6 +95,13 @@ Things in GCP that the repo cannot (yet) reproduce:
   `python -m services.detector report` (writes `docs/results/hardening.json`, reads cached free
   table reads in `.cache/`), then `python scripts/benchmark.py --iteration 1`.
 
+- Branch `feat/agents` (P4) is stacked on the P2/P3 work already on `main`. Reproduce the agent
+  tables: `python scripts/run_sql.py sql/schema/50_agents.sql --apply`,
+  `sql/schema/51_case_decisions.sql --apply`, `sql/migrations/p4_20_case_lane.sql --apply`
+  (set `PROJECT_ID`). Run the service: `uvicorn services.app.main:app`. Evals:
+  `python -m evals.agents.run` (dry run) / `--apply --max-minutes 20`; rebuild the report from
+  the stored cases without Gemini: `--rebuild`; cache timing: `python -m evals.agents.cache_latency`.
+
 ## P2 detector result (seed 42, frozen threshold 43.0, iteration 1)
 
 | | Flat rule | Detector v1 |
@@ -135,11 +143,64 @@ rings for the wash (8), coordination (4) and mule (25) rings. Latency: warm GQL 
 instant after a ~9 s cold load. GQL variable-length quantified paths are not used: the graph's
 edge types mix node types, so traversal is one GQL query set per hop.
 
+## P4 agents (`services/app`, branch `feat/agents`)
+
+Code complete and tested locally (170 unit tests, ruff clean); **not deployed to Cloud Run yet**.
+Details: `services/app/README.md`; results: `docs/agent-evals.md`, `docs/results/agent_evals.json`,
+per-case files in `docs/results/agent_eval_cases/`, `critic_ab.json`, `cache_latency.json`.
+
+- **Models** (confirmed with real calls in us-central1): `gemini-2.5-flash` for Investigator, Critic
+  and Drafter. `gemini-2.5-pro` was measured as Critic: same accuracy as Flash on 10 labelled
+  claims (10/10 twice each) and slower, so it is not used. `gemini-3-pro-preview` returns 404.
+  The global endpoint did not reduce 429s in a burst test. ADK 2.12.0 (graph runtime, 2.x API).
+- **Policy retrieval**: keyword (BM25-style) over `data/policies/`. Vertex AI Search
+  (`discoveryengine`) is not enabled. Recorded on every case.
+- **Pipeline**: three core tools prefetched in parallel (graph engine and `cached` shown in the
+  timeline and audit), Investigator, deterministic ledger and number check, Flash Critic, one
+  send-back, Drafter picks policy clauses. Limits: 8 tool calls, per-agent and total token caps
+  (60k), 120 s per case (`timed_out`, not cached). Concurrency 2, backoff with jitter on 429/503.
+- **Case members are deterministic** (alert members plus `ring_subgraph` members). The model
+  decides escalate / clear / uncertain with rationale and evidence ids; it no longer lists accounts.
+  Before this change the agent escalated 29 of 39 attackers: it built its list from its
+  "15 accounts share funding source FM1" claim and dropped the 10 evaded mule accounts that were
+  linked only through devices, although all 25 were in the alert. Not a token or truncation limit.
+- **Claims**: a claim stays in a report only if all its evidence ids resolve in that run's ledger
+  (re-checked; 13/13 in the four re-run real cases). Rejected claims appear as `removed_claims`
+  with the reason and an "unverified, removed" note. The Investigator's own claim acceptance is
+  separate: 63% final / 51% first pass of 35 claims.
+- **Lanes**: `escalated`, `agent_cleared` (reason and evidence stored), `needs_analyst`.
+  `GET /lanes`, `POST /cases/{id}/override` (analyst override of a clear, audited). Approval is
+  still required before the mock webhook fires.
+
+Final eval (seed 42, 8 cases + adversarial; `docs/agent-evals.md`):
+
+| Metric | Result |
+|---|---|
+| Attacker recall per account | 39/39, evaded 15/15 (ring-level decision; see caveat) |
+| Decoy false escalations | 0 of 3 groups, 0 of 23 accounts (DG1, DG2 cleared, DG3 `uncertain`) |
+| needs_review attackers escalated | 0/1: `EV_C004` was cleared, threshold and logic not changed |
+| Adversarial (3 injected claims) | 3/3 rejected, 0 leaked (invented id, number not in rows, and a real-id claim only the LLM Critic could stop) |
+| Live latency (8 cases) | median 44.1 s, max 67.4 s; 1 of 8 above 60 s (`EV_C004`, one send-back call took 37 s) |
+| Cached case | median 0.07 ms, worst 0.21 ms service-side (excludes HTTP) |
+| Eval cost, all runs | 136 LLM calls recorded in `audit.agent_events` (plus 4 in `critic_ab`): about $0.55 at third-party prices (+-30%); the first, crashed attempt has no input/output split, so its share is estimated |
+
+Caveats: recall follows from escalating whole rings, so it no longer measures per-account
+judgement and the exclusion path was never exercised on live data. The four decoy/borderline
+`EV_*` cases are injected `needs_review` alerts (seed 42 has none) and were not re-run after the
+membership change. Four real alerts are cached in `case_reports` from the final eval runs.
+
+Pending: apply `sql/iam/sa_agent_agent_tables.sql` (needs the owner's approval), precompute
+(`python -m scripts.precompute_cases`; nothing to run while the four real alerts stay cached),
+deploy to Cloud Run as `sa-agent` (with P5).
+
 ## Known risks
 
 - Reservation `gql-poc` is assigned to the whole project: every query consumes slots and cost.
 - Cloud Run `sentinel-hello` is publicly invokable (see Known drift).
-- Gemini model ID in `us-central1` is unconfirmed; verify with a real call before use (P4).
+- Vertex latency is uneven (one send-back call took 37 s; 429s under burst). Mitigated by caps,
+  retries and a 120 s deadline, not removed.
+- `sa-agent` cannot yet write the agent tables (grants not applied), so the Cloud Run service
+  would fail to audit or cache until `sa_agent_agent_tables.sql` is applied.
 - Tight schedule: submission Oct 18.
 
 ## Teardown after Nov 6

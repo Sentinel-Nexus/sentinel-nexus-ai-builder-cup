@@ -1,37 +1,42 @@
 {
  "alert_id": "AL_3df9da0276",
  "kind": "real",
- "status": "completed",
+ "status": "flagged",
  "run": {
   "status": "ok",
+  "cached": false,
+  "run_id": "RUN_22cf48a22930",
   "report": {
    "alert_id": "AL_3df9da0276",
    "ring_id": "R_C001",
    "alert_status": "flagged",
    "scenario_hint": "coordinated_accumulation",
    "decision": "escalate",
-   "summary": "The alert hypothesizes coordinated accumulation, and the investigation agrees. All four accounts (C001, C003, C005, C006) share a common funding source FC1 [c1]. All 23 trades executed by these ring members in market M12 were BUY orders [c2], occurring within a 2 hour and 25 minute window [c3]. This shared funding source and synchronized BUY-side trading activity across all accounts in market M12 indicate coordinated accumulation, consistent with policy SP-2.2 [c4].",
+   "lane": "escalated",
+   "summary": "The alert hypothesized coordinated accumulation, which the investigation agrees with. All four accounts (C001, C003, C005, C006) share a common funding source, FC1 [c1]. These accounts placed 23 exclusive BUY orders in market M12 between 2026-10-11 13:06:00+00 and 2026-10-11 15:31:00+00 [c2]. This behavior, including the shared funding source and concentrated trading window, indicates coordinated accumulation [c3].",
    "pattern": "coordinated_accumulation",
-   "hint_note": "The detector's scenario hint of 'coordinated_accumulation' is directly supported by the findings.",
+   "hint_note": "The detector's scenario hint of 'coordinated_accumulation' is strongly supported by the observed trading patterns and shared funding source.",
    "evidence_table": [
     {
      "claim_id": "c1",
      "kind": "observation",
-     "claim": "All four accounts C001, C003, C005, and C006 share a common funding source FC1.",
+     "claim": "All four accounts (C001, C003, C005, C006) share a common funding source, FC1.",
      "evidence_ids": [
       "FundedBy:C001>FC1",
       "FundedBy:C003>FC1",
       "FundedBy:C005>FC1",
-      "FundedBy:C006>FC1",
-      "FundingSource:FC1"
+      "FundedBy:C006>FC1"
      ]
     },
     {
      "claim_id": "c2",
      "kind": "observation",
-     "claim": "All 23 trades executed by the ring members in market M12 were BUY orders.",
+     "claim": "The trades_for tool returned 23 trades for the ring members in market M12, all of which are BUY orders, occurring between 2026-10-11 13:06:00+00 and 2026-10-11 15:31:00+00.",
      "evidence_ids": [
-      "Market:M12",
+      "TradedIn:C001>M12",
+      "TradedIn:C003>M12",
+      "TradedIn:C005>M12",
+      "TradedIn:C006>M12",
       "T0034959",
       "T0034947",
       "T0034944",
@@ -59,24 +64,17 @@
     },
     {
      "claim_id": "c3",
-     "kind": "observation",
-     "claim": "The trades occurred within a 2 hour and 25 minute window, from 2026-10-11 13:06:00+00 to 2026-10-11 15:31:00+00.",
-     "evidence_ids": [
-      "T0034959",
-      "T0034962"
-     ]
-    },
-    {
-     "claim_id": "c4",
      "kind": "pattern",
-     "claim": "The shared funding source and synchronized BUY-side trading activity across all accounts in market M12 indicate coordinated accumulation, consistent with policy SP-2.2.",
+     "claim": "The accounts exhibit coordinated accumulation by exclusively placing BUY orders in market M12, sharing a funding source, and executing these trades within a concentrated time window.",
      "evidence_ids": [
       "FundedBy:C001>FC1",
       "FundedBy:C003>FC1",
       "FundedBy:C005>FC1",
       "FundedBy:C006>FC1",
-      "FundingSource:FC1",
-      "Market:M12",
+      "TradedIn:C001>M12",
+      "TradedIn:C003>M12",
+      "TradedIn:C005>M12",
+      "TradedIn:C006>M12",
       "T0034959",
       "T0034947",
       "T0034944",
@@ -99,8 +97,7 @@
       "T0034956",
       "T0034945",
       "T0034964",
-      "T0034962",
-      "SP-2.2"
+      "T0034962"
      ]
     }
    ],
@@ -108,26 +105,30 @@
     {
      "clause_id": "SP-2.2",
      "title": "Coordinated pre-resolution accumulation",
-     "why": "The case involves several accounts sharing a funding source and buying the same outcome in a concentrated period, which aligns with the definition of coordinated accumulation."
+     "why": "The observed behavior of multiple accounts sharing a funding source and buying the same outcome within a concentrated timeframe aligns directly with the definition of coordinated accumulation."
     },
     {
      "clause_id": "SP-4.1",
      "title": "Evidence standard",
-     "why": "The escalation is supported by multiple independent signals, including shared funding and synchronized trading behavior, each backed by evidence IDs."
+     "why": "The escalation is supported by multiple independent signals (shared funding source, coordinated trading behavior) each backed by evidence IDs, meeting the evidence standard."
     },
     {
      "clause_id": "SP-6.1",
      "title": "Analyst approval",
-     "why": "As an agent, I recommend analyst review for any action, such as potential trading limits or referrals, to ensure proper approval and recording."
-    },
-    {
-     "clause_id": "SP-3.1",
-     "title": "Legitimate shared attributes",
-     "why": "While a shared funding source alone is not a violation, the combination with synchronized, concentrated BUY orders indicates a pattern beyond legitimate shared attributes."
+     "why": "As an agent, I recommend analyst review for any action, including potential limits or referrals, ensuring compliance with the policy requiring analyst approval."
     }
    ],
    "recommended_action": "analyst_review",
-   "confidence": 1.0,
+   "confidence": 0.9,
+   "members_alert": [
+    "C001",
+    "C003",
+    "C005",
+    "C006"
+   ],
+   "members_linked": [],
+   "member_basis": "members = detector alert members plus ring_subgraph members; the decision applies to all of them except accounts excluded with a supported claim",
+   "exclusions": [],
    "escalate_accounts": [
     "C001",
     "C003",
@@ -135,28 +136,38 @@
     "C006"
    ],
    "cleared_accounts": [],
+   "clear_reason": "",
+   "clear_evidence_ids": [],
+   "removed_claims": [],
+   "unverified_note": "",
    "unsupported_claims": [],
    "merge_proposals": [],
    "requires_analyst_approval": true,
+   "analyst_override_allowed": true,
    "meta": {
-    "first_pass_claims": 4,
-    "first_pass_accepted": 2,
-    "critic_reviewed": 8,
+    "first_pass_claims": 3,
+    "first_pass_accepted": 1,
+    "critic_reviewed": 6,
     "critic_rejected": 2,
     "revised": true,
-    "claims_total": 4,
-    "claims_accepted": 4,
+    "claims_total": 3,
+    "claims_accepted": 3,
+    "report_claims": 3,
+    "report_claims_resolvable": 3,
+    "citations_stripped": 0,
     "pattern_agent": "coordinated_accumulation",
     "agrees_with_hint": true
    }
   },
-  "tokens": 32222,
-  "latency_ms": 66000,
-  "tool_calls": 4,
+  "tokens": 27769,
+  "latency_ms": 50078,
+  "tool_calls": 3,
   "engines": "gql",
   "cached_graph_calls": 0,
   "budget_status": "ok"
  },
+ "repeat_ms": 0.0,
+ "repeat_cached": true,
  "trace": {
   "orchestrator": {
    "llm_calls": 0,
@@ -167,18 +178,18 @@
    "tool_calls": 0
   },
   "investigator": {
-   "llm_calls": 3,
-   "tokens_in": 16197,
-   "tokens_out": 3690,
-   "llm_ms": 29031,
+   "llm_calls": 2,
+   "tokens_in": 10283,
+   "tokens_out": 3138,
+   "llm_ms": 15655,
    "retries": 0,
-   "tool_calls": 4
+   "tool_calls": 3
   },
   "critic": {
    "llm_calls": 2,
-   "tokens_in": 8843,
-   "tokens_out": 1210,
-   "llm_ms": 9687,
+   "tokens_in": 10837,
+   "tokens_out": 1256,
+   "llm_ms": 9203,
    "retries": 0,
    "tool_calls": 0
   },
@@ -192,15 +203,12 @@
   },
   "drafter": {
    "llm_calls": 1,
-   "tokens_in": 1623,
-   "tokens_out": 659,
-   "llm_ms": 4875,
+   "tokens_in": 1653,
+   "tokens_out": 602,
+   "llm_ms": 4405,
    "retries": 0,
    "tool_calls": 0
   }
  },
- "repeat_ms": null,
- "pipeline": "partial run 2026-10-16 (before the recall fix)",
- "detail_source": "full report from risk_curated.case_reports",
- "saved_ts": "2026-10-16 18:44:19 UTC"
+ "saved_ts": "2026-10-16 19:05:30 UTC"
 }
