@@ -35,7 +35,7 @@ class RunContext:
         self.cached_graph_calls = 0
         self.ring_members: dict[str, list[str]] = {}
         self.started = time.monotonic()
-        self.deadline = self.started + self.settings.limits.wall_clock_s
+        self.deadline = time.time() + self.settings.limits.wall_clock_s  # wall clock, not monotonic
         self._seq = 0
         self._lock = threading.Lock()
         self.events: list[dict] = []
@@ -131,7 +131,7 @@ class RunContext:
         return compact
 
     def remaining_s(self) -> float:
-        return self.deadline - time.monotonic()
+        return self.deadline - time.time()
 
     def elapsed_ms(self) -> int:
         return int((time.monotonic() - self.started) * 1000)

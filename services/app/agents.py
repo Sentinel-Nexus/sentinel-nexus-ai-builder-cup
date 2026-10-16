@@ -69,17 +69,22 @@ class _LoopThread:
     _loop: asyncio.AbstractEventLoop | None = None
 
     @classmethod
-    def run(cls, coro, timeout: float):
+    def run(cls, coro, remaining):
+        """Wait for the coroutine, polling a wall-clock deadline (``remaining()`` seconds left).
+        A plain ``result(timeout)`` uses a timer that does not advance while the machine is
+        suspended, so a stuck or suspended call could outlive the case deadline."""
         with cls._lock:
             if cls._loop is None:
                 cls._loop = asyncio.new_event_loop()
                 threading.Thread(target=cls._loop.run_forever, daemon=True, name="adk-loop").start()
         fut = asyncio.run_coroutine_threadsafe(coro, cls._loop)
-        try:
-            return fut.result(timeout)
-        except concurrent.futures.TimeoutError as e:
-            fut.cancel()
-            raise CaseTimeout("llm call exceeded the case deadline") from e
+        while True:
+            try:
+                return fut.result(1.0)
+            except concurrent.futures.TimeoutError:
+                if remaining() <= 0:
+                    fut.cancel()
+                    raise CaseTimeout("llm call exceeded the case deadline") from None
 
 
 class AgentOutputError(ValueError):
@@ -138,17 +143,22 @@ exchange funding wallet, or heavy but independent trading by aged accounts is NO
 those (SP-3.1, SP-3.2).
 5. status "needs_review" means every member scored just below the alert threshold. Decide \
 escalate or clear and say why. Use "uncertain" only when the evidence cannot decide.
-6. escalate_accounts lists the members to escalate (empty when clearing). Do not list cleared \
-accounts. Accounts that left a shared funding source but still share a device, market and timing \
-stay in the ring (SP-4.2).
+6. Your decision covers the WHOLE ring: every member of the alert and of the ring subgraph. \
+You do not list accounts. The ring includes accounts that left a shared funding source but \
+still share a device, market or timing (SP-4.2); do not drop them. Only if you have a \
+specific, evidenced reason that one account is NOT part of the pattern (for example an \
+independent household member), add its id to "exclusions" and add a claim of kind \
+"exclusion" that names the account and cites the evidence. Otherwise leave "exclusions" \
+empty.
 7. If related_rings shows another ring in the same market or window, you may propose a merge: set \
 merge_with to the ring ids and add a claim of kind "merge_proposal" whose evidence_ids come from \
 BOTH rings. Do not merge without such evidence.
-8. At most 6 claims, short and factual. Kinds: observation, pattern, disagreement, merge_proposal.
+8. At most 6 claims, short and factual. Kinds: observation, pattern, disagreement, \
+merge_proposal, exclusion.
 
 Reply with ONLY this JSON, no prose:
 {{"decision": "escalate|clear|uncertain", "pattern": "wash_trading|coordinated_accumulation|\
-mule_funding|none|other", "agrees_with_hint": true, "escalate_accounts": ["..."], \
+mule_funding|none|other", "agrees_with_hint": true, "exclusions": [], \
 "merge_with": [], "notes": "one or two sentences", \
 "claims": [{{"id": "c1", "kind": "observation", "text": "...", "evidence_ids": ["..."]}}]}}"""
 
@@ -290,7 +300,7 @@ class AdkBackend:
         if not self._slots.acquire(timeout=remaining):
             raise CaseTimeout("waited too long for an LLM slot")
         try:
-            text, tokens, calls = _LoopThread.run(go(), max(ctx.remaining_s(), 1.0))
+            text, tokens, calls = _LoopThread.run(go(), ctx.remaining_s)
         finally:
             self._slots.release()
         ctx.emit(

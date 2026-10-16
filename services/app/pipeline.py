@@ -12,6 +12,7 @@ that fails ends as ``error``. Neither is cached, so a repeat request tries again
 from __future__ import annotations
 
 import json
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -19,7 +20,7 @@ from services.app.agents import ACTIONS
 from services.app.budget import BudgetExceeded, CaseTimeout
 from services.app.critic import review
 from services.app.deps import Deps
-from services.app.models import CaseReport, Claim, ClaimVerdict, Findings, PolicyRef
+from services.app.models import LANES, CaseReport, Claim, ClaimVerdict, Findings, PolicyRef
 from services.app.policy import RETRIEVAL
 from services.app.runctx import RunContext, now_iso
 from services.app.tools import build_tools
@@ -149,24 +150,48 @@ def run_investigation(deps: Deps, alert: dict, ctx: RunContext) -> CaseReport:
     ]
     unsupported = [c for c in findings.claims if c not in accepted]
 
+    # Claims: only what the Critic accepted AND still resolves in this run's ledger stays in the
+    # report. Everything else is removed and shown as "unverified, removed".
+    accepted, removed = _final_claims(ctx, accepted, unsupported, by_id)
+
     # Deterministic guards on the decision (SP-4.1)
-    members = set(alert["member_accounts"])
-    escalate = sorted(set(findings.escalate_accounts) & members)
     decision = findings.decision
     # a claim that only cites policy clauses is a reading of the policy, not a signal about the case
     signals = [c for c in accepted if any(not i.startswith("SP-") for i in c.evidence_ids)]
-    if decision == "escalate" and (len(signals) < MIN_ACCEPTED_FOR_ESCALATION or not escalate):
+    if decision == "escalate" and len(signals) < MIN_ACCEPTED_FOR_ESCALATION:
         ctx.emit(
             "orchestrator",
             "step",
-            "escalation downgraded to uncertain: needs "
-            f"{MIN_ACCEPTED_FOR_ESCALATION} supported signals and named accounts",
+            f"escalation downgraded to uncertain: needs {MIN_ACCEPTED_FOR_ESCALATION} supported "
+            "signals",
             rule="SP-4.1",
         )
         decision = "uncertain"
-    if decision != "escalate":
-        escalate = []
-    cleared = sorted(members - set(escalate)) if decision in ("escalate", "clear") else []
+
+    # Membership is deterministic: the detector alert's members plus the ring subgraph's members
+    # (evaded accounts linked only through devices or fills). The model's decision applies to
+    # that set; it can only carve out an account with a supported "exclusion" claim.
+    members_alert = sorted(alert["member_accounts"])
+    graph = prefetched.get("graph") or {}
+    members_linked = sorted(set(graph.get("members") or []) - set(members_alert))
+    exclusions = _exclusions(findings, accepted, set(members_alert) | set(members_linked))
+    excluded = {e["account_id"] for e in exclusions if e["accepted"]}
+    in_scope = sorted((set(members_alert) | set(members_linked)) - excluded)
+    if decision == "escalate":
+        escalate, cleared = in_scope, sorted(excluded)
+    elif decision == "clear":
+        escalate, cleared = [], sorted(set(members_alert) - excluded)
+    else:
+        escalate, cleared = [], []
+    ctx.emit(
+        "orchestrator",
+        "step",
+        f"members: {len(members_alert)} from the alert, {len(members_linked)} more from "
+        f"ring_subgraph; {len(excluded)} excluded with evidence",
+        members_alert=len(members_alert),
+        members_linked=members_linked,
+        excluded=sorted(excluded),
+    )
     merge_ok = any(c.kind == "merge_proposal" for c in accepted)
     merge_with = findings.merge_with if merge_ok else []
 
@@ -190,7 +215,7 @@ def run_investigation(deps: Deps, alert: dict, ctx: RunContext) -> CaseReport:
         "pattern": findings.pattern,
         "agrees_with_hint": findings.agrees_with_hint,
         "accepted_claims": [c.model_dump() for c in accepted],
-        "n_rejected": len(unsupported),
+        "n_rejected": len(removed),
         "policy_candidates": [{k: h[k] for k in ("clause_id", "title", "text")} for h in hits],
         "merge_with": merge_with,
         "budget_status": ctx.budget.status,
@@ -217,13 +242,18 @@ def run_investigation(deps: Deps, alert: dict, ctx: RunContext) -> CaseReport:
     support = len(accepted) / max(len(findings.claims), 1)
     conf = round(min(conf, 0.35 + 0.65 * support, 0.5 if ctx.budget.exhausted else 1.0), 2)
 
+    summary_text, stripped = _strip_unknown_citations(
+        str(text.get("summary", ""))[:2000], {c.id for c in accepted}
+    )
+    all_ids = sorted({i for c in accepted for i in c.evidence_ids})
     report = CaseReport(
         alert_id=alert["alert_id"],
         ring_id=alert["ring_id"],
         alert_status=alert["status"],
         scenario_hint=alert["scenario_hint"],
         decision=decision,
-        summary=str(text.get("summary", ""))[:2000],
+        lane=LANES[decision],
+        summary=summary_text,
         pattern=str(text.get("pattern", findings.pattern))[:500],
         hint_note=str(text.get("hint_note", ""))[:500],
         evidence_table=[
@@ -233,12 +263,25 @@ def run_investigation(deps: Deps, alert: dict, ctx: RunContext) -> CaseReport:
         policy_references=refs,
         recommended_action=action,
         confidence=conf,
+        members_alert=members_alert,
+        members_linked=members_linked,
+        member_basis=(
+            "members = detector alert members plus ring_subgraph members; the decision applies to "
+            "all of them except accounts excluded with a supported claim"
+        ),
+        exclusions=exclusions,
         escalate_accounts=escalate,
         cleared_accounts=cleared,
-        unsupported_claims=[
-            f"{c.id}: {c.text} ({by_id[c.id].reason})" if c.id in by_id else c.text
-            for c in unsupported
-        ],
+        clear_reason=summary_text if decision == "clear" else "",
+        clear_evidence_ids=all_ids if decision == "clear" else [],
+        removed_claims=removed,
+        unverified_note=(
+            f"{len(removed)} claim(s) were not verified against this run's tool evidence and "
+            "were removed from this report."
+            if removed
+            else ""
+        ),
+        unsupported_claims=[f"{r['claim_id']}: {r['text']} ({r['reason']})" for r in removed],
         merge_proposals=[{"rings": [alert["ring_id"], *merge_with]}] if merge_with else [],
     )
     report_meta = {
@@ -247,8 +290,16 @@ def run_investigation(deps: Deps, alert: dict, ctx: RunContext) -> CaseReport:
         "critic_reviewed": reviewed,
         "critic_rejected": rejected_n,
         "revised": revised,
+        # Investigator claims kept versus produced (what the old "claim support rate" measured)
         "claims_total": len(findings.claims),
         "claims_accepted": len(accepted),
+        # the report itself: every claim in it resolves, by construction and re-checked here
+        "report_claims": len(report.evidence_table),
+        "report_claims_resolvable": sum(
+            not ctx.ledger.resolve(row["evidence_ids"])[1] and bool(row["evidence_ids"])
+            for row in report.evidence_table
+        ),
+        "citations_stripped": stripped,
         "pattern_agent": findings.pattern,
         "agrees_with_hint": findings.agrees_with_hint,
     }
@@ -262,6 +313,59 @@ def run_investigation(deps: Deps, alert: dict, ctx: RunContext) -> CaseReport:
     )
     ctx.meta = report_meta
     return report
+
+
+def _final_claims(ctx, accepted: list[Claim], unsupported: list[Claim], by_id: dict):
+    """Split into kept claims and removed ones. A kept claim must cite at least one id and every id
+    must still resolve in this run's ledger; this re-check is what makes the report's support rate
+    100% by construction."""
+    kept, removed = [], []
+    for c in accepted:
+        _, missing = ctx.ledger.resolve(c.evidence_ids)
+        if c.evidence_ids and not missing:
+            kept.append(c)
+        else:
+            removed.append({"claim_id": c.id, "text": c.text, "reason": "evidence not resolvable"})
+    for c in unsupported:
+        v = by_id.get(c.id)
+        removed.append(
+            {"claim_id": c.id, "text": c.text, "reason": v.reason if v else "not reviewed"}
+        )
+    return kept, removed
+
+
+def _exclusions(findings: Findings, accepted: list[Claim], known: set[str]) -> list[dict]:
+    """An exclusion holds only when an accepted claim of kind "exclusion" names the account."""
+    out = []
+    for acct in sorted(set(findings.exclusions)):
+        if acct not in known:
+            continue
+        backed = any(c.kind == "exclusion" and acct in c.text for c in accepted)
+        out.append(
+            {
+                "account_id": acct,
+                "accepted": backed,
+                "reason": "supported exclusion claim" if backed else "no supported claim: kept in",
+            }
+        )
+    return out
+
+
+_CITE = re.compile(r"\[(c\d+)\]")
+
+
+def _strip_unknown_citations(text: str, known: set[str]) -> tuple[str, int]:
+    """The summary may cite only kept claims; a citation of a removed claim is dropped."""
+    n = 0
+
+    def fix(m: re.Match) -> str:
+        nonlocal n
+        if m.group(1) in known:
+            return m.group(0)
+        n += 1
+        return ""
+
+    return _CITE.sub(fix, text).replace("  ", " "), n
 
 
 def _policy_refs(deps: Deps, chosen, hits: list[dict]) -> list[PolicyRef]:
@@ -297,6 +401,7 @@ def case_row(report: CaseReport, ctx: RunContext, deps: Deps, *, forced: bool, s
         "run_id": ctx.run_id,
         "created_ts": now_iso(),
         "decision": report.decision,
+        "lane": report.lane,
         "confidence": report.confidence,
         "report": json.dumps({**report.model_dump(), "meta": ctx.meta}),
         "ledger_ids": ctx.ledger.ids()[:2000],
