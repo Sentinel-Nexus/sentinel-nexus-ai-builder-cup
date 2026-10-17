@@ -320,23 +320,35 @@
    "result": "30/67 (45%)"
   },
   {
-   "metric": "False escalations, decoy groups",
+   "metric": "False escalations, decoy groups (first run 2026-10-16, v1)",
    "result": "0/3 groups, 0/23 accounts"
   },
   {
-   "metric": "Borderline attackers escalated",
+   "metric": "Borderline attackers escalated (first run)",
    "result": "0/1"
   },
   {
-   "metric": "Decoy groups cleared",
+   "metric": "Decoy groups cleared (first run)",
    "result": "2/3"
+  },
+  {
+   "metric": "False escalations, decoy groups (re-run 2026-10-17, v2)",
+   "result": "2/3 groups, 18 of 23 decoy accounts (plus 6 linked accounts)"
+  },
+  {
+   "metric": "Borderline attackers escalated (re-run)",
+   "result": "1/1"
+  },
+  {
+   "metric": "Decoy groups cleared (re-run)",
+   "result": "1/3"
   },
   {
    "metric": "Alerts with an accepted merge proposal",
    "result": "0"
   },
   {
-   "metric": "Disagreed with detector hint",
+   "metric": "Disagreed with detector hint (first run)",
    "result": "1 (EV_C004)"
   },
   {
@@ -437,15 +449,19 @@
  ],
  "agent_caveats": [
   "Decoy and borderline cases are injected needs_review alerts built at the accounts' real detector scores (the decoys score far below the review band), so they test the investigation, not the detector. Seed 42 has no detector needs_review alert.",
-  "Only the four real alerts were re-run with the final pipeline; the four EV_ cases are from the previous pipeline (before deterministic membership and removed-claim bookkeeping). Their decisions are unaffected by the change in membership but their report text was not kept.",
-  "EV_C004, the one attacker that scored in the review band, was cleared by the agent, which also disagreed with the detector's hint. The threshold and decision logic were not changed to catch it. EV_DG3_busy_honest ended uncertain (not escalated).",
+  "In the first run only the four real alerts were on the final pipeline; the four EV_ cases were on v1 (before deterministic membership and removed-claim bookkeeping). They were re-run on v2 on 2026-10-17 with different results (see above).",
+  "EV_C004, the one attacker that scored in the review band, was cleared by the agent in the first run (2026-10-16, v1), which also disagreed with the detector's hint, and escalated in the re-run (2026-10-17, v2). EV_DG3_busy_honest ended uncertain in the first run and escalate in the re-run. The threshold and decision logic were not changed between runs.",
   "Latency varies with Vertex: a send-back call once took 37 s, and a single model call took 346 s during a machine suspend (the deadline watchdog now polls the wall clock). The slowest recorded case is 67.4 s.",
   "Dollar figures use third-party prices (+-30%)."
  ],
  "limits": [
   {
-   "title": "Results moved between runs: decoys escalated on the re-run",
-   "text": "The evaluation run (2026-10-16) cleared two decoy groups, left the busy-but-honest one uncertain and cleared the borderline attacker EV_C004. A re-run of the four injected cases on the final pipeline (2026-10-17, one run each) cleared only the household group and escalated EV_C004, the exchange cluster and the busy-but-honest group: 2 of 3 innocent groups falsely escalated (18 accounts, 6 of them added from the ring subgraph). The 0-of-23 false-escalation figure in the agent table is the earlier run's and does not hold for the re-run. Nothing was tuned. See docs/injected-rerun.md."
+   "title": "Agent decisions on decoys and the borderline attacker are unstable",
+   "text": "First evaluation run (2026-10-16, pipeline v1): 0 of 3 decoy groups (0 of 23 accounts) falsely escalated, the borderline attacker EV_C004 cleared. Re-run of the same four injected cases (2026-10-17, final pipeline v2, one run each): 2 of 3 decoy groups falsely escalated (18 of 23 decoy accounts, plus 6 linked ones), EV_C004 escalated. Neither figure is a stable rate. A repeated run was not part of this release. Nothing was tuned between runs. See docs/injected-rerun.md."
+  },
+  {
+   "title": "Real alerts come from the detector, injected cases do not",
+   "text": "The detector flagged none of the 23 decoy accounts (flat rule: 8). The injected evaluation cases bypass the detector on purpose, to test the agents in isolation, so their false escalations are not alerts the system raised on its own."
   },
   {
    "title": "The needs-analyst lane is empty",
@@ -469,7 +485,7 @@
   }
  ],
  "rerun": {
-  "title": "Re-run of the injected cases on the final pipeline (2026-10-17, one run each)",
+  "title": "Re-run of the injected cases (2026-10-17, final pipeline v2, one run each)",
   "rows": [
    {
     "alert": "EV_C004",

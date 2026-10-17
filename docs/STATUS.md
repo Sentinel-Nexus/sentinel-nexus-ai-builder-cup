@@ -107,7 +107,7 @@ Things in GCP that the repo cannot (yet) reproduce:
 | | Flat rule | Detector v1 |
 |---|---|---|
 | Precision / recall | 71% / 51% (20 of 39) | 100% / 97% (38 of 39) |
-| Decoy false positives | 8 (exchange cluster) | 0 of 23 |
+| Decoy false positives (the detector flags none of the 23 decoy accounts) | 8 (exchange cluster) | 0 of 23 |
 
 Full tables and caveats: `docs/benchmark.md`. The margin is thin (one evaded coordination
 account scored 42.99 and was missed) and `scenario_hint` mislabels the wash ring as
@@ -172,13 +172,15 @@ per-case files in `docs/results/agent_eval_cases/`, `critic_ab.json`, `cache_lat
   `GET /lanes`, `POST /cases/{id}/override` (analyst override of a clear, audited). Approval is
   still required before the mock webhook fires.
 
-Final eval (seed 42, 8 cases + adversarial; `docs/agent-evals.md`; the four injected cases were re-run later with different results, see `docs/injected-rerun.md`):
+Final eval, first run 2026-10-16 (pipeline v1; seed 42, 8 cases + adversarial; `docs/agent-evals.md`). The four injected cases were re-run on 2026-10-17 on v2 with different results (next table rows and `docs/injected-rerun.md`):
 
 | Metric | Result |
 |---|---|
 | Attacker recall per account | 39/39, evaded 15/15 (ring-level decision; see caveat) |
-| Decoy false escalations | 0 of 3 groups, 0 of 23 accounts (DG1, DG2 cleared, DG3 `uncertain`) |
-| needs_review attackers escalated | 0/1: `EV_C004` was cleared, threshold and logic not changed |
+| Decoy false escalations, first run (2026-10-16, v1) | 0 of 3 groups, 0 of 23 accounts (DG1, DG2 cleared, DG3 `uncertain`) |
+| Decoy false escalations, re-run (2026-10-17, v2) | 2 of 3 groups, 18 of 23 decoy accounts (plus 6 linked accounts): DG2, DG3 escalated |
+| needs_review attackers escalated | first run 0/1 (`EV_C004` cleared); re-run 1/1 (escalated). Threshold and logic not changed |
+| Where real alerts come from | the detector, which flagged none of the 23 decoy accounts; the `EV_` cases bypass it to test the agents in isolation |
 | Adversarial (3 injected claims) | 3/3 rejected, 0 leaked (invented id, number not in rows, and a real-id claim only the LLM Critic could stop) |
 | Live latency (8 cases) | median 44.1 s, max 67.4 s; 1 of 8 above 60 s (`EV_C004`, one send-back call took 37 s) |
 | Cached case | median 0.07 ms, worst 0.21 ms service-side (excludes HTTP) |
@@ -300,9 +302,10 @@ ran EV_C004, EV_DG1_household, EV_DG2_exchange_cluster and EV_DG3_busy_honest on
 final pipeline into `risk_curated.case_reports`. The app loads the file as extra alerts and labels
 every such case "Injected review case (evaluation), not detector output". Result and what it means:
 `docs/injected-rerun.md`. **The re-run did not reproduce the earlier evaluation**: EV_C004 was
-escalated (earlier: cleared), EV_DG2 and EV_DG3 were escalated (earlier: cleared, uncertain), only
-EV_DG1 was cleared. So 2 of 3 innocent groups (18 accounts, 6 added from the ring subgraph) were falsely
-escalated on this run, and the "0 of 23" figure above belongs to the earlier run. Lanes now:
+escalated (first run: cleared), EV_DG2 and EV_DG3 were escalated (first run: cleared, uncertain), only
+EV_DG1 was cleared. So 2 of 3 innocent groups (18 of 23 decoy accounts, plus 6 linked accounts from the
+ring subgraph) were falsely escalated in the re-run (2026-10-17, v2); the "0 of 23" figure above is the
+first run's (2026-10-16, v1). Real alerts come from the detector, which flagged none of the decoys. Lanes now:
 **escalated 7, agent-cleared 1, needs-analyst 0**: the needs-analyst lane is empty. Nothing was tuned
 and no case was re-run to get a different mix. Override was checked on the live service with analyst
 `smoke-test` on EV_DG1: it moved to escalated in the test view (`/lanes?include_test=true`), was audited,

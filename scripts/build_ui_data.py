@@ -61,19 +61,23 @@ def bullets(text: str) -> list[str]:
 
 LIMITS = [
     {
-        "title": "Results moved between runs: decoys escalated on the re-run",
+        "title": "Agent decisions on decoys and the borderline attacker are unstable",
         "text": " ".join(
             [
-                "The evaluation run (2026-10-16) cleared two decoy groups, left the",
-                "busy-but-honest one uncertain and cleared the borderline attacker EV_C004.",
-                "A re-run of the four injected cases on the final pipeline (2026-10-17, one run",
-                "each) cleared only the household group and escalated EV_C004, the exchange",
-                "cluster and the busy-but-honest group: 2 of 3 innocent groups falsely",
-                "escalated (18 accounts, 6 of them added from the ring subgraph). The",
-                "0-of-23 false-escalation figure in the agent table is the earlier run's and",
-                "does not hold for the re-run. Nothing was tuned. See docs/injected-rerun.md.",
+                "First evaluation run (2026-10-16, pipeline v1): 0 of 3 decoy groups (0 of 23",
+                "accounts) falsely escalated, the borderline attacker EV_C004 cleared. Re-run of",
+                "the same four injected cases (2026-10-17, final pipeline v2, one run each): 2 of",
+                "3 decoy groups falsely escalated (18 of 23 decoy accounts, plus 6 linked ones),",
+                "EV_C004 escalated. Neither figure is a stable rate. A repeated run was not",
+                "part of this release. Nothing was tuned between runs. See docs/injected-rerun.md.",
             ]
         ),
+    },
+    {
+        "title": "Real alerts come from the detector, injected cases do not",
+        "text": "The detector flagged none of the 23 decoy accounts (flat rule: 8). The injected "
+        "evaluation cases bypass the detector on purpose, to test the agents in isolation, so "
+        "their false escalations are not alerts the system raised on its own.",
     },
     {
         "title": "The needs-analyst lane is empty",
@@ -115,7 +119,7 @@ _RERUN_ROWS = [  # alert, evaluation run, re-run, tokens, latency s, linked memb
     ("EV_DG3_busy_honest", "uncertain", "escalate", 27074, 79.1, 2),
 ]
 RERUN = {
-    "title": "Re-run of the injected cases on the final pipeline (2026-10-17, one run each)",
+    "title": "Re-run of the injected cases (2026-10-17, final pipeline v2, one run each)",
     "rows": [
         dict(zip(("alert", "before", "now", "tokens", "latency_s", "linked"), r, strict=True))
         for r in _RERUN_ROWS

@@ -1,4 +1,4 @@
-# Re-run of the injected review cases (2026-10-17)
+# Re-run of the injected review cases (2026-10-17, pipeline v2)
 
 The four injected `needs_review` cases were re-run once each with the final pipeline (deterministic
 membership, removed-claim bookkeeping, Flash for all three agents) and stored in
@@ -15,11 +15,15 @@ worst case $0.34, actual 83,525 tokens). One run per case, no repeats, nothing t
 
 What this means:
 
-- Two of the three innocent decoy groups were **escalated** on the re-run (18 accounts, of which
-  6 were added from the ring subgraph because they share a device or funding source with a member).
-  The "0 of 3 groups, 0 of 23 accounts falsely escalated" figure in `agent-evals.md` is the earlier
-  run's result and does **not** hold for this re-run. Decisions on the same case differ between
-  runs and pipelines; one run per case does not measure reliability.
+- Two of the three innocent decoy groups were **escalated** on the re-run: 18 of the 23 decoy
+  accounts, plus 6 linked accounts added from the ring subgraph because they share a device or funding
+  source with a member. The first evaluation run (2026-10-16, pipeline v1) had 0 of 3 groups, 0 of 23
+  accounts falsely escalated. Both are measured results of different runs and pipelines; neither is a
+  stable rate. Decisions on the same case differ between runs; one run per case does not measure
+  reliability.
+- **Real alerts come from the detector, which flagged none of the 23 decoy accounts.** The injected
+  cases bypass the detector to test the agents in isolation, so these false escalations are not alerts
+  the system raised on its own.
 - EV_C004, cleared before, is now escalated. That is the better outcome for an attacker, but it
   shows the earlier "cleared" was not stable either.
 - Lane counts after the re-run: escalated 7 (4 real alerts plus EV_C004, EV_DG2, EV_DG3),
