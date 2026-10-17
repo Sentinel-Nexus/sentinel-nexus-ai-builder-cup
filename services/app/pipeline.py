@@ -432,8 +432,11 @@ def _failed(ctx: RunContext, status: str, message: str) -> dict:
     }
 
 
-def investigate(deps: Deps, alert_id: str, *, force=False, source="live", listeners=()) -> dict:
-    """Cached case, or a fresh run. Returns a dict with ``status`` ok | timed_out | error."""
+def investigate(
+    deps: Deps, alert_id: str, *, force=False, source="live", listeners=(), persist=True
+) -> dict:
+    """Cached case, or a fresh run. Returns a dict with ``status`` ok | timed_out | error.
+    ``persist=False`` answers the caller without replacing the cached case."""
     alert = deps.store.get_alert(alert_id)
     if alert is None:
         raise UnknownAlert(alert_id)
@@ -475,10 +478,16 @@ def investigate(deps: Deps, alert_id: str, *, force=False, source="live", listen
         audit.flush()
         return _failed(ctx, "error", f"{type(e).__name__}: {str(e)[:200]}")
     row = case_row(report, ctx, deps, forced=force, source=source)
-    deps.cases.put(row)
-    ctx.emit(
-        "orchestrator", "step", "case cached in risk_curated.case_reports", case_id=row["case_id"]
-    )
+    if persist:
+        deps.cases.put(row)
+        ctx.emit(
+            "orchestrator",
+            "step",
+            "case cached in risk_curated.case_reports",
+            case_id=row["case_id"],
+        )
+    else:
+        ctx.emit("orchestrator", "step", "live result returned, cached case left unchanged")
     audit.flush()
     return {
         "status": "ok",

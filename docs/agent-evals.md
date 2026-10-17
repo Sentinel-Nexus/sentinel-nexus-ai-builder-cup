@@ -2,6 +2,8 @@
 
 Run 2026-10-16 19:10 UTC on seed 42 live data, models {'investigator': 'gemini-2.5-flash', 'drafter': 'gemini-2.5-flash', 'critic': 'gemini-2.5-flash'}, policy retrieval `keyword`.
 
+Pipeline version: **v1** for the eight rows below (the model listed the case members; before deterministic membership). The four real alerts were later re-run on the final pipeline **v2**; the four injected cases were re-run on v2 on 2026-10-17, see "Results by run" below. Every `EV_` figure in this table belongs to this first run only.
+
 Cases: the real detector alerts, the review-band attacker and the three decoy groups as `needs_review` alerts (injected at their real detector scores, see `evals/agents/cases.py`), and one adversarial run. Labels are used only for scoring.
 
 | Metric | Result |
@@ -14,11 +16,14 @@ Cases: the real detector alerts, the review-band attacker and the three decoy gr
 | Investigator claims kept by the Critic (final / first pass) | 63% / 51% of 35 claims |
 | Claims in the final reports with resolvable evidence ids | 13/13 (100%), measured on 4 of 8 cases |
 | Critic rejection rate | 30/67 (45%) |
-| False escalations, decoy groups | 0/3 groups, 0/23 accounts |
-| Borderline attackers escalated | 0/1 |
-| Decoy groups cleared | 2/3 |
+| False escalations, decoy groups (first run 2026-10-16, v1) | 0/3 groups, 0/23 accounts |
+| Borderline attackers escalated (first run) | 0/1 |
+| Decoy groups cleared (first run) | 2/3 |
+| False escalations, decoy groups (re-run 2026-10-17, v2) | 2/3 groups, 18 of 23 decoy accounts (plus 6 linked accounts) |
+| Borderline attackers escalated (re-run) | 1/1 |
+| Decoy groups cleared (re-run) | 1/3 |
 | Alerts with an accepted merge proposal | 0 |
-| Disagreed with detector hint | 1 (EV_C004) |
+| Disagreed with detector hint (first run) | 1 (EV_C004) |
 | Avg tokens / tool calls per run | 21688.4 / 3.0 |
 | Runs that hit a budget | 0 |
 | Adversarial: injected unsupported claims rejected | 3/3, leaked into report 0 (PASS) |
@@ -42,6 +47,27 @@ Per case:
 | EV_DG1_household | decoy | clear | 14235 | 53250 | gql |
 | EV_DG2_exchange_cluster | decoy | clear | 20766 | 43515 | gql |
 | EV_DG3_busy_honest | decoy | uncertain | 29310 | 44719 | gql |
+
+## Results by run (decoys and the borderline attacker)
+
+Same four injected cases each time, one run per case per row. Nothing was tuned between rows.
+
+| Run | Date | Pipeline | EV_C004 (borderline attacker) | EV_DG1 household | EV_DG2 exchange cluster | EV_DG3 busy honest | Decoy groups falsely escalated | Borderline attacker escalated |
+|---|---|---|---|---|---|---|---|---|
+| First evaluation run | 2026-10-16 | v1, model-listed members | clear | clear | clear | uncertain | 0/3 (0/23 accounts) | 0/1 |
+| Injected re-run | 2026-10-17 | v2 final, deterministic members | escalate | clear | escalate | escalate | 2/3 (18 of 23 decoy accounts, plus 6 linked accounts) | 1/1 |
+
+Reading the two rows together: agent decisions on borderline and decoy cases are **unstable**. The same cases flipped
+between runs, so neither row alone is "the" false-escalation rate. The earlier "0 of 23" and "2 of 3 cleared" figures
+belong to the first run only.
+
+**Where real alerts come from.** Real alerts come from the detector, which flagged **none of the 23 decoy accounts**
+(0 of 23 in `docs/benchmark.md`, seed 42; the flat rule flagged 8). The `EV_` cases bypass the detector on purpose: they are
+injected `needs_review` alerts built at the accounts' real scores, to test the agents in isolation. So the false escalations
+above are what the agents do when they are handed a decoy group; they are not false alerts the system raised.
+
+A repeated run (3 runs per case on more decoy cases) has **not** been run for this release. Agent decisions on injected
+decoys were unstable across runs; real alerts come from the detector, which flagged none of the decoys.
 
 ## How the numbers are defined
 
@@ -68,8 +94,8 @@ Service-side time of a cache hit over 100 repeats: median 0.066 ms, worst 0.212 
 ## Caveats
 
 - Decoy and borderline cases are injected `needs_review` alerts built at the accounts' real detector scores (the decoys score far below the review band), so they test the investigation, not the detector. Seed 42 has no detector `needs_review` alert.
-- Only the four real alerts were re-run with the final pipeline; the four `EV_*` cases are from the previous pipeline (before deterministic membership and removed-claim bookkeeping). Their decisions are unaffected by the change in membership but their report text was not kept.
-- `EV_C004`, the one attacker that scored in the review band, was **cleared** by the agent, which also disagreed with the detector's hint. The threshold and decision logic were not changed to catch it. `EV_DG3_busy_honest` ended `uncertain` (not escalated).
+- In the first run only the four real alerts were on the final pipeline; the four `EV_*` cases were on v1 (before deterministic membership and removed-claim bookkeeping). They were re-run on v2 on 2026-10-17 with different results (see above).
+- `EV_C004`, the one attacker that scored in the review band, was **cleared** by the agent in the first run (2026-10-16, v1), which also disagreed with the detector's hint, and **escalated** in the re-run (2026-10-17, v2). `EV_DG3_busy_honest` ended `uncertain` in the first run and `escalate` in the re-run. The threshold and decision logic were not changed between runs.
 - Latency varies with Vertex: a send-back call once took 37 s, and a single model call took 346 s during a machine suspend (the deadline watchdog now polls the wall clock). The slowest recorded case is 67.4 s.
 - Dollar figures use third-party prices (+-30%).
 

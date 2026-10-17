@@ -6,6 +6,7 @@ Reads use list_rows (free, includes the streaming buffer); writes are streaming 
 from __future__ import annotations
 
 import threading
+import time
 from typing import Protocol
 
 
@@ -39,7 +40,7 @@ class BigQueryCases(MemoryCases):
     def __init__(self, project: str, client=None):
         super().__init__()
         self.project, self._client = project, client
-        self._loaded = False
+        self._loaded_at: float | None = None
         self._lock = threading.Lock()
 
     @property
@@ -50,22 +51,37 @@ class BigQueryCases(MemoryCases):
             self._client = bigquery.Client(project=self.project, location="US")
         return self._client
 
+    TTL_S = 30.0  # other instances write too, and the streaming buffer settles late
+
     def _load(self) -> None:
         with self._lock:
-            if self._loaded:
+            now = time.monotonic()
+            if self._loaded_at is not None and now - self._loaded_at < self.TTL_S:
                 return
-            self.rows = [
+            fresh = [
                 {
                     k: (v.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z" if k == "created_ts" else v)
                     for k, v in dict(r.items()).items()
                 }
                 for r in self.client.list_rows(f"{self.project}.{self.TABLE}")
             ]
-            self._loaded = True
+            # keep rows this instance inserted that the read does not show yet
+            seen = {r["case_id"] for r in fresh}
+            self.rows = fresh + [r for r in self.rows if r["case_id"] not in seen]
+            self._loaded_at = now
 
     def latest(self) -> dict[str, dict]:
         self._load()
         return super().latest()
+
+    def get(self, alert_id: str) -> dict | None:
+        hit = super().get(alert_id)
+        if hit is None and self._loaded_at is not None and time.monotonic() - self._loaded_at > 5:
+            # a miss may only mean this instance read the table too early: look again
+            with self._lock:
+                self._loaded_at = None
+            hit = super().get(alert_id)
+        return hit
 
     def put(self, row: dict) -> None:
         self._load()

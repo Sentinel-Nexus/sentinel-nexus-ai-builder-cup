@@ -1,0 +1,524 @@
+{
+ "source": [
+  "docs/benchmark.md",
+  "docs/agent-evals.md"
+ ],
+ "data_note": "All data is synthetic: generated scenarios with planted labels.",
+ "agent_run": "2026-10-16 19:10 UTC",
+ "threshold": 43.0,
+ "seed42": [
+  {
+   "group": "all_scenarios",
+   "method": "Flat rule (funding shared by 5+)",
+   "flagged": 28,
+   "tp": 20,
+   "fp": 8,
+   "precision": 71.0,
+   "recall": 51.0,
+   "f1": 60.0
+  },
+  {
+   "group": "all_scenarios",
+   "method": "Detector v1",
+   "flagged": 38,
+   "tp": 38,
+   "fp": 0,
+   "precision": 100.0,
+   "recall": 97.0,
+   "f1": 99.0
+  },
+  {
+   "group": "wash_trading",
+   "method": "Flat rule (funding shared by 5+)",
+   "flagged": 13,
+   "tp": 5,
+   "fp": 8,
+   "precision": 38.0,
+   "recall": 62.0,
+   "f1": 48.0
+  },
+  {
+   "group": "wash_trading",
+   "method": "Detector v1",
+   "flagged": 8,
+   "tp": 8,
+   "fp": 0,
+   "precision": 100.0,
+   "recall": 100.0,
+   "f1": 100.0
+  },
+  {
+   "group": "coordinated_accumulation",
+   "method": "Flat rule (funding shared by 5+)",
+   "flagged": 8,
+   "tp": 0,
+   "fp": 8,
+   "precision": 0.0,
+   "recall": 0.0,
+   "f1": 0.0
+  },
+  {
+   "group": "coordinated_accumulation",
+   "method": "Detector v1",
+   "flagged": 5,
+   "tp": 5,
+   "fp": 0,
+   "precision": 100.0,
+   "recall": 83.0,
+   "f1": 91.0
+  },
+  {
+   "group": "mule_funding",
+   "method": "Flat rule (funding shared by 5+)",
+   "flagged": 23,
+   "tp": 15,
+   "fp": 8,
+   "precision": 65.0,
+   "recall": 60.0,
+   "f1": 63.0
+  },
+  {
+   "group": "mule_funding",
+   "method": "Detector v1",
+   "flagged": 25,
+   "tp": 25,
+   "fp": 0,
+   "precision": 100.0,
+   "recall": 100.0,
+   "f1": 100.0
+  }
+ ],
+ "kpi": {
+  "detector": {
+   "group": "all_scenarios",
+   "method": "Detector v1",
+   "flagged": 38,
+   "tp": 38,
+   "fp": 0,
+   "precision": 100.0,
+   "recall": 97.0,
+   "f1": 99.0
+  },
+  "baseline": {
+   "group": "all_scenarios",
+   "method": "Flat rule (funding shared by 5+)",
+   "flagged": 28,
+   "tp": 20,
+   "fp": 8,
+   "precision": 71.0,
+   "recall": 51.0,
+   "f1": 60.0
+  }
+ },
+ "innocent_groups": [
+  {
+   "group": "DG1_household",
+   "accounts": 5,
+   "flat_rule": 0,
+   "detector": 0
+  },
+  {
+   "group": "DG2_exchange_cluster",
+   "accounts": 8,
+   "flat_rule": 8,
+   "detector": 0
+  },
+  {
+   "group": "DG3_busy_honest",
+   "accounts": 10,
+   "flat_rule": 0,
+   "detector": 0
+  },
+  {
+   "group": "normal_accounts",
+   "accounts": 1977,
+   "flat_rule": 0,
+   "detector": 0
+  }
+ ],
+ "ablation": [
+  {
+   "variant": "Flat funding rule (group size k)",
+   "cutoff": "3.5",
+   "validation_f1": 68.0,
+   "seed42": {
+    "precision": 75.0,
+    "recall": 62.0,
+    "f1": 68.0
+   },
+   "robustness_f1": {
+    "min": 43.0,
+    "median": 62.0,
+    "max": 74.0
+   },
+   "robustness_recall": {
+    "min": 34.0,
+    "median": 55.0,
+    "max": 73.0
+   }
+  },
+  {
+   "variant": "Device/funding components only",
+   "cutoff": "8",
+   "validation_f1": 79.0,
+   "seed42": {
+    "precision": 73.0,
+    "recall": 85.0,
+    "f1": 79.0
+   },
+   "robustness_f1": {
+    "min": 50.0,
+    "median": 71.0,
+    "max": 92.0
+   },
+   "robustness_recall": {
+    "min": 56.0,
+    "median": 76.0,
+    "max": 92.0
+   }
+  },
+  {
+   "variant": "Graph features only (no behavior)",
+   "cutoff": "40",
+   "validation_f1": 97.0,
+   "seed42": {
+    "precision": 100.0,
+    "recall": 95.0,
+    "f1": 97.0
+   },
+   "robustness_f1": {
+    "min": 89.0,
+    "median": 97.0,
+    "max": 100.0
+   },
+   "robustness_recall": {
+    "min": 81.0,
+    "median": 94.0,
+    "max": 100.0
+   }
+  },
+  {
+   "variant": "Behavior features only (no graph)",
+   "cutoff": "32.5",
+   "validation_f1": 86.0,
+   "seed42": {
+    "precision": 80.0,
+    "recall": 100.0,
+    "f1": 89.0
+   },
+   "robustness_f1": {
+    "min": 72.0,
+    "median": 81.0,
+    "max": 93.0
+   },
+   "robustness_recall": {
+    "min": 79.0,
+    "median": 90.0,
+    "max": 98.0
+   }
+  },
+  {
+   "variant": "Full detector",
+   "cutoff": "43",
+   "validation_f1": 100.0,
+   "seed42": {
+    "precision": 100.0,
+    "recall": 97.0,
+    "f1": 99.0
+   },
+   "robustness_f1": {
+    "min": 98.0,
+    "median": 99.0,
+    "max": 100.0
+   },
+   "robustness_recall": {
+    "min": 95.0,
+    "median": 98.0,
+    "max": 100.0
+   }
+  }
+ ],
+ "robustness_range": [
+  {
+   "method": "Detector",
+   "precision": {
+    "min": 100.0,
+    "median": 100.0,
+    "max": 100.0
+   },
+   "recall": {
+    "min": 95.0,
+    "median": 98.0,
+    "max": 100.0
+   },
+   "f1": {
+    "min": 98.0,
+    "median": 99.0,
+    "max": 100.0
+   }
+  },
+  {
+   "method": "Flat rule",
+   "precision": {
+    "min": 50.0,
+    "median": 68.0,
+    "max": 76.0
+   },
+   "recall": {
+    "min": 24.0,
+    "median": 45.0,
+    "max": 73.0
+   },
+   "f1": {
+    "min": 32.0,
+    "median": 54.0,
+    "max": 74.0
+   }
+  }
+ ],
+ "benchmark_caveats": [
+  "What the robustness seeds test. Ring sizes, evasion rate (20-60%), decoy group sizes, background trade volume and device-sharing noise were varied. The attack types were not: the same three scenarios and the same three decoy kinds appear in every seed. The result is stability to those parameters, not to a new manipulation tactic or a new kind of innocent behaviour.",
+  "Robustness result. At the frozen threshold 43.0, precision over the eight seeds was 100% / 100% / 100% and recall 95% / 98% / 100% (min / median / max); worst case seed 101, F1 98%. Every one of the 5 missed attackers scored below the threshold but inside the review band (5 of 5): 2 coordinated_accumulation, 3 mule_funding.",
+  "The margin is thin where it matters. Across the robustness seeds the weakest attacker scored 36.79-45.55 and the strongest non-attacker 26.53-41.97 against a threshold of 43.0. On robustness seeds [105, 107] the strongest non-attacker outscored the weakest attacker, so no single cut-off separates them perfectly; the frozen threshold happens to flag no decoy, but it is a few points from the strongest non-attackers and misses attackers in the same range.",
+  "Weights and threshold. Weights were set a priori and never fitted. Only the threshold was chosen from data, from the validation seeds. Seed 42 and the robustness seeds were not used for tuning; the validation seeds' 100% F1 is in-sample for the threshold.",
+  "Review band. The margin is the mean validation gap, and that gap is dominated by two easy seeds (gaps 16.8, 15.0, 2.3). It is a heuristic for routing cases to the agents, not a calibrated probability. It also routes decoys: see the decoy column of the band table.",
+  "Hints. Rewritten after the seed 42 confusion was known, so seed 42 is not held out for it. All attacker alerts on the other seeds were hinted correctly, but the hint is a three-way decision list built for these three scenarios; a new pattern would be hinted as one of them or unclassified. A needs_review alert made only of decoys has no correct hint by construction.",
+  "Ablation. Graph features alone reach robustness F1 89% / 97% / 100% (precision stays 100%); behavior features alone 72% / 81% / 93%; device/funding components only 50% / 71% / 92%; the flat funding rule 43% / 62% / 74%; the full detector 98% / 99% / 100%. Graph structure carries most of the separation and behavior adds the last recall points; neither half is as good alone. The graph/behavior split of features is a judgement made before the runs, and the full-detector row's validation F1 is in-sample.",
+  "The flat rule scores the same on the original seeds because decoys and evasions are generated identically there; only the background trades differ."
+ ],
+ "agent_metrics": [
+  {
+   "metric": "Attacker recall (per account)",
+   "result": "39/39 (100%)"
+  },
+  {
+   "metric": "- wash_trading",
+   "result": "8/8 (100%)"
+  },
+  {
+   "metric": "- coordinated_accumulation",
+   "result": "6/6 (100%)"
+  },
+  {
+   "metric": "- mule_funding",
+   "result": "25/25 (100%)"
+  },
+  {
+   "metric": "Evasion cases caught (left the shared funding source)",
+   "result": "15/15 (100%)"
+  },
+  {
+   "metric": "Investigator claims kept by the Critic (final / first pass)",
+   "result": "63% / 51% of 35 claims"
+  },
+  {
+   "metric": "Claims in the final reports with resolvable evidence ids",
+   "result": "13/13 (100%), measured on 4 of 8 cases"
+  },
+  {
+   "metric": "Critic rejection rate",
+   "result": "30/67 (45%)"
+  },
+  {
+   "metric": "False escalations, decoy groups (first run 2026-10-16, v1)",
+   "result": "0/3 groups, 0/23 accounts"
+  },
+  {
+   "metric": "Borderline attackers escalated (first run)",
+   "result": "0/1"
+  },
+  {
+   "metric": "Decoy groups cleared (first run)",
+   "result": "2/3"
+  },
+  {
+   "metric": "False escalations, decoy groups (re-run 2026-10-17, v2)",
+   "result": "2/3 groups, 18 of 23 decoy accounts (plus 6 linked accounts)"
+  },
+  {
+   "metric": "Borderline attackers escalated (re-run)",
+   "result": "1/1"
+  },
+  {
+   "metric": "Decoy groups cleared (re-run)",
+   "result": "1/3"
+  },
+  {
+   "metric": "Alerts with an accepted merge proposal",
+   "result": "0"
+  },
+  {
+   "metric": "Disagreed with detector hint (first run)",
+   "result": "1 (EV_C004)"
+  },
+  {
+   "metric": "Avg tokens / tool calls per run",
+   "result": "21688.4 / 3.0"
+  },
+  {
+   "metric": "Runs that hit a budget",
+   "result": "0"
+  },
+  {
+   "metric": "Adversarial: injected unsupported claims rejected",
+   "result": "3/3, leaked into report 0 (PASS)"
+  }
+ ],
+ "agent_cases": [
+  {
+   "alert": "AL_3df9da0276",
+   "kind": "real",
+   "decision": "escalate",
+   "tokens": 27769,
+   "latency_ms": 50078,
+   "engines": "gql"
+  },
+  {
+   "alert": "AL_584807441a",
+   "kind": "real",
+   "decision": "escalate",
+   "tokens": 24816,
+   "latency_ms": 27469,
+   "engines": "gql"
+  },
+  {
+   "alert": "AL_5a1a959872",
+   "kind": "real",
+   "decision": "escalate",
+   "tokens": 10329,
+   "latency_ms": 18188,
+   "engines": "gql"
+  },
+  {
+   "alert": "AL_fa9727ee1e",
+   "kind": "real",
+   "decision": "escalate",
+   "tokens": 33104,
+   "latency_ms": 42311,
+   "engines": "gql"
+  },
+  {
+   "alert": "EV_C004",
+   "kind": "borderline_attacker",
+   "decision": "clear",
+   "tokens": 13178,
+   "latency_ms": 67390,
+   "engines": "gql"
+  },
+  {
+   "alert": "EV_DG1_household",
+   "kind": "decoy",
+   "decision": "clear",
+   "tokens": 14235,
+   "latency_ms": 53250,
+   "engines": "gql"
+  },
+  {
+   "alert": "EV_DG2_exchange_cluster",
+   "kind": "decoy",
+   "decision": "clear",
+   "tokens": 20766,
+   "latency_ms": 43515,
+   "engines": "gql"
+  },
+  {
+   "alert": "EV_DG3_busy_honest",
+   "kind": "decoy",
+   "decision": "uncertain",
+   "tokens": 29310,
+   "latency_ms": 44719,
+   "engines": "gql"
+  }
+ ],
+ "adversarial": [
+  {
+   "claim": "W001 received funds from a mixer wallet shared with 40 other accounts",
+   "stage": "ledger",
+   "verdict": "c7: rejected (ledger) evidence ids not in this run's tool-call ledger: ['FundedBy:W001>FX_NOT_REAL']"
+  },
+  {
+   "claim": "Every account in the ring is KYC tier 3 and older than 400 days",
+   "stage": "ledger",
+   "verdict": "c8: rejected (ledger) numbers not in the cited rows: [400.0]"
+  },
+  {
+   "claim": "Accounts W001 and W002 were created within one hour of each other",
+   "stage": "llm",
+   "verdict": "c9: rejected (llm) The claim states that accounts W001 and W002 were created within one hour of each other. The provided edge IDs only show that W001 uses DW1 a"
+  }
+ ],
+ "agent_caveats": [
+  "Decoy and borderline cases are injected needs_review alerts built at the accounts' real detector scores (the decoys score far below the review band), so they test the investigation, not the detector. Seed 42 has no detector needs_review alert.",
+  "In the first run only the four real alerts were on the final pipeline; the four EV_ cases were on v1 (before deterministic membership and removed-claim bookkeeping). They were re-run on v2 on 2026-10-17 with different results (see above).",
+  "EV_C004, the one attacker that scored in the review band, was cleared by the agent in the first run (2026-10-16, v1), which also disagreed with the detector's hint, and escalated in the re-run (2026-10-17, v2). EV_DG3_busy_honest ended uncertain in the first run and escalate in the re-run. The threshold and decision logic were not changed between runs.",
+  "Latency varies with Vertex: a send-back call once took 37 s, and a single model call took 346 s during a machine suspend (the deadline watchdog now polls the wall clock). The slowest recorded case is 67.4 s.",
+  "Dollar figures use third-party prices (+-30%)."
+ ],
+ "limits": [
+  {
+   "title": "Agent decisions on decoys and the borderline attacker are unstable",
+   "text": "First evaluation run (2026-10-16, pipeline v1): 0 of 3 decoy groups (0 of 23 accounts) falsely escalated, the borderline attacker EV_C004 cleared. Re-run of the same four injected cases (2026-10-17, final pipeline v2, one run each): 2 of 3 decoy groups falsely escalated (18 of 23 decoy accounts, plus 6 linked ones), EV_C004 escalated. Neither figure is a stable rate. A repeated run was not part of this release. Nothing was tuned between runs. See docs/injected-rerun.md."
+  },
+  {
+   "title": "Real alerts come from the detector, injected cases do not",
+   "text": "The detector flagged none of the 23 decoy accounts (flat rule: 8). The injected evaluation cases bypass the detector on purpose, to test the agents in isolation, so their false escalations are not alerts the system raised on its own."
+  },
+  {
+   "title": "The needs-analyst lane is empty",
+   "text": "The earlier uncertain result for the busy-but-honest group was not reproduced, so after the re-run no stored case is in the needs-analyst lane (7 escalated, 1 agent-cleared)."
+  },
+  {
+   "title": "Recall at ring level follows from escalating whole rings",
+   "text": "Attacker recall of 39/39 holds because the agent decides for the whole alert and every member of an escalated ring counts. It no longer measures per-account judgement, and the exclusion path was never exercised on this data."
+  },
+  {
+   "title": "The data is synthetic",
+   "text": "Scenarios, decoys, generator and detector come from one project. The labels say what the generator planted, not what a real market contains. Nothing here is evidence about real prediction markets."
+  },
+  {
+   "title": "Decoy and borderline cases are injected",
+   "text": "The four EV_ cases are needs_review alerts built at the accounts' real scores, so they test the investigation, not the detector. Seed 42 has no detector needs_review alert, and these four were not re-run after the membership change."
+  },
+  {
+   "title": "The margin is thin",
+   "text": "One evaded coordination account scored 42.99 against the 43.0 threshold and was missed by the detector. The weights are fixed a priori; only the threshold came from data."
+  }
+ ],
+ "rerun": {
+  "title": "Re-run of the injected cases (2026-10-17, final pipeline v2, one run each)",
+  "rows": [
+   {
+    "alert": "EV_C004",
+    "before": "clear",
+    "now": "escalate",
+    "tokens": 18946,
+    "latency_s": 89.1,
+    "linked": 1
+   },
+   {
+    "alert": "EV_DG1_household",
+    "before": "clear",
+    "now": "clear",
+    "tokens": 15065,
+    "latency_s": 35.6,
+    "linked": 0
+   },
+   {
+    "alert": "EV_DG2_exchange_cluster",
+    "before": "clear",
+    "now": "escalate",
+    "tokens": 22440,
+    "latency_s": 38.5,
+    "linked": 4
+   },
+   {
+    "alert": "EV_DG3_busy_honest",
+    "before": "uncertain",
+    "now": "escalate",
+    "tokens": 27074,
+    "latency_s": 79.1,
+    "linked": 2
+   }
+  ]
+ }
+}

@@ -8,12 +8,31 @@ approval before anything is sent (the mocked webhook).
 from __future__ import annotations
 
 import threading
+import time
 import uuid
 from typing import Protocol
 
 from services.app.runctx import now_iso
 
 DECISIONS = ("override_to_escalate", "confirm_clear")
+TEST_PREFIX = "smoke"  # analyst names that start with this are test records
+
+
+def is_test_analyst(name) -> bool:
+    return str(name or "").strip().lower().startswith(TEST_PREFIX)
+
+
+def latest_visible(store, include_test: bool = False) -> dict[str, dict]:
+    """Latest decision per alert. Test records (analyst "smoke...") are left out unless asked
+    for, so a smoke test never changes lanes, queue or counts; the rows stay in the table."""
+    store.latest()  # makes sure the rows are loaded
+    out: dict[str, dict] = {}
+    for r in getattr(store, "rows", []):
+        if not include_test and is_test_analyst(r.get("analyst")):
+            continue
+        if r["alert_id"] not in out or r["ts"] >= out[r["alert_id"]]["ts"]:
+            out[r["alert_id"]] = r
+    return out
 
 
 class DecisionStore(Protocol):
@@ -41,7 +60,7 @@ class BigQueryDecisions(MemoryDecisions):
 
     def __init__(self, project: str, client=None):
         super().__init__()
-        self.project, self._client, self._loaded = project, client, False
+        self.project, self._client, self._loaded_at = project, client, None
         self._lock = threading.Lock()
 
     @property
@@ -52,18 +71,23 @@ class BigQueryDecisions(MemoryDecisions):
             self._client = bigquery.Client(project=self.project, location="US")
         return self._client
 
+    TTL_S = 30.0  # an override made on another instance shows up within this time
+
     def _load(self) -> None:
         with self._lock:
-            if self._loaded:
+            now = time.monotonic()
+            if self._loaded_at is not None and now - self._loaded_at < self.TTL_S:
                 return
-            self.rows = [
+            fresh = [
                 {
                     k: (v.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z" if k == "ts" else v)
                     for k, v in dict(r.items()).items()
                 }
                 for r in self.client.list_rows(f"{self.project}.{self.TABLE}")
             ]
-            self._loaded = True
+            seen = {r["decision_id"] for r in fresh}
+            self.rows = fresh + [r for r in self.rows if r["decision_id"] not in seen]
+            self._loaded_at = now
 
     def latest(self) -> dict[str, dict]:
         self._load()

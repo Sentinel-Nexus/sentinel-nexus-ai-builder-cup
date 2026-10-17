@@ -1,0 +1,318 @@
+"""Workbench endpoints with fakes: queue, detail, graph, trades, timeline, export, limits."""
+
+from __future__ import annotations
+
+import json
+
+from fastapi.testclient import TestClient
+
+from scripts import build_ui_data
+from services.app.main import create_app
+from services.app.ratelimit import ForceLimiter
+from tests.unit.agent_fakes import FakeBackend, FakeGraph, good_findings, make_deps
+
+
+def client_with_case(**kw):
+    deps, audit = make_deps(FakeBackend(good_findings(), second=good_findings()), **kw)
+    return deps, audit, TestClient(create_app(deps))
+
+
+def test_index_and_static_are_served():
+    _, _, c = client_with_case()
+    with c:
+        r = c.get("/")
+        assert r.status_code == 200 and "MarketSentinel" in r.text
+        assert "integrity=" in r.text  # pinned CDN scripts carry SRI hashes
+        assert c.get("/static/css/app.css").status_code == 200
+        assert c.get("/static/js/app.js").status_code == 200
+
+
+def test_queue_summary_and_detail_before_and_after_a_case():
+    _, _, c = client_with_case()
+    with c:
+        q = c.get("/queue").json()
+        assert {a["alert_id"] for a in q} == {"AL_W", "AL_C"}
+        assert next(a for a in q if a["alert_id"] == "AL_C")["severity"] == "review"
+        assert c.get("/summary").json()["no_case"] == 2
+        assert c.get("/cases/AL_W/detail").json()["cached"] is False
+        c.post("/cases/AL_W/investigate")
+        d = c.get("/cases/AL_W/detail").json()
+        assert d["cached"] is True and d["effective_lane"] == "escalated"
+        s = c.get("/summary").json()
+        assert s["lanes"]["escalated"] == 1 and s["open"] == 2 and s["detector"]["precision"]
+        assert c.get("/cases/NOPE/detail").status_code == 404
+
+
+def test_graph_trades_timeline_and_export():
+    _, _, c = client_with_case()
+    with c:
+        c.post("/cases/AL_W/investigate")
+        g = c.get("/cases/AL_W/graph").json()
+        assert g["engine"] == "fallback" and g["evidence_edge_ids"] and g["nodes"]
+        assert g["trade_accounts"] == {"T1": "W001"}
+        t = c.get("/cases/AL_W/trades", params={"account": "W001"}).json()
+        assert t["market_id"] == "M05" and [x["id"] for x in t["trades"]] == ["T1"]
+        assert c.get("/cases/AL_W/trades", params={"account": "ZZZ"}).status_code == 404
+        tl = c.get("/cases/AL_W/timeline").json()
+        assert tl["summary"]["tool_calls"] == 3 and tl["events"][0]["seq"] == 1
+        ex = c.get("/cases/AL_W/export")
+        assert "attachment" in ex.headers["content-disposition"]
+        body = json.loads(ex.text)
+        assert body["synthetic_data"] and body["case"]["report"] and body["timeline"]
+
+
+def test_audit_governance_and_benchmark():
+    _, _, c = client_with_case()
+    with c:
+        c.post("/cases/AL_W/investigate")
+        assert c.get("/audit", params={"limit": 5}).json()["n"] == 5
+        assert c.get("/audit", params={"event_type": "tool_call"}).json()["n"] == 3
+        assert c.get("/audit", params={"limit": 9999}).status_code == 422
+        g = c.get("/governance").json()
+        assert g["limits"]["max_tool_calls"] == 8 and g["limits"]["wall_clock_s"] == 120
+        assert {x["name"] for x in g["guards"]} >= {"Evidence ledger", "Model Armor prompt guard"}
+        assert g["live"]["client_per_hour"] == 0 or g["live"]["client_per_hour"] >= 0
+        b = c.get("/benchmark").json()
+        assert b["kpi"]["detector"]["recall"] == 97.0 and len(b["limits"]) >= 5
+
+
+def test_a_reason_is_required_and_decisions_reach_the_audit_and_the_queue():
+    _, audit, c = client_with_case()
+    with c:
+        c.post("/cases/AL_W/investigate")
+        no_reason = c.post("/cases/AL_W/approve", json={"analyst": "a1", "decision": "approve"})
+        assert no_reason.status_code == 422 and "reason" in no_reason.json()["detail"]
+        body = {"analyst": "a1", "decision": "reject", "note": "not convinced"}
+        assert c.post("/cases/AL_W/approve", json=body).json()["recorded"]
+        events = [e for e in audit.events if e["event_type"] == "approval"]
+        assert json.loads(events[-1]["detail"])["note"] == "not convinced"
+        assert c.get("/summary").json()["open"] == 1
+        row = next(a for a in c.get("/queue").json() if a["alert_id"] == "AL_W")
+        assert row["analyst_decision"] == "reject"
+
+
+def test_live_runs_are_limited_per_client_and_per_service_with_a_clear_message():
+    deps, _, c = client_with_case()
+    with c:
+        c.post("/cases/AL_W/investigate")  # fills the cache
+        deps.limiter = ForceLimiter(5, 10, per_client_hour=1)
+        h1, h2 = {"x-forwarded-for": "1.1.1.1"}, {"x-forwarded-for": "2.2.2.2"}
+        assert c.post("/cases/AL_W/investigate?force=true", headers=h1).status_code == 200
+        r = c.post("/cases/AL_W/investigate?force=true", headers=h1)
+        assert r.status_code == 429 and "this hour" in r.json()["detail"]
+        assert int(r.headers["retry-after"]) > 0
+        assert "real recorded agent runs" in r.json()["detail"]
+        assert c.post("/cases/AL_W/investigate?force=true", headers=h2).status_code == 200
+        assert c.post("/cases/AL_W/investigate", headers=h1).status_code == 200  # cached: free
+        deps.limiter = ForceLimiter(1, 10, per_client_hour=5)
+        c.post("/cases/AL_W/investigate?force=true")
+        r = c.post("/cases/AL_W/investigate?force=true", headers=h2)
+        assert r.status_code == 429 and "service-wide" in r.json()["detail"]
+
+
+def test_a_live_result_does_not_replace_the_cached_case():
+    deps, _, c = client_with_case()
+    with c:
+        c.post("/cases/AL_W/investigate")
+        first = deps.cases.get("AL_W")["run_id"]
+        r = c.post("/cases/AL_W/investigate?force=true")
+        assert '"cached": false' in r.text.split("event: result")[1]
+        assert deps.cases.get("AL_W")["run_id"] == first
+
+
+def test_a_rate_limited_model_gives_a_clean_error_result_not_a_crash():
+    class Busy(FakeBackend):
+        def investigate(self, ctx, tools, brief, feedback):
+            raise RuntimeError("429 RESOURCE_EXHAUSTED: quota")
+
+    deps, _ = make_deps(Busy(good_findings()))
+    with TestClient(create_app(deps)) as c:
+        r = c.post("/cases/AL_W/investigate")
+        res = json.loads(r.text.split("event: result\ndata: ")[1].split("\n\n")[0])
+        assert res["status"] == "error" and "RESOURCE_EXHAUSTED" in res["error"]
+        assert c.get("/cases/AL_W").status_code == 404  # nothing half-stored
+
+
+def test_graph_failure_is_a_502_with_a_message():
+    class Down(FakeGraph):
+        def ring_subgraph(self, ring_id):
+            raise RuntimeError("boom")
+
+    deps, _, c = client_with_case()
+    deps.graph = Down()
+    with c:
+        r = c.get("/cases/AL_W/graph")
+        assert r.status_code == 502 and "graph read failed" in r.json()["detail"]
+
+
+def test_ui_data_file_matches_the_docs():
+    assert build_ui_data.main(["--check"]) == 0
+
+
+# ---- test records, limits from the environment, audit ceiling ----
+
+
+def test_smoke_analyst_decisions_are_excluded_from_state_unless_asked_for():
+    deps, audit, c = client_with_case()
+    cleared = good_findings("clear")
+    deps.backend = FakeBackend(cleared, second=cleared)
+    with c:
+        c.post("/cases/AL_W/investigate")
+        base = {"analyst": "smoke-test", "note": "ui_smoke audit check"}
+        assert (
+            c.post("/cases/AL_W/approve", json={**base, "decision": "approve"}).status_code == 200
+        )
+        ov = c.post("/cases/AL_W/override", json={**base, "decision": "override_to_escalate"})
+        assert ov.json()["lane"] == "escalated"  # the call reports the effect of this record
+        # but no state shows it: lanes, queue, summary and the case page ignore test records
+        assert [x["alert_id"] for x in c.get("/lanes").json()["agent_cleared"]] == ["AL_W"]
+        assert c.get("/summary").json()["decided"] == 0
+        assert c.get("/summary").json()["lanes"]["agent_cleared"] == 1
+        q = next(a for a in c.get("/queue").json() if a["alert_id"] == "AL_W")
+        assert q["analyst_decision"] is None and q["lane"] == "agent_cleared"
+        assert c.get("/cases/AL_W/detail").json()["analyst_override"] is None
+        trail = c.get("/audit", params={"alert_id": "AL_W", "hide_test": "true"}).json()
+        assert not [e for e in trail["events"] if e["event_type"] in ("approval", "override")]
+        # the rows are still there (audit is never edited) and flagged as test records
+        full = c.get("/audit", params={"alert_id": "AL_W", "limit": 200}).json()["events"]
+        assert any(e["event_type"] == "approval" and e["test_record"] for e in full)
+        # the test view shows the effect, which is how Override is verified without real state
+        assert [x["alert_id"] for x in c.get("/lanes?include_test=true").json()["escalated"]] == [
+            "AL_W"
+        ]
+        assert c.get("/summary?include_test=true").json()["decided"] == 1
+        # a real analyst's decision does count
+        real = {"analyst": "analyst-1", "decision": "confirm_clear", "note": "agree with the clear"}
+        c.post("/cases/AL_W/override", json=real)
+        assert c.get("/summary").json()["decided"] == 1
+
+
+def test_live_limits_come_from_the_environment(monkeypatch):
+    from services.app.config import Settings
+
+    monkeypatch.setenv("LIVE_PER_CLIENT_HOUR", "7")
+    monkeypatch.setenv("LIVE_PER_HOUR", "11")
+    monkeypatch.setenv("LIVE_PER_DAY", "55")
+    s = Settings()
+    assert (s.client_per_hour, s.force_per_hour, s.force_per_day) == (7, 11, 55)
+    monkeypatch.delenv("LIVE_PER_CLIENT_HOUR")
+    monkeypatch.delenv("LIVE_PER_HOUR")
+    monkeypatch.delenv("LIVE_PER_DAY")
+    s = Settings()
+    assert (s.client_per_hour, s.force_per_hour, s.force_per_day) == (3, 20, 120)
+
+
+def test_audit_limit_is_a_ceiling_even_if_the_reader_returns_more():
+    deps, _, c = client_with_case()
+
+    class Greedy:
+        def recent(self, limit=200, alert_id=None):
+            return [
+                {"event_id": str(i), "run_id": "r", "seq": i, "ts": "2026-10-16T00:00:00Z",
+                 "alert_id": "AL_W", "agent": "a", "event_type": "step", "summary": "x",
+                 "detail": None}
+                for i in range(40)
+            ]  # fmt: skip
+
+        def decisions(self):
+            return []
+
+        def run_events(self, run_id):
+            return []
+
+        def invalidate(self):
+            pass
+
+    deps.audit_reader = Greedy()
+    with c:
+        assert c.get("/audit", params={"limit": 15}).json()["n"] == 15
+
+
+# ---- 500 handler and readiness ----
+
+
+def test_an_unexpected_error_is_logged_with_a_request_id_and_returned_as_json(caplog):
+    deps, _, _ = client_with_case()
+
+    def boom():
+        raise RuntimeError("table read exploded")
+
+    deps.store.alerts = boom
+    with TestClient(create_app(deps), raise_server_exceptions=False) as c:
+        r = c.get("/queue")
+    assert r.status_code == 500
+    rid = r.json()["request_id"]
+    assert rid and rid in r.json()["detail"] and r.headers["x-request-id"] == rid
+    logged = [m for m in caplog.messages if rid in m]
+    assert logged and "RuntimeError: table read exploded" in logged[0] and "/queue" in logged[0]
+
+
+def test_health_is_503_until_the_service_is_warm_and_200_after():
+    import time
+
+    deps, _, _ = client_with_case()
+    with TestClient(create_app(deps)) as c:
+        for _ in range(100):
+            r = c.get("/health")
+            if r.status_code == 200:
+                break
+            assert r.status_code == 503 and r.json()["ready"] is False
+            time.sleep(0.05)
+        assert r.status_code == 200 and r.json()["ready"] is True
+
+
+def test_warm_is_retried_after_a_transient_failure(monkeypatch):
+    import time
+
+    monkeypatch.setattr(time, "sleep", lambda s: None)
+    deps, _, _ = client_with_case()
+    calls = {"n": 0}
+    real = deps.store.warm
+
+    def flaky():
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise RuntimeError("bigquery hiccup")
+        real()
+
+    deps.store.warm = flaky
+    with TestClient(create_app(deps)) as c:
+        for _ in range(200):
+            if c.get("/health").status_code == 200:
+                break
+            time.sleep(0.02)
+        h = c.get("/health").json()
+    assert calls["n"] == 2 and h["ready"] is True and h["warm_error"] is None
+
+
+def test_summary_counts_detector_alerts_apart_from_evaluation_cases():
+    deps, _, c = client_with_case()
+    deps.store.extra_alerts = [
+        {**deps.store.get_alert("AL_C"), "alert_id": "EV_X", "injected": True, "ring_id": "EV_X"}
+    ]
+    with c:
+        s = c.get("/summary").json()
+        det, evl = s["detector_alerts"], s["evaluation_cases"]
+        assert (det["alerts"], evl["alerts"]) == (2, 1)
+        assert det["alerts"] + evl["alerts"] == s["alerts"]
+        assert det["open"] + evl["open"] == s["open"]
+        assert sum(det["lanes"].values()) + sum(evl["lanes"].values()) == sum(s["lanes"].values())
+        q = {a["alert_id"]: a for a in c.get("/queue").json()}
+        assert q["EV_X"]["injected"] and not q["AL_W"]["injected"]
+
+
+def test_cache_headers_and_build_id(monkeypatch):
+    monkeypatch.setattr("services.app.workbench.BUILD_ID", "abc1234")
+    _, _, c = client_with_case()
+    with c:
+        page = c.get("/")
+        assert page.headers["cache-control"] == "no-store"
+        assert "abc1234" in page.text and "__BUILD__" not in page.text
+        assert "/static/css/app.css?v=abc1234" in page.text
+        assert "/static/js/app.js?v=abc1234" in page.text
+        for path in ("/static/js/app.js", "/static/css/app.css", "/static/data/overview.json"):
+            r = c.get(path)
+            assert r.status_code == 200 and r.headers["cache-control"] == "no-cache", path
+            assert r.headers.get("etag")
+            # revalidation with the ETag costs a 304, not a body
+            assert c.get(path, headers={"If-None-Match": r.headers["etag"]}).status_code == 304

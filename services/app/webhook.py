@@ -86,4 +86,10 @@ def record_decision(
             }
         )
     audit.flush()
-    return {"recorded": True, "decision": decision, "webhook_fired": fired, "mock": True}
+    return {
+        "recorded": True,
+        "decision": decision,
+        "webhook_fired": fired,
+        "mock": True,
+        "decision_id": run_id,
+    }

@@ -26,3 +26,4 @@ class Deps:
     audit_factory: Callable[[], AuditSink]
     limiter: ForceLimiter
     decisions: DecisionStore = field(default_factory=MemoryDecisions)
+    audit_reader: object | None = None  # services.app.audit_read reader; memory one if None
