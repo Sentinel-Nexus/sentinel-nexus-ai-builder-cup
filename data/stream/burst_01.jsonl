@@ -1,0 +1,310 @@
+{"account_id": "SB13", "created_ts": "2025-08-27T00:00:00Z", "device_id": "SDB13", "event_type": "account_registered", "funding_source_id": "SFB13", "kyc_tier": 2, "ts": "2025-08-27T00:00:00Z"}
+{"account_id": "SB12", "created_ts": "2025-08-31T00:00:00Z", "device_id": "SDB12", "event_type": "account_registered", "funding_source_id": "SFB12", "kyc_tier": 1, "ts": "2025-08-31T00:00:00Z"}
+{"account_id": "SB24", "created_ts": "2025-09-22T00:00:00Z", "device_id": "SDB24", "event_type": "account_registered", "funding_source_id": "SFB24", "kyc_tier": 3, "ts": "2025-09-22T00:00:00Z"}
+{"account_id": "SB06", "created_ts": "2025-10-05T00:00:00Z", "device_id": "SDB06", "event_type": "account_registered", "funding_source_id": "SFB06", "kyc_tier": 2, "ts": "2025-10-05T00:00:00Z"}
+{"account_id": "SB26", "created_ts": "2025-11-25T00:00:00Z", "device_id": "SDB26", "event_type": "account_registered", "funding_source_id": "SFB26", "kyc_tier": 2, "ts": "2025-11-25T00:00:00Z"}
+{"account_id": "SB16", "created_ts": "2025-12-13T00:00:00Z", "device_id": "SDB16", "event_type": "account_registered", "funding_source_id": "SFB16", "kyc_tier": 1, "ts": "2025-12-13T00:00:00Z"}
+{"account_id": "SH01", "created_ts": "2026-01-03T00:00:00Z", "device_id": "SDH1", "event_type": "account_registered", "funding_source_id": "SFH01", "kyc_tier": 2, "ts": "2026-01-03T00:00:00Z"}
+{"account_id": "SB14", "created_ts": "2026-01-25T00:00:00Z", "device_id": "SDB14", "event_type": "account_registered", "funding_source_id": "SFB14", "kyc_tier": 1, "ts": "2026-01-25T00:00:00Z"}
+{"account_id": "SB09", "created_ts": "2026-02-05T00:00:00Z", "device_id": "SDB09", "event_type": "account_registered", "funding_source_id": "SFB09", "kyc_tier": 2, "ts": "2026-02-05T00:00:00Z"}
+{"account_id": "SB29", "created_ts": "2026-02-14T00:00:00Z", "device_id": "SDB29", "event_type": "account_registered", "funding_source_id": "SFB29", "kyc_tier": 2, "ts": "2026-02-14T00:00:00Z"}
+{"account_id": "SB25", "created_ts": "2026-03-19T00:00:00Z", "device_id": "SDB25", "event_type": "account_registered", "funding_source_id": "SFB25", "kyc_tier": 3, "ts": "2026-03-19T00:00:00Z"}
+{"account_id": "SB11", "created_ts": "2026-03-21T00:00:00Z", "device_id": "SDB11", "event_type": "account_registered", "funding_source_id": "SFB11", "kyc_tier": 2, "ts": "2026-03-21T00:00:00Z"}
+{"account_id": "SB30", "created_ts": "2026-03-24T00:00:00Z", "device_id": "SDB30", "event_type": "account_registered", "funding_source_id": "SFB30", "kyc_tier": 2, "ts": "2026-03-24T00:00:00Z"}
+{"account_id": "SB15", "created_ts": "2026-04-05T00:00:00Z", "device_id": "SDB15", "event_type": "account_registered", "funding_source_id": "SFB15", "kyc_tier": 2, "ts": "2026-04-05T00:00:00Z"}
+{"account_id": "SB22", "created_ts": "2026-04-08T00:00:00Z", "device_id": "SDB22", "event_type": "account_registered", "funding_source_id": "SFB22", "kyc_tier": 2, "ts": "2026-04-08T00:00:00Z"}
+{"account_id": "SB28", "created_ts": "2026-04-11T00:00:00Z", "device_id": "SDB28", "event_type": "account_registered", "funding_source_id": "SFB28", "kyc_tier": 2, "ts": "2026-04-11T00:00:00Z"}
+{"account_id": "SH03", "created_ts": "2026-04-20T00:00:00Z", "device_id": "SDH1", "event_type": "account_registered", "funding_source_id": "SFH03", "kyc_tier": 2, "ts": "2026-04-20T00:00:00Z"}
+{"account_id": "SB08", "created_ts": "2026-04-22T00:00:00Z", "device_id": "SDB07", "event_type": "account_registered", "funding_source_id": "SFB08", "kyc_tier": 2, "ts": "2026-04-22T00:00:00Z"}
+{"account_id": "SB05", "created_ts": "2026-04-27T00:00:00Z", "device_id": "SDB05", "event_type": "account_registered", "funding_source_id": "SFB05", "kyc_tier": 2, "ts": "2026-04-27T00:00:00Z"}
+{"account_id": "SB20", "created_ts": "2026-05-08T00:00:00Z", "device_id": "SDB20", "event_type": "account_registered", "funding_source_id": "SFB20", "kyc_tier": 3, "ts": "2026-05-08T00:00:00Z"}
+{"account_id": "SH02", "created_ts": "2026-05-19T00:00:00Z", "device_id": "SDH1", "event_type": "account_registered", "funding_source_id": "SFH02", "kyc_tier": 2, "ts": "2026-05-19T00:00:00Z"}
+{"account_id": "SB17", "created_ts": "2026-06-05T00:00:00Z", "device_id": "SDB17", "event_type": "account_registered", "funding_source_id": "SFB17", "kyc_tier": 3, "ts": "2026-06-05T00:00:00Z"}
+{"account_id": "SB21", "created_ts": "2026-06-08T00:00:00Z", "device_id": "SDB21", "event_type": "account_registered", "funding_source_id": "SFB21", "kyc_tier": 3, "ts": "2026-06-08T00:00:00Z"}
+{"account_id": "SB18", "created_ts": "2026-06-13T00:00:00Z", "device_id": "SDB18", "event_type": "account_registered", "funding_source_id": "SFB18", "kyc_tier": 2, "ts": "2026-06-13T00:00:00Z"}
+{"account_id": "SB04", "created_ts": "2026-06-28T00:00:00Z", "device_id": "SDB04", "event_type": "account_registered", "funding_source_id": "SFB04", "kyc_tier": 1, "ts": "2026-06-28T00:00:00Z"}
+{"account_id": "SB19", "created_ts": "2026-07-11T00:00:00Z", "device_id": "SDB19", "event_type": "account_registered", "funding_source_id": "SFB19", "kyc_tier": 2, "ts": "2026-07-11T00:00:00Z"}
+{"account_id": "SH04", "created_ts": "2026-07-14T00:00:00Z", "device_id": "SDH1", "event_type": "account_registered", "funding_source_id": "SFH04", "kyc_tier": 2, "ts": "2026-07-14T00:00:00Z"}
+{"account_id": "SB07", "created_ts": "2026-07-17T00:00:00Z", "device_id": "SDB07", "event_type": "account_registered", "funding_source_id": "SFB07", "kyc_tier": 3, "ts": "2026-07-17T00:00:00Z"}
+{"account_id": "SB10", "created_ts": "2026-07-20T00:00:00Z", "device_id": "SDB10", "event_type": "account_registered", "funding_source_id": "SFB10", "kyc_tier": 1, "ts": "2026-07-20T00:00:00Z"}
+{"account_id": "SB02", "created_ts": "2026-08-14T00:00:00Z", "device_id": "SDB02", "event_type": "account_registered", "funding_source_id": "SFB02", "kyc_tier": 1, "ts": "2026-08-14T00:00:00Z"}
+{"account_id": "SB27", "created_ts": "2026-09-06T00:00:00Z", "device_id": "SDB27", "event_type": "account_registered", "funding_source_id": "SFB27", "kyc_tier": 1, "ts": "2026-09-06T00:00:00Z"}
+{"account_id": "SB03", "created_ts": "2026-09-13T00:00:00Z", "device_id": "SDB03", "event_type": "account_registered", "funding_source_id": "SFB03", "kyc_tier": 3, "ts": "2026-09-13T00:00:00Z"}
+{"account_id": "SB23", "created_ts": "2026-09-19T00:00:00Z", "device_id": "SDB23", "event_type": "account_registered", "funding_source_id": "SFB23", "kyc_tier": 3, "ts": "2026-09-19T00:00:00Z"}
+{"account_id": "SB01", "created_ts": "2026-09-25T00:00:00Z", "device_id": "SDB01", "event_type": "account_registered", "funding_source_id": "SFB01", "kyc_tier": 1, "ts": "2026-09-25T00:00:00Z"}
+{"account_id": "SW03", "created_ts": "2026-09-25T00:00:00Z", "device_id": "SDW1", "event_type": "account_registered", "funding_source_id": "SFW1", "kyc_tier": 1, "ts": "2026-09-25T00:00:00Z"}
+{"account_id": "SW01", "created_ts": "2026-09-26T00:00:00Z", "device_id": "SDW1", "event_type": "account_registered", "funding_source_id": "SFW1", "kyc_tier": 1, "ts": "2026-09-26T00:00:00Z"}
+{"account_id": "SW04", "created_ts": "2026-09-26T00:00:00Z", "device_id": "SDW2", "event_type": "account_registered", "funding_source_id": "SFW1", "kyc_tier": 1, "ts": "2026-09-26T00:00:00Z"}
+{"account_id": "SW05", "created_ts": "2026-09-26T00:00:00Z", "device_id": "SDW2", "event_type": "account_registered", "funding_source_id": "SFE_SW05", "kyc_tier": 1, "ts": "2026-09-26T00:00:00Z"}
+{"account_id": "SW02", "created_ts": "2026-09-27T00:00:00Z", "device_id": "SDW1", "event_type": "account_registered", "funding_source_id": "SFW1", "kyc_tier": 1, "ts": "2026-09-27T00:00:00Z"}
+{"account_id": "SW06", "created_ts": "2026-09-27T00:00:00Z", "device_id": "SDW2", "event_type": "account_registered", "funding_source_id": "SFE_SW06", "kyc_tier": 1, "ts": "2026-09-27T00:00:00Z"}
+{"account_id": "SB20", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.496, "side": "SELL", "size_usd": 59.17, "trade_id": "ST000102", "ts": "2026-10-01T00:07:00Z"}
+{"account_id": "SH02", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.535, "side": "SELL", "size_usd": 118.98, "trade_id": "ST000173", "ts": "2026-10-01T00:31:00Z"}
+{"account_id": "SB18", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.253, "side": "SELL", "size_usd": 48.76, "trade_id": "ST000090", "ts": "2026-10-01T00:48:00Z"}
+{"account_id": "SB19", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.632, "side": "SELL", "size_usd": 84.64, "trade_id": "ST000095", "ts": "2026-10-01T00:49:00Z"}
+{"account_id": "SB05", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.395, "side": "BUY", "size_usd": 108.24, "trade_id": "ST000031", "ts": "2026-10-01T01:03:00Z"}
+{"account_id": "SB30", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.436, "side": "BUY", "size_usd": 10.65, "trade_id": "ST000165", "ts": "2026-10-01T01:37:00Z"}
+{"account_id": "SB06", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.625, "side": "SELL", "size_usd": 27.33, "trade_id": "ST000038", "ts": "2026-10-01T01:49:00Z"}
+{"account_id": "SB02", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.261, "side": "BUY", "size_usd": 72.26, "trade_id": "ST000009", "ts": "2026-10-01T01:50:00Z"}
+{"account_id": "SH02", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.485, "side": "SELL", "size_usd": 49.4, "trade_id": "ST000178", "ts": "2026-10-01T01:58:00Z"}
+{"account_id": "SB15", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.408, "side": "SELL", "size_usd": 21.08, "trade_id": "ST000072", "ts": "2026-10-01T02:27:00Z"}
+{"account_id": "SB01", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.305, "side": "BUY", "size_usd": 10.72, "trade_id": "ST000001", "ts": "2026-10-01T02:29:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.499, "side": "SELL", "size_usd": 747.33, "trade_id": "ST000245", "ts": "2026-10-01T02:35:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.499, "side": "BUY", "size_usd": 747.33, "trade_id": "ST000246", "ts": "2026-10-01T02:35:00Z"}
+{"account_id": "SB19", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.613, "side": "BUY", "size_usd": 262.58, "trade_id": "ST000093", "ts": "2026-10-01T02:49:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.492, "side": "SELL", "size_usd": 709.87, "trade_id": "ST000219", "ts": "2026-10-01T03:55:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.492, "side": "BUY", "size_usd": 709.87, "trade_id": "ST000220", "ts": "2026-10-01T03:55:00Z"}
+{"account_id": "SB15", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.383, "side": "BUY", "size_usd": 50.79, "trade_id": "ST000069", "ts": "2026-10-01T04:39:00Z"}
+{"account_id": "SB18", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.486, "side": "SELL", "size_usd": 56.81, "trade_id": "ST000087", "ts": "2026-10-01T04:50:00Z"}
+{"account_id": "SB18", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.491, "side": "BUY", "size_usd": 31.41, "trade_id": "ST000092", "ts": "2026-10-01T04:50:00Z"}
+{"account_id": "SB20", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.397, "side": "BUY", "size_usd": 104.72, "trade_id": "ST000101", "ts": "2026-10-01T04:55:00Z"}
+{"account_id": "SB03", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.617, "side": "SELL", "size_usd": 23.88, "trade_id": "ST000014", "ts": "2026-10-01T05:14:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.495, "side": "SELL", "size_usd": 369.91, "trade_id": "ST000217", "ts": "2026-10-01T05:29:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.495, "side": "BUY", "size_usd": 369.91, "trade_id": "ST000218", "ts": "2026-10-01T05:29:00Z"}
+{"account_id": "SB05", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.673, "side": "BUY", "size_usd": 30.15, "trade_id": "ST000029", "ts": "2026-10-01T05:46:00Z"}
+{"account_id": "SB27", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.624, "side": "SELL", "size_usd": 59.95, "trade_id": "ST000142", "ts": "2026-10-01T05:47:00Z"}
+{"account_id": "SH02", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.541, "side": "SELL", "size_usd": 44.62, "trade_id": "ST000174", "ts": "2026-10-01T05:47:00Z"}
+{"account_id": "SH01", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.633, "side": "SELL", "size_usd": 55.94, "trade_id": "ST000167", "ts": "2026-10-01T05:53:00Z"}
+{"account_id": "SB17", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.54, "side": "BUY", "size_usd": 59.39, "trade_id": "ST000082", "ts": "2026-10-01T06:03:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.494, "side": "SELL", "size_usd": 442.08, "trade_id": "ST000247", "ts": "2026-10-01T06:08:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.494, "side": "BUY", "size_usd": 442.08, "trade_id": "ST000248", "ts": "2026-10-01T06:08:00Z"}
+{"account_id": "SB24", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.296, "side": "SELL", "size_usd": 60.06, "trade_id": "ST000126", "ts": "2026-10-01T06:15:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.493, "side": "SELL", "size_usd": 882.09, "trade_id": "ST000263", "ts": "2026-10-01T06:17:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.493, "side": "BUY", "size_usd": 882.09, "trade_id": "ST000264", "ts": "2026-10-01T06:17:00Z"}
+{"account_id": "SB28", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.523, "side": "SELL", "size_usd": 40.31, "trade_id": "ST000149", "ts": "2026-10-01T06:20:00Z"}
+{"account_id": "SH03", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.523, "side": "SELL", "size_usd": 21.05, "trade_id": "ST000182", "ts": "2026-10-01T06:35:00Z"}
+{"account_id": "SB05", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.744, "side": "BUY", "size_usd": 36.47, "trade_id": "ST000025", "ts": "2026-10-01T07:09:00Z"}
+{"account_id": "SB22", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.267, "side": "SELL", "size_usd": 118.55, "trade_id": "ST000110", "ts": "2026-10-01T07:57:00Z"}
+{"account_id": "SB18", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.462, "side": "BUY", "size_usd": 14.32, "trade_id": "ST000091", "ts": "2026-10-01T08:08:00Z"}
+{"account_id": "SH01", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.733, "side": "SELL", "size_usd": 62.77, "trade_id": "ST000169", "ts": "2026-10-01T08:12:00Z"}
+{"account_id": "SW02", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.506, "side": "SELL", "size_usd": 319.11, "trade_id": "ST000259", "ts": "2026-10-01T08:26:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.506, "side": "BUY", "size_usd": 319.11, "trade_id": "ST000260", "ts": "2026-10-01T08:26:00Z"}
+{"account_id": "SB26", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.336, "side": "SELL", "size_usd": 27.59, "trade_id": "ST000141", "ts": "2026-10-01T08:29:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.495, "side": "SELL", "size_usd": 535.18, "trade_id": "ST000205", "ts": "2026-10-01T08:30:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.495, "side": "BUY", "size_usd": 535.18, "trade_id": "ST000206", "ts": "2026-10-01T08:30:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.509, "side": "SELL", "size_usd": 604.42, "trade_id": "ST000231", "ts": "2026-10-01T08:30:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.509, "side": "BUY", "size_usd": 604.42, "trade_id": "ST000232", "ts": "2026-10-01T08:30:00Z"}
+{"account_id": "SH02", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.421, "side": "SELL", "size_usd": 26.19, "trade_id": "ST000180", "ts": "2026-10-01T08:32:00Z"}
+{"account_id": "SB05", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.46, "side": "BUY", "size_usd": 88.62, "trade_id": "ST000030", "ts": "2026-10-01T08:47:00Z"}
+{"account_id": "SB18", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.533, "side": "BUY", "size_usd": 240.34, "trade_id": "ST000088", "ts": "2026-10-01T08:50:00Z"}
+{"account_id": "SB25", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.642, "side": "BUY", "size_usd": 98.13, "trade_id": "ST000131", "ts": "2026-10-01T09:23:00Z"}
+{"account_id": "SB28", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.471, "side": "SELL", "size_usd": 38.71, "trade_id": "ST000150", "ts": "2026-10-01T09:23:00Z"}
+{"account_id": "SB16", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.295, "side": "SELL", "size_usd": 33.58, "trade_id": "ST000074", "ts": "2026-10-01T10:03:00Z"}
+{"account_id": "SB25", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.507, "side": "BUY", "size_usd": 45.01, "trade_id": "ST000133", "ts": "2026-10-01T10:05:00Z"}
+{"account_id": "SB09", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.544, "side": "SELL", "size_usd": 24.65, "trade_id": "ST000045", "ts": "2026-10-01T10:06:00Z"}
+{"account_id": "SB22", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.705, "side": "BUY", "size_usd": 25.33, "trade_id": "ST000117", "ts": "2026-10-01T10:11:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.49, "side": "SELL", "size_usd": 374.27, "trade_id": "ST000199", "ts": "2026-10-01T10:51:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.49, "side": "BUY", "size_usd": 374.27, "trade_id": "ST000200", "ts": "2026-10-01T10:51:00Z"}
+{"account_id": "SB16", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.276, "side": "BUY", "size_usd": 24.13, "trade_id": "ST000078", "ts": "2026-10-01T11:24:00Z"}
+{"account_id": "SB18", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.388, "side": "BUY", "size_usd": 214.24, "trade_id": "ST000089", "ts": "2026-10-01T11:49:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "SELL", "size_usd": 814.2, "trade_id": "ST000235", "ts": "2026-10-01T11:56:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "BUY", "size_usd": 814.2, "trade_id": "ST000236", "ts": "2026-10-01T11:56:00Z"}
+{"account_id": "SB10", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.46, "side": "SELL", "size_usd": 485.45, "trade_id": "ST000050", "ts": "2026-10-01T12:17:00Z"}
+{"account_id": "SB24", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.588, "side": "BUY", "size_usd": 119.46, "trade_id": "ST000128", "ts": "2026-10-01T12:27:00Z"}
+{"account_id": "SB26", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.285, "side": "BUY", "size_usd": 21.96, "trade_id": "ST000140", "ts": "2026-10-01T12:33:00Z"}
+{"account_id": "SH03", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.45, "side": "BUY", "size_usd": 162.92, "trade_id": "ST000181", "ts": "2026-10-01T12:37:00Z"}
+{"account_id": "SB11", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.449, "side": "BUY", "size_usd": 333.83, "trade_id": "ST000055", "ts": "2026-10-01T12:41:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.505, "side": "SELL", "size_usd": 521.41, "trade_id": "ST000237", "ts": "2026-10-01T12:58:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.505, "side": "BUY", "size_usd": 521.41, "trade_id": "ST000238", "ts": "2026-10-01T12:58:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.509, "side": "SELL", "size_usd": 367.49, "trade_id": "ST000229", "ts": "2026-10-01T13:07:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.509, "side": "BUY", "size_usd": 367.49, "trade_id": "ST000230", "ts": "2026-10-01T13:07:00Z"}
+{"account_id": "SB07", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.601, "side": "SELL", "size_usd": 114.78, "trade_id": "ST000039", "ts": "2026-10-01T13:12:00Z"}
+{"account_id": "SB20", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.62, "side": "SELL", "size_usd": 5.66, "trade_id": "ST000103", "ts": "2026-10-01T13:14:00Z"}
+{"account_id": "SW02", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.505, "side": "SELL", "size_usd": 337.08, "trade_id": "ST000255", "ts": "2026-10-01T13:31:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.505, "side": "BUY", "size_usd": 337.08, "trade_id": "ST000256", "ts": "2026-10-01T13:31:00Z"}
+{"account_id": "SH02", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.742, "side": "SELL", "size_usd": 74.05, "trade_id": "ST000176", "ts": "2026-10-01T13:48:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.51, "side": "SELL", "size_usd": 455.34, "trade_id": "ST000213", "ts": "2026-10-01T13:50:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.51, "side": "BUY", "size_usd": 455.34, "trade_id": "ST000214", "ts": "2026-10-01T13:50:00Z"}
+{"account_id": "SB23", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.366, "side": "SELL", "size_usd": 34.84, "trade_id": "ST000122", "ts": "2026-10-01T14:13:00Z"}
+{"account_id": "SB12", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.439, "side": "BUY", "size_usd": 105.78, "trade_id": "ST000059", "ts": "2026-10-01T14:17:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.502, "side": "SELL", "size_usd": 485.56, "trade_id": "ST000203", "ts": "2026-10-01T14:22:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.502, "side": "BUY", "size_usd": 485.56, "trade_id": "ST000204", "ts": "2026-10-01T14:22:00Z"}
+{"account_id": "SB29", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.427, "side": "SELL", "size_usd": 123.56, "trade_id": "ST000152", "ts": "2026-10-01T14:41:00Z"}
+{"account_id": "SB20", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.254, "side": "SELL", "size_usd": 8.92, "trade_id": "ST000104", "ts": "2026-10-01T14:50:00Z"}
+{"account_id": "SB04", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.587, "side": "BUY", "size_usd": 213.39, "trade_id": "ST000023", "ts": "2026-10-01T15:03:00Z"}
+{"account_id": "SB18", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.469, "side": "SELL", "size_usd": 52.32, "trade_id": "ST000086", "ts": "2026-10-01T15:03:00Z"}
+{"account_id": "SB29", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.525, "side": "SELL", "size_usd": 30.41, "trade_id": "ST000153", "ts": "2026-10-01T15:05:00Z"}
+{"account_id": "SB20", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.731, "side": "SELL", "size_usd": 47.99, "trade_id": "ST000097", "ts": "2026-10-01T15:18:00Z"}
+{"account_id": "SW02", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.499, "side": "SELL", "size_usd": 353.84, "trade_id": "ST000257", "ts": "2026-10-01T15:30:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.499, "side": "BUY", "size_usd": 353.84, "trade_id": "ST000258", "ts": "2026-10-01T15:30:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.508, "side": "SELL", "size_usd": 644.09, "trade_id": "ST000209", "ts": "2026-10-01T15:31:00Z"}
+{"account_id": "SW02", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.508, "side": "BUY", "size_usd": 644.09, "trade_id": "ST000210", "ts": "2026-10-01T15:31:00Z"}
+{"account_id": "SB07", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.529, "side": "SELL", "size_usd": 48.03, "trade_id": "ST000040", "ts": "2026-10-01T15:48:00Z"}
+{"account_id": "SB26", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.684, "side": "BUY", "size_usd": 97.68, "trade_id": "ST000138", "ts": "2026-10-01T15:49:00Z"}
+{"account_id": "SB20", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.435, "side": "BUY", "size_usd": 59.32, "trade_id": "ST000098", "ts": "2026-10-01T15:50:00Z"}
+{"account_id": "SH03", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.473, "side": "SELL", "size_usd": 32.75, "trade_id": "ST000184", "ts": "2026-10-01T15:59:00Z"}
+{"account_id": "SB05", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.339, "side": "SELL", "size_usd": 88.87, "trade_id": "ST000026", "ts": "2026-10-01T16:12:00Z"}
+{"account_id": "SB01", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.657, "side": "SELL", "size_usd": 100.57, "trade_id": "ST000005", "ts": "2026-10-01T16:28:00Z"}
+{"account_id": "SB08", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.37, "side": "BUY", "size_usd": 23.85, "trade_id": "ST000043", "ts": "2026-10-01T16:36:00Z"}
+{"account_id": "SB15", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.649, "side": "SELL", "size_usd": 31.88, "trade_id": "ST000070", "ts": "2026-10-01T16:39:00Z"}
+{"account_id": "SH01", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.494, "side": "SELL", "size_usd": 111.59, "trade_id": "ST000172", "ts": "2026-10-01T16:46:00Z"}
+{"account_id": "SB11", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.273, "side": "SELL", "size_usd": 145.58, "trade_id": "ST000053", "ts": "2026-10-01T16:53:00Z"}
+{"account_id": "SB26", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.629, "side": "BUY", "size_usd": 120.35, "trade_id": "ST000137", "ts": "2026-10-01T16:55:00Z"}
+{"account_id": "SB17", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.371, "side": "BUY", "size_usd": 48.26, "trade_id": "ST000085", "ts": "2026-10-01T16:58:00Z"}
+{"account_id": "SB06", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.457, "side": "SELL", "size_usd": 83.06, "trade_id": "ST000033", "ts": "2026-10-01T17:15:00Z"}
+{"account_id": "SB08", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.316, "side": "BUY", "size_usd": 26.7, "trade_id": "ST000044", "ts": "2026-10-01T17:29:00Z"}
+{"account_id": "SB13", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.469, "side": "SELL", "size_usd": 58.0, "trade_id": "ST000062", "ts": "2026-10-01T17:31:00Z"}
+{"account_id": "SW02", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "SELL", "size_usd": 849.42, "trade_id": "ST000207", "ts": "2026-10-01T18:00:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "BUY", "size_usd": 849.42, "trade_id": "ST000208", "ts": "2026-10-01T18:00:00Z"}
+{"account_id": "SB12", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.523, "side": "BUY", "size_usd": 77.18, "trade_id": "ST000057", "ts": "2026-10-01T18:05:00Z"}
+{"account_id": "SB21", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.73, "side": "SELL", "size_usd": 29.98, "trade_id": "ST000105", "ts": "2026-10-01T18:27:00Z"}
+{"account_id": "SB17", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.552, "side": "SELL", "size_usd": 26.44, "trade_id": "ST000080", "ts": "2026-10-01T18:31:00Z"}
+{"account_id": "SH01", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.518, "side": "BUY", "size_usd": 232.92, "trade_id": "ST000166", "ts": "2026-10-01T18:36:00Z"}
+{"account_id": "SH04", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.638, "side": "BUY", "size_usd": 73.05, "trade_id": "ST000190", "ts": "2026-10-01T18:39:00Z"}
+{"account_id": "SH02", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.528, "side": "BUY", "size_usd": 38.96, "trade_id": "ST000177", "ts": "2026-10-01T18:50:00Z"}
+{"account_id": "SB22", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.33, "side": "SELL", "size_usd": 145.69, "trade_id": "ST000113", "ts": "2026-10-01T19:04:00Z"}
+{"account_id": "SB10", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.475, "side": "BUY", "size_usd": 50.37, "trade_id": "ST000048", "ts": "2026-10-01T19:24:00Z"}
+{"account_id": "SB30", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.382, "side": "SELL", "size_usd": 65.08, "trade_id": "ST000160", "ts": "2026-10-01T19:28:00Z"}
+{"account_id": "SW02", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.503, "side": "SELL", "size_usd": 894.12, "trade_id": "ST000251", "ts": "2026-10-01T19:38:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.503, "side": "BUY", "size_usd": 894.12, "trade_id": "ST000252", "ts": "2026-10-01T19:38:00Z"}
+{"account_id": "SB23", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.595, "side": "BUY", "size_usd": 55.35, "trade_id": "ST000124", "ts": "2026-10-01T20:13:00Z"}
+{"account_id": "SB30", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.663, "side": "BUY", "size_usd": 12.15, "trade_id": "ST000164", "ts": "2026-10-01T20:18:00Z"}
+{"account_id": "SB09", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.582, "side": "SELL", "size_usd": 55.66, "trade_id": "ST000046", "ts": "2026-10-01T20:58:00Z"}
+{"account_id": "SB23", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.474, "side": "SELL", "size_usd": 102.01, "trade_id": "ST000120", "ts": "2026-10-01T21:32:00Z"}
+{"account_id": "SB03", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.653, "side": "BUY", "size_usd": 119.75, "trade_id": "ST000013", "ts": "2026-10-01T21:43:00Z"}
+{"account_id": "SB22", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.688, "side": "BUY", "size_usd": 57.29, "trade_id": "ST000114", "ts": "2026-10-01T21:51:00Z"}
+{"account_id": "SB28", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.499, "side": "SELL", "size_usd": 50.43, "trade_id": "ST000146", "ts": "2026-10-01T22:33:00Z"}
+{"account_id": "SB21", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.45, "side": "SELL", "size_usd": 154.01, "trade_id": "ST000109", "ts": "2026-10-01T22:38:00Z"}
+{"account_id": "SB04", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.273, "side": "SELL", "size_usd": 14.46, "trade_id": "ST000022", "ts": "2026-10-01T23:00:00Z"}
+{"account_id": "SB03", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.625, "side": "BUY", "size_usd": 34.95, "trade_id": "ST000019", "ts": "2026-10-01T23:02:00Z"}
+{"account_id": "SB15", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.596, "side": "BUY", "size_usd": 83.65, "trade_id": "ST000068", "ts": "2026-10-01T23:13:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.493, "side": "SELL", "size_usd": 872.36, "trade_id": "ST000249", "ts": "2026-10-01T23:36:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.493, "side": "BUY", "size_usd": 872.36, "trade_id": "ST000250", "ts": "2026-10-01T23:36:00Z"}
+{"account_id": "SB27", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.662, "side": "SELL", "size_usd": 19.51, "trade_id": "ST000145", "ts": "2026-10-01T23:44:00Z"}
+{"account_id": "SB14", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.446, "side": "SELL", "size_usd": 13.34, "trade_id": "ST000067", "ts": "2026-10-02T00:04:00Z"}
+{"account_id": "SH03", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.311, "side": "SELL", "size_usd": 88.76, "trade_id": "ST000185", "ts": "2026-10-02T00:09:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.504, "side": "SELL", "size_usd": 722.44, "trade_id": "ST000225", "ts": "2026-10-02T00:25:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.504, "side": "BUY", "size_usd": 722.44, "trade_id": "ST000226", "ts": "2026-10-02T00:25:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.504, "side": "SELL", "size_usd": 662.97, "trade_id": "ST000221", "ts": "2026-10-02T00:37:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.504, "side": "BUY", "size_usd": 662.97, "trade_id": "ST000222", "ts": "2026-10-02T00:37:00Z"}
+{"account_id": "SH02", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.714, "side": "SELL", "size_usd": 11.65, "trade_id": "ST000175", "ts": "2026-10-02T00:43:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "SELL", "size_usd": 428.59, "trade_id": "ST000195", "ts": "2026-10-02T00:55:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "BUY", "size_usd": 428.59, "trade_id": "ST000196", "ts": "2026-10-02T00:55:00Z"}
+{"account_id": "SB02", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.704, "side": "BUY", "size_usd": 33.52, "trade_id": "ST000006", "ts": "2026-10-02T01:00:00Z"}
+{"account_id": "SB24", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.734, "side": "SELL", "size_usd": 14.14, "trade_id": "ST000129", "ts": "2026-10-02T01:01:00Z"}
+{"account_id": "SB20", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.419, "side": "SELL", "size_usd": 63.02, "trade_id": "ST000100", "ts": "2026-10-02T01:02:00Z"}
+{"account_id": "SB21", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.404, "side": "BUY", "size_usd": 38.14, "trade_id": "ST000108", "ts": "2026-10-02T01:05:00Z"}
+{"account_id": "SH04", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.526, "side": "SELL", "size_usd": 47.54, "trade_id": "ST000187", "ts": "2026-10-02T01:11:00Z"}
+{"account_id": "SB30", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.687, "side": "SELL", "size_usd": 37.16, "trade_id": "ST000161", "ts": "2026-10-02T01:24:00Z"}
+{"account_id": "SB22", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.259, "side": "BUY", "size_usd": 112.31, "trade_id": "ST000112", "ts": "2026-10-02T01:32:00Z"}
+{"account_id": "SB29", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.377, "side": "BUY", "size_usd": 96.79, "trade_id": "ST000154", "ts": "2026-10-02T01:33:00Z"}
+{"account_id": "SB09", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.735, "side": "BUY", "size_usd": 40.76, "trade_id": "ST000047", "ts": "2026-10-02T02:04:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.497, "side": "SELL", "size_usd": 779.14, "trade_id": "ST000239", "ts": "2026-10-02T02:18:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.497, "side": "BUY", "size_usd": 779.14, "trade_id": "ST000240", "ts": "2026-10-02T02:18:00Z"}
+{"account_id": "SB28", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.601, "side": "BUY", "size_usd": 48.78, "trade_id": "ST000148", "ts": "2026-10-02T02:26:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.498, "side": "SELL", "size_usd": 487.88, "trade_id": "ST000211", "ts": "2026-10-02T02:29:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.498, "side": "BUY", "size_usd": 487.88, "trade_id": "ST000212", "ts": "2026-10-02T02:29:00Z"}
+{"account_id": "SB02", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.435, "side": "BUY", "size_usd": 94.9, "trade_id": "ST000011", "ts": "2026-10-02T03:09:00Z"}
+{"account_id": "SH04", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.702, "side": "BUY", "size_usd": 91.05, "trade_id": "ST000189", "ts": "2026-10-02T03:18:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.51, "side": "SELL", "size_usd": 398.42, "trade_id": "ST000253", "ts": "2026-10-02T03:47:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.51, "side": "BUY", "size_usd": 398.42, "trade_id": "ST000254", "ts": "2026-10-02T03:47:00Z"}
+{"account_id": "SB06", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.497, "side": "BUY", "size_usd": 117.99, "trade_id": "ST000032", "ts": "2026-10-02T04:32:00Z"}
+{"account_id": "SB25", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.258, "side": "SELL", "size_usd": 261.04, "trade_id": "ST000135", "ts": "2026-10-02T05:11:00Z"}
+{"account_id": "SB04", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.651, "side": "BUY", "size_usd": 17.06, "trade_id": "ST000024", "ts": "2026-10-02T05:16:00Z"}
+{"account_id": "SB23", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.493, "side": "SELL", "size_usd": 38.11, "trade_id": "ST000123", "ts": "2026-10-02T05:26:00Z"}
+{"account_id": "SB20", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.258, "side": "BUY", "size_usd": 8.66, "trade_id": "ST000099", "ts": "2026-10-02T05:27:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.496, "side": "SELL", "size_usd": 820.55, "trade_id": "ST000191", "ts": "2026-10-02T05:52:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.496, "side": "BUY", "size_usd": 820.55, "trade_id": "ST000192", "ts": "2026-10-02T05:52:00Z"}
+{"account_id": "SB17", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.328, "side": "BUY", "size_usd": 85.29, "trade_id": "ST000084", "ts": "2026-10-02T05:56:00Z"}
+{"account_id": "SB03", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.709, "side": "BUY", "size_usd": 9.14, "trade_id": "ST000017", "ts": "2026-10-02T06:01:00Z"}
+{"account_id": "SB25", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.418, "side": "BUY", "size_usd": 37.75, "trade_id": "ST000136", "ts": "2026-10-02T06:45:00Z"}
+{"account_id": "SB23", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.617, "side": "BUY", "size_usd": 46.64, "trade_id": "ST000121", "ts": "2026-10-02T07:00:00Z"}
+{"account_id": "SB06", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.45, "side": "SELL", "size_usd": 40.68, "trade_id": "ST000036", "ts": "2026-10-02T07:01:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.51, "side": "SELL", "size_usd": 364.43, "trade_id": "ST000233", "ts": "2026-10-02T07:21:00Z"}
+{"account_id": "SW02", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.51, "side": "BUY", "size_usd": 364.43, "trade_id": "ST000234", "ts": "2026-10-02T07:21:00Z"}
+{"account_id": "SB28", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.647, "side": "BUY", "size_usd": 38.21, "trade_id": "ST000147", "ts": "2026-10-02T07:34:00Z"}
+{"account_id": "SB10", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.565, "side": "BUY", "size_usd": 31.45, "trade_id": "ST000049", "ts": "2026-10-02T07:41:00Z"}
+{"account_id": "SB23", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.452, "side": "SELL", "size_usd": 56.54, "trade_id": "ST000125", "ts": "2026-10-02T07:45:00Z"}
+{"account_id": "SB06", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.531, "side": "BUY", "size_usd": 28.53, "trade_id": "ST000035", "ts": "2026-10-02T07:51:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.498, "side": "SELL", "size_usd": 413.56, "trade_id": "ST000265", "ts": "2026-10-02T08:12:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.498, "side": "BUY", "size_usd": 413.56, "trade_id": "ST000266", "ts": "2026-10-02T08:12:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.497, "side": "SELL", "size_usd": 654.78, "trade_id": "ST000241", "ts": "2026-10-02T08:15:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.497, "side": "BUY", "size_usd": 654.78, "trade_id": "ST000242", "ts": "2026-10-02T08:15:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "SELL", "size_usd": 541.63, "trade_id": "ST000193", "ts": "2026-10-02T08:19:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "BUY", "size_usd": 541.63, "trade_id": "ST000194", "ts": "2026-10-02T08:19:00Z"}
+{"account_id": "SB03", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.281, "side": "BUY", "size_usd": 71.9, "trade_id": "ST000018", "ts": "2026-10-02T08:47:00Z"}
+{"account_id": "SB29", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.529, "side": "BUY", "size_usd": 139.78, "trade_id": "ST000151", "ts": "2026-10-02T09:28:00Z"}
+{"account_id": "SH04", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.525, "side": "SELL", "size_usd": 82.61, "trade_id": "ST000186", "ts": "2026-10-02T09:40:00Z"}
+{"account_id": "SB06", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.478, "side": "BUY", "size_usd": 69.5, "trade_id": "ST000037", "ts": "2026-10-02T10:07:00Z"}
+{"account_id": "SB23", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.493, "side": "BUY", "size_usd": 61.91, "trade_id": "ST000119", "ts": "2026-10-02T10:29:00Z"}
+{"account_id": "SB19", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.565, "side": "BUY", "size_usd": 10.61, "trade_id": "ST000094", "ts": "2026-10-02T10:35:00Z"}
+{"account_id": "SB26", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.521, "side": "SELL", "size_usd": 364.83, "trade_id": "ST000139", "ts": "2026-10-02T10:54:00Z"}
+{"account_id": "SB02", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.58, "side": "SELL", "size_usd": 54.19, "trade_id": "ST000010", "ts": "2026-10-02T11:20:00Z"}
+{"account_id": "SB21", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.526, "side": "SELL", "size_usd": 65.9, "trade_id": "ST000107", "ts": "2026-10-02T11:22:00Z"}
+{"account_id": "SB16", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.618, "side": "BUY", "size_usd": 79.92, "trade_id": "ST000075", "ts": "2026-10-02T11:32:00Z"}
+{"account_id": "SB21", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.474, "side": "BUY", "size_usd": 19.23, "trade_id": "ST000106", "ts": "2026-10-02T11:33:00Z"}
+{"account_id": "SB22", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.265, "side": "SELL", "size_usd": 163.19, "trade_id": "ST000115", "ts": "2026-10-02T11:47:00Z"}
+{"account_id": "SB29", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.704, "side": "SELL", "size_usd": 37.91, "trade_id": "ST000157", "ts": "2026-10-02T11:51:00Z"}
+{"account_id": "SB16", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.586, "side": "SELL", "size_usd": 89.01, "trade_id": "ST000076", "ts": "2026-10-02T11:53:00Z"}
+{"account_id": "SB01", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.55, "side": "BUY", "size_usd": 34.3, "trade_id": "ST000002", "ts": "2026-10-02T12:01:00Z"}
+{"account_id": "SB04", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.261, "side": "BUY", "size_usd": 77.55, "trade_id": "ST000021", "ts": "2026-10-02T12:07:00Z"}
+{"account_id": "SB22", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.279, "side": "BUY", "size_usd": 69.19, "trade_id": "ST000116", "ts": "2026-10-02T12:11:00Z"}
+{"account_id": "SB05", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.343, "side": "BUY", "size_usd": 54.93, "trade_id": "ST000028", "ts": "2026-10-02T12:17:00Z"}
+{"account_id": "SB30", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.709, "side": "SELL", "size_usd": 73.41, "trade_id": "ST000163", "ts": "2026-10-02T12:34:00Z"}
+{"account_id": "SH01", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.55, "side": "SELL", "size_usd": 30.22, "trade_id": "ST000171", "ts": "2026-10-02T12:37:00Z"}
+{"account_id": "SH04", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.497, "side": "BUY", "size_usd": 18.98, "trade_id": "ST000188", "ts": "2026-10-02T12:37:00Z"}
+{"account_id": "SB13", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.563, "side": "SELL", "size_usd": 383.05, "trade_id": "ST000060", "ts": "2026-10-02T12:43:00Z"}
+{"account_id": "SB27", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.411, "side": "BUY", "size_usd": 46.83, "trade_id": "ST000143", "ts": "2026-10-02T13:15:00Z"}
+{"account_id": "SB16", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.379, "side": "SELL", "size_usd": 57.78, "trade_id": "ST000079", "ts": "2026-10-02T13:17:00Z"}
+{"account_id": "SB24", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.462, "side": "BUY", "size_usd": 75.94, "trade_id": "ST000127", "ts": "2026-10-02T13:24:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.5, "side": "SELL", "size_usd": 594.41, "trade_id": "ST000243", "ts": "2026-10-02T13:41:00Z"}
+{"account_id": "SW02", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.5, "side": "BUY", "size_usd": 594.41, "trade_id": "ST000244", "ts": "2026-10-02T13:41:00Z"}
+{"account_id": "SB16", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.726, "side": "BUY", "size_usd": 64.44, "trade_id": "ST000077", "ts": "2026-10-02T13:49:00Z"}
+{"account_id": "SB30", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.725, "side": "BUY", "size_usd": 88.4, "trade_id": "ST000159", "ts": "2026-10-02T13:58:00Z"}
+{"account_id": "SB02", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.588, "side": "BUY", "size_usd": 40.03, "trade_id": "ST000008", "ts": "2026-10-02T14:05:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "SELL", "size_usd": 514.73, "trade_id": "ST000269", "ts": "2026-10-02T14:13:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.501, "side": "BUY", "size_usd": 514.73, "trade_id": "ST000270", "ts": "2026-10-02T14:13:00Z"}
+{"account_id": "SH01", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.657, "side": "BUY", "size_usd": 108.54, "trade_id": "ST000170", "ts": "2026-10-02T14:17:00Z"}
+{"account_id": "SH03", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.267, "side": "BUY", "size_usd": 72.66, "trade_id": "ST000183", "ts": "2026-10-02T14:35:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.504, "side": "SELL", "size_usd": 376.61, "trade_id": "ST000267", "ts": "2026-10-02T15:09:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.504, "side": "BUY", "size_usd": 376.61, "trade_id": "ST000268", "ts": "2026-10-02T15:09:00Z"}
+{"account_id": "SW02", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.492, "side": "SELL", "size_usd": 789.28, "trade_id": "ST000261", "ts": "2026-10-02T15:15:00Z"}
+{"account_id": "SW03", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.492, "side": "BUY", "size_usd": 789.28, "trade_id": "ST000262", "ts": "2026-10-02T15:15:00Z"}
+{"account_id": "SB29", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.635, "side": "SELL", "size_usd": 68.44, "trade_id": "ST000155", "ts": "2026-10-02T15:17:00Z"}
+{"account_id": "SB14", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.503, "side": "BUY", "size_usd": 92.76, "trade_id": "ST000064", "ts": "2026-10-02T15:18:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.493, "side": "SELL", "size_usd": 795.26, "trade_id": "ST000223", "ts": "2026-10-02T15:24:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.493, "side": "BUY", "size_usd": 795.26, "trade_id": "ST000224", "ts": "2026-10-02T15:24:00Z"}
+{"account_id": "SB13", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.662, "side": "BUY", "size_usd": 41.16, "trade_id": "ST000063", "ts": "2026-10-02T15:28:00Z"}
+{"account_id": "SB11", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.412, "side": "SELL", "size_usd": 73.77, "trade_id": "ST000056", "ts": "2026-10-02T15:54:00Z"}
+{"account_id": "SB10", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.352, "side": "SELL", "size_usd": 12.88, "trade_id": "ST000052", "ts": "2026-10-02T15:59:00Z"}
+{"account_id": "SB27", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.609, "side": "SELL", "size_usd": 12.04, "trade_id": "ST000144", "ts": "2026-10-02T16:00:00Z"}
+{"account_id": "SB25", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.491, "side": "BUY", "size_usd": 54.25, "trade_id": "ST000130", "ts": "2026-10-02T16:11:00Z"}
+{"account_id": "SB03", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.28, "side": "SELL", "size_usd": 28.91, "trade_id": "ST000016", "ts": "2026-10-02T16:26:00Z"}
+{"account_id": "SB07", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.688, "side": "BUY", "size_usd": 24.57, "trade_id": "ST000041", "ts": "2026-10-02T16:27:00Z"}
+{"account_id": "SB19", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.448, "side": "SELL", "size_usd": 251.97, "trade_id": "ST000096", "ts": "2026-10-02T16:27:00Z"}
+{"account_id": "SW05", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.493, "side": "SELL", "size_usd": 410.78, "trade_id": "ST000201", "ts": "2026-10-02T17:06:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.493, "side": "BUY", "size_usd": 410.78, "trade_id": "ST000202", "ts": "2026-10-02T17:06:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.507, "side": "SELL", "size_usd": 495.26, "trade_id": "ST000227", "ts": "2026-10-02T17:09:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.507, "side": "BUY", "size_usd": 495.26, "trade_id": "ST000228", "ts": "2026-10-02T17:09:00Z"}
+{"account_id": "SB02", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.321, "side": "BUY", "size_usd": 32.39, "trade_id": "ST000007", "ts": "2026-10-02T17:12:00Z"}
+{"account_id": "SB25", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.474, "side": "SELL", "size_usd": 53.64, "trade_id": "ST000132", "ts": "2026-10-02T17:19:00Z"}
+{"account_id": "SB29", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.69, "side": "BUY", "size_usd": 41.32, "trade_id": "ST000156", "ts": "2026-10-02T17:28:00Z"}
+{"account_id": "SB25", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.637, "side": "BUY", "size_usd": 152.78, "trade_id": "ST000134", "ts": "2026-10-02T18:10:00Z"}
+{"account_id": "SB08", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.493, "side": "BUY", "size_usd": 39.8, "trade_id": "ST000042", "ts": "2026-10-02T18:15:00Z"}
+{"account_id": "SB14", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.712, "side": "SELL", "size_usd": 53.91, "trade_id": "ST000065", "ts": "2026-10-02T18:22:00Z"}
+{"account_id": "SW01", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.497, "side": "SELL", "size_usd": 660.16, "trade_id": "ST000215", "ts": "2026-10-02T18:47:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.497, "side": "BUY", "size_usd": 660.16, "trade_id": "ST000216", "ts": "2026-10-02T18:47:00Z"}
+{"account_id": "SB23", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.695, "side": "SELL", "size_usd": 68.91, "trade_id": "ST000118", "ts": "2026-10-02T18:56:00Z"}
+{"account_id": "SB22", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.724, "side": "BUY", "size_usd": 27.06, "trade_id": "ST000111", "ts": "2026-10-02T18:59:00Z"}
+{"account_id": "SB12", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.577, "side": "SELL", "size_usd": 98.61, "trade_id": "ST000058", "ts": "2026-10-02T19:00:00Z"}
+{"account_id": "SB14", "event_type": "trade", "market_id": "M02", "outcome": "NO", "price": 0.697, "side": "BUY", "size_usd": 74.61, "trade_id": "ST000066", "ts": "2026-10-02T19:31:00Z"}
+{"account_id": "SB04", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.622, "side": "SELL", "size_usd": 74.05, "trade_id": "ST000020", "ts": "2026-10-02T19:40:00Z"}
+{"account_id": "SB01", "event_type": "trade", "market_id": "M13", "outcome": "NO", "price": 0.563, "side": "SELL", "size_usd": 12.29, "trade_id": "ST000004", "ts": "2026-10-02T19:51:00Z"}
+{"account_id": "SB29", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.652, "side": "BUY", "size_usd": 80.6, "trade_id": "ST000158", "ts": "2026-10-02T19:57:00Z"}
+{"account_id": "SB11", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.687, "side": "BUY", "size_usd": 21.95, "trade_id": "ST000054", "ts": "2026-10-02T20:40:00Z"}
+{"account_id": "SW06", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.491, "side": "SELL", "size_usd": 364.03, "trade_id": "ST000197", "ts": "2026-10-02T20:48:00Z"}
+{"account_id": "SW04", "event_type": "trade", "market_id": "M05", "outcome": "YES", "price": 0.491, "side": "BUY", "size_usd": 364.03, "trade_id": "ST000198", "ts": "2026-10-02T20:48:00Z"}
+{"account_id": "SB03", "event_type": "trade", "market_id": "M02", "outcome": "YES", "price": 0.601, "side": "BUY", "size_usd": 42.42, "trade_id": "ST000015", "ts": "2026-10-02T20:53:00Z"}
+{"account_id": "SB13", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.558, "side": "BUY", "size_usd": 273.7, "trade_id": "ST000061", "ts": "2026-10-02T20:54:00Z"}
+{"account_id": "SB06", "event_type": "trade", "market_id": "M06", "outcome": "NO", "price": 0.343, "side": "BUY", "size_usd": 12.76, "trade_id": "ST000034", "ts": "2026-10-02T21:20:00Z"}
+{"account_id": "SB05", "event_type": "trade", "market_id": "M01", "outcome": "NO", "price": 0.571, "side": "BUY", "size_usd": 95.54, "trade_id": "ST000027", "ts": "2026-10-02T21:52:00Z"}
+{"account_id": "SB17", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.714, "side": "SELL", "size_usd": 171.75, "trade_id": "ST000083", "ts": "2026-10-02T22:00:00Z"}
+{"account_id": "SB10", "event_type": "trade", "market_id": "M14", "outcome": "YES", "price": 0.728, "side": "BUY", "size_usd": 42.2, "trade_id": "ST000051", "ts": "2026-10-02T22:06:00Z"}
+{"account_id": "SB01", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.368, "side": "SELL", "size_usd": 17.15, "trade_id": "ST000003", "ts": "2026-10-02T22:19:00Z"}
+{"account_id": "SB03", "event_type": "trade", "market_id": "M06", "outcome": "YES", "price": 0.308, "side": "BUY", "size_usd": 63.98, "trade_id": "ST000012", "ts": "2026-10-02T22:28:00Z"}
+{"account_id": "SH02", "event_type": "trade", "market_id": "M03", "outcome": "NO", "price": 0.303, "side": "BUY", "size_usd": 31.17, "trade_id": "ST000179", "ts": "2026-10-02T23:01:00Z"}
+{"account_id": "SB30", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.447, "side": "SELL", "size_usd": 311.83, "trade_id": "ST000162", "ts": "2026-10-02T23:02:00Z"}
+{"account_id": "SB17", "event_type": "trade", "market_id": "M01", "outcome": "YES", "price": 0.383, "side": "SELL", "size_usd": 71.41, "trade_id": "ST000081", "ts": "2026-10-02T23:11:00Z"}
+{"account_id": "SB15", "event_type": "trade", "market_id": "M03", "outcome": "YES", "price": 0.642, "side": "SELL", "size_usd": 70.15, "trade_id": "ST000071", "ts": "2026-10-02T23:16:00Z"}
+{"account_id": "SH01", "event_type": "trade", "market_id": "M13", "outcome": "YES", "price": 0.369, "side": "BUY", "size_usd": 25.4, "trade_id": "ST000168", "ts": "2026-10-02T23:35:00Z"}
+{"account_id": "SB15", "event_type": "trade", "market_id": "M14", "outcome": "NO", "price": 0.731, "side": "BUY", "size_usd": 399.9, "trade_id": "ST000073", "ts": "2026-10-02T23:47:00Z"}
