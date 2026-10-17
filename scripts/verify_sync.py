@@ -79,7 +79,10 @@ def expected_graph_rows(data) -> dict[str, int]:
 def parse_ddl_columns(sql: str) -> dict[str, list[tuple[str, str]]]:
     """{'dataset.table': [(column, TYPE), ...]} from CREATE TABLE statements."""
     out = {}
-    pattern = r"CREATE TABLE IF NOT EXISTS\s+`__P__\.([\w]+)\.([\w]+)`\s*\((.*?)\n\);"
+    pattern = (
+        r"CREATE TABLE IF NOT EXISTS\s+`__P__\.([\w]+)\.([\w]+)`\s*\((.*?)\n\)"
+        r"(?:\s*PARTITION BY[^;]*)?;"
+    )
     for m in re.finditer(pattern, sql, re.S):
         cols = []
         for line in m.group(3).strip().splitlines():
