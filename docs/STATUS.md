@@ -348,6 +348,19 @@ Check with `gcloud run services describe sentinel-app` that `minScale` is gone o
   00001 to 00007 still exist, nothing deleted). Live checks: `e2e_smoke` (no `--write`, includes all
   `ui_smoke` checks) 71/71; `scripts/cache_check.py` (two visits, same context) ok with the build id in
   the footer; `scripts/graph_overlap_check.py` against the live URL: see its last line below.
+- **Overlay audit** (`scripts/browser_check.py`, also run in pytest against recorded payloads): visits
+  Overview, Command centre (toggle, replay, shortcuts dialog), a case (graph walk-through, tooltip, Approve
+  and Investigate-live dialogs), Lanes (Override dialog), Benchmark, Governance and the unknown-case 404
+  probe at 1280x800 and 390x844, fails on console errors, exceptions, failed or 4xx/5xx requests (except
+  that probe) and missing static files, and checks every popover, tooltip and dialog is inside the
+  viewport, uncovered and closes on Escape. Run against revision 00008 it found: the Overview glossary
+  covered by the KPI cards (both sizes); the graph tooltip not closing on Escape; and, after the
+  walk-through, graph hover and clicks offset because Cytoscape caches the container position (the story
+  bar moves the graph without a scroll or resize event). Fixes: Overview popovers are moved to `<body>`,
+  `position: fixed`, placed from the trigger, flipped and clamped inside the viewport, the holding block
+  gets `.ov-open`, one open at a time, Escape returns focus; the graph hides its tooltip on Escape and
+  re-measures its container on mouse enter. Screenshots: `docs/img/ui_overview_glossary.png`,
+  `ui_overview_evidence.png`.
 - **Not done in this release**: the executable evidence standard (signal families) and the repeated
   3x evaluation. Agent decisions on injected decoys were unstable across runs; real alerts come from the
   detector, which flagged none of the decoys.

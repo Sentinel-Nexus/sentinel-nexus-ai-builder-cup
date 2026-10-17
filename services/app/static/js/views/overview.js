@@ -29,20 +29,60 @@ const ICONS = {
   analyst: `<circle cx="16" cy="10" r="5" fill="none" stroke="${C.purple}" stroke-width="2.5"/><path d="M6 28c0-6 4-9 10-9s10 3 10 9" fill="none" stroke="${C.purple}" stroke-width="2.5" stroke-linecap="round"/>`,
 };
 
-function pop(text, label) {
-  const panel = h('div', { class: 'ov-pop', role: 'region', 'aria-label': label, hidden: true }, text);
-  const btn = h('button', { type: 'button', class: label.startsWith('Glossary') ? 'ov-q' : 'ov-i', 'aria-expanded': 'false', 'aria-label': label }, label.startsWith('Glossary') ? '?' : 'i');
-  const close = () => { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+// One popover open at a time. The panel is position: fixed, placed from its trigger's box, flipped
+// and clamped to stay inside the viewport; the block that holds it is raised (.ov-open) above its
+// siblings so no later card paints over it.
+let openPop = null;
+
+function placePop(btn, panel) {
+  const m = 8;
+  const r = btn.getBoundingClientRect();
+  const vw = document.documentElement.clientWidth;
+  const vh = window.innerHeight;
+  panel.style.left = '0px';
+  panel.style.top = '0px';
+  const w = panel.offsetWidth;
+  const hgt = panel.offsetHeight;
+  let left = r.left; // left-aligned under the trigger ...
+  if (left + w > vw - m) left = r.right - w; // ... or right-aligned to it near the right edge
+  left = Math.max(m, Math.min(left, vw - w - m));
+  let top = r.bottom + 6;
+  if (top + hgt > vh - m && r.top - 6 - hgt >= m) top = r.top - 6 - hgt; // open upwards near the bottom
+  top = Math.max(m, Math.min(top, vh - hgt - m));
+  panel.style.left = `${Math.round(left)}px`;
+  panel.style.top = `${Math.round(top)}px`;
+}
+
+function closePop(focusTrigger = false) {
+  if (!openPop) return;
+  const { btn, panel, block, home } = openPop;
+  panel.hidden = true;
+  if (home) home.append(panel);
+  btn.setAttribute('aria-expanded', 'false');
+  if (block) block.classList.remove('ov-open');
+  openPop = null;
+  if (focusTrigger) btn.focus();
+}
+
+function pop(text, label, { wide = false } = {}) {
+  const glossary = label.startsWith('Glossary');
+  const panel = h('div', { class: `ov-pop${wide ? ' ov-pop-wide' : ''}`, role: 'region', 'aria-label': label, hidden: true }, text);
+  const btn = h('button', { type: 'button', class: glossary ? 'ov-q' : 'ov-i', 'aria-expanded': 'false', 'aria-label': label }, glossary ? '?' : 'i');
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const open = panel.hidden;
-    document.querySelectorAll('.ov-pop').forEach((p) => { p.hidden = true; });
-    document.querySelectorAll('.ov-i[aria-expanded], .ov-q[aria-expanded]').forEach((b) => b.setAttribute('aria-expanded', 'false'));
-    panel.hidden = !open;
-    btn.setAttribute('aria-expanded', String(open));
+    const wasMine = openPop && openPop.btn === btn;
+    closePop();
+    if (wasMine) return;
+    const block = btn.closest('.ov-fade') || btn.closest('.ov-card');
+    if (block) block.classList.add('ov-open');
+    const home = panel.parentNode;
+    document.body.append(panel); // out of every card and animation layer: nothing can paint over it
+    panel.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    openPop = { btn, panel, block, home };
+    placePop(btn, panel);
   });
-  panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { close(); btn.focus(); } });
-  btn.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  panel.addEventListener('click', (e) => e.stopPropagation());
   return { btn, panel };
 }
 
@@ -221,7 +261,7 @@ export async function render(root) {
   let d;
   try { d = await get('/static/data/overview.json'); } catch (e) { root.append(errorState(e, () => location.reload())); return () => document.body.classList.remove('ov-on'); }
   const k = d.kpi;
-  const gloss = pop('Hatched or solid bars compare two ways of finding manipulation. "Simple rule" flags any group sharing one funding source. "Caught" is the share of planted manipulators that were flagged.', 'Glossary: simple rule and caught');
+  const gloss = pop('Hatched or solid bars compare two ways of finding manipulation. "Simple rule" flags any group sharing one funding source. "Caught" is the share of planted manipulators that were flagged.', 'Glossary: simple rule and caught', { wide: true });
 
   const hero = h('header', { class: 'ov-hero ov-fade' }, h('div', { class: 'ov-hero-main' }, sparkle(),
     h('h1', null, 'MarketSentinel helps prediction-market operators catch market manipulation, explain it in plain language, and leave the final call to a human analyst.'),
@@ -271,18 +311,24 @@ export async function render(root) {
 
   const drawAll = () => { if (window.Chart) { window.Chart.defaults.color = document.body.classList.contains('ov-print') ? '#000' : '#c9ced6'; window.Chart.defaults.font.family = 'system-ui, sans-serif'; } cs.forEach((c) => c.draw()); };
   if (window.Chart) drawAll(); else window.addEventListener('load', drawAll, { once: true });
-  const onDoc = () => {
-    document.querySelectorAll('.ov-pop').forEach((p) => { p.hidden = true; });
-    document.querySelectorAll('[aria-expanded="true"]').forEach((b) => b.setAttribute('aria-expanded', 'false'));
-  };
+  const onDoc = () => closePop();
+  const onKey = (e) => { if (e.key === 'Escape' && openPop) { e.stopPropagation(); closePop(true); } };
+  const onMove = () => { if (openPop) placePop(openPop.btn, openPop.panel); };
   const before = () => { document.body.classList.add('ov-print'); drawAll(); };
   const after = () => { document.body.classList.remove('ov-print'); drawAll(); };
   document.addEventListener('click', onDoc);
+  document.addEventListener('keydown', onKey);
+  window.addEventListener('scroll', onMove, { passive: true });
+  window.addEventListener('resize', onMove);
   window.addEventListener('beforeprint', before);
   window.addEventListener('afterprint', after);
   return () => {
     document.body.classList.remove('ov-on', 'ov-print');
     document.removeEventListener('click', onDoc);
+    document.removeEventListener('keydown', onKey);
+    window.removeEventListener('scroll', onMove);
+    window.removeEventListener('resize', onMove);
+    closePop();
     window.removeEventListener('beforeprint', before);
     window.removeEventListener('afterprint', after);
     cs.forEach((c) => c.destroy());

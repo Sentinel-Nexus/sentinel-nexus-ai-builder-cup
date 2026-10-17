@@ -52,7 +52,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             f = FIX / f"{m[1]}_trades_{acct}.json"
             if f.exists():
                 return self._send(f.read_bytes(), "application/json")
-        if u.path in ("/summary", "/queue", "/lanes"):
+        if u.path in ("/summary", "/queue", "/lanes", "/governance"):
             return self._send((FIX / f"{u.path[1:]}.json").read_bytes(), "application/json")
         if u.path == "/benchmark":
             return self._send((STATIC / "data" / "benchmark.json").read_bytes(), "application/json")
@@ -124,3 +124,18 @@ def test_command_centre_and_the_other_screens_render_without_errors(server):
             assert "could not be loaded" not in page.inner_text("#view"), hash_
         browser.close()
     assert errors == []
+
+
+def test_every_screen_and_overlay_is_clean_in_a_browser(server):
+    """scripts/browser_check.py: all screens, all popovers, tooltips and dialogs, both sizes."""
+    pytest.importorskip("playwright.sync_api")
+    from scripts.browser_check import run
+
+    try:
+        res = run(server)
+    except Exception as e:  # noqa: BLE001
+        if "Executable doesn't exist" in str(e):
+            pytest.skip("chromium not installed")
+        raise
+    bad = {k: v for k, v in res.items() if v}
+    assert len(res) == 16 and not bad, bad

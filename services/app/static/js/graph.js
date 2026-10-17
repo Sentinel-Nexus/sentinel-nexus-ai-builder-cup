@@ -129,7 +129,12 @@ export function createGraph(container, graph, { onSelectNode, cited = [] } = {})
   };
   const guardHost = container.parentElement || container;
   guardHost.addEventListener('wheel', wheelGuard, { capture: true, passive: false });
+  const escHide = (e) => { if (e.key === 'Escape') hideTip(); };
+  document.addEventListener('keydown', escHide);
   container.addEventListener('mouseleave', hideTip);
+  // cytoscape caches the container's page offset; the walk-through bar or the page layout can move
+  // the graph without a scroll or resize event, which would shift every hover and click
+  container.addEventListener('mouseenter', () => inst.resize());
   inst.on('pan zoom', hideTip);
 
   // buttons and a hint inside the graph (keyboard reachable)
@@ -263,6 +268,7 @@ export function createGraph(container, graph, { onSelectNode, cited = [] } = {})
       if (ro) ro.disconnect();
       cancelAnimationFrame(raf);
       guardHost.removeEventListener('wheel', wheelGuard, { capture: true });
+      document.removeEventListener('keydown', escHide);
       inst.destroy();
     },
   };
