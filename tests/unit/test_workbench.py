@@ -283,3 +283,19 @@ def test_warm_is_retried_after_a_transient_failure(monkeypatch):
             time.sleep(0.02)
         h = c.get("/health").json()
     assert calls["n"] == 2 and h["ready"] is True and h["warm_error"] is None
+
+
+def test_summary_counts_detector_alerts_apart_from_evaluation_cases():
+    deps, _, c = client_with_case()
+    deps.store.extra_alerts = [
+        {**deps.store.get_alert("AL_C"), "alert_id": "EV_X", "injected": True, "ring_id": "EV_X"}
+    ]
+    with c:
+        s = c.get("/summary").json()
+        det, evl = s["detector_alerts"], s["evaluation_cases"]
+        assert (det["alerts"], evl["alerts"]) == (2, 1)
+        assert det["alerts"] + evl["alerts"] == s["alerts"]
+        assert det["open"] + evl["open"] == s["open"]
+        assert sum(det["lanes"].values()) + sum(evl["lanes"].values()) == sum(s["lanes"].values())
+        q = {a["alert_id"]: a for a in c.get("/queue").json()}
+        assert q["EV_X"]["injected"] and not q["AL_W"]["injected"]

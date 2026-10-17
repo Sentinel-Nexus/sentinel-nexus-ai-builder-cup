@@ -13,6 +13,17 @@ export const SCENARIO = {
 export const INJECTED_LABEL = 'Injected review case (evaluation), not detector output';
 export const injectedChip = () => h('span', { class: 't-review chip', title: INJECTED_LABEL }, 'Injected (eval)');
 
+/** "Evaluation cases" toggle, shared by the Command centre and Lanes. Off by default.
+ *  Injected cases are never mixed into the detector alert counts. */
+const evalState = { on: false };
+export const evalCasesOn = () => evalState.on;
+export function evalToggle(count, onChange) {
+  const box = h('input', { type: 'checkbox', id: 'eval-toggle', checked: evalState.on || null });
+  box.addEventListener('change', () => { evalState.on = box.checked; onChange(); });
+  return h('label', { class: 'eval-toggle', for: 'eval-toggle', title: INJECTED_LABEL }, box,
+    ` Show evaluation cases (${count}). Injected for testing the agents, not detector output.`);
+}
+
 export const sevChip = (s) => h('span', { class: `chip dot ${(SEVERITY[s] || ['t-neutral'])[0]}` }, (SEVERITY[s] || [0, s])[1]);
 export const laneChip = (l) => (l
   ? h('span', { class: `chip ${(LANE[l] || ['t-neutral'])[0]}` }, (LANE[l] || [0, l])[1])

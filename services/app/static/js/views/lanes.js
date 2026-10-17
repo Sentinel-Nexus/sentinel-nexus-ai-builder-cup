@@ -1,6 +1,6 @@
 import { forget, get, post } from '../api.js';
 import { h } from '../dom.js';
-import { closeDialog, dialog, empty, errorState, injectedChip, loading, statusChip, store, toast } from '../ui.js';
+import { closeDialog, dialog, empty, errorState, evalCasesOn, evalToggle, injectedChip, loading, statusChip, store, toast } from '../ui.js';
 
 export const title = 'Lanes';
 const enc = encodeURIComponent;
@@ -66,13 +66,25 @@ export async function render(root) {
     page.replaceChildren(loading());
     let data;
     try { data = await get('/lanes', { fresh: true }); } catch (e) { page.replaceChildren(errorState(e, load)); return; }
-    page.replaceChildren(h('div', { class: 'lanes' }, LANES.map(([key, name, hint]) => {
-      const items = data[key] || [];
+    const grid = (pick) => h('div', { class: 'lanes' }, LANES.map(([key, name, hint]) => {
+      const items = (data[key] || []).filter(pick);
       return h('section', { class: 'card', 'aria-label': name },
         h('header', null, h('h2', null, name), h('span', { class: 'chip t-neutral' }, items.length)),
         h('div', { class: 'body small muted' }, hint),
         items.length ? items.map((i) => laneItem(key, i, load)) : empty('Nothing here', 'No case is in this lane.'));
-    })));
+    }));
+    const evalCount = LANES.reduce((n, [k]) => n + (data[k] || []).filter((i) => i.injected).length, 0);
+    const slot = h('div');
+    const paint = () => {
+      slot.replaceChildren();
+      if (!evalCasesOn()) return;
+      slot.append(h('section', { class: 'eval-section stack', 'aria-label': 'Evaluation cases' },
+        h('h2', null, 'Evaluation cases'),
+        h('p', { class: 'small muted' }, 'Injected review cases built from real accounts at their real scores to test the agents. The detector did not raise them; they are kept apart from the lanes above.'),
+        grid((i) => i.injected)));
+    };
+    page.replaceChildren(grid((i) => !i.injected), ...(evalCount ? [h('div', { class: 'row' }, evalToggle(evalCount, paint)), slot] : []));
+    paint();
   }
   await load();
 }

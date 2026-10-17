@@ -291,3 +291,8 @@ textarea { min-height: 84px; resize: vertical; }
   .ev-chip, .cite { border: 1px solid #888; background: #fff; color: #000; }
   th { position: static; }
 }
+
+/* ---- evaluation cases toggle (injected review cases, kept apart from detector alerts) ---- */
+.eval-toggle { display: inline-flex; align-items: center; gap: var(--s2); font-size: 0.9rem; color: var(--text-2); cursor: pointer; }
+.eval-toggle input { width: 16px; height: 16px; }
+.eval-section { margin-top: var(--s3); }

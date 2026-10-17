@@ -125,13 +125,24 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         alerts, lanes = d().store.alerts(), {"escalated": 0, "agent_cleared": 0, "needs_analyst": 0}
         no_case = 0
         have = d().cases.latest()
+        split = {
+            k: {"alerts": 0, "open": 0, "decided": 0, "lanes": dict.fromkeys(lanes, 0)}
+            for k in ("detector_alerts", "evaluation_cases")
+        }
         for a in alerts:
+            part = split["evaluation_cases" if a.get("injected") else "detector_alerts"]
+            part["alerts"] += 1
+            if a["alert_id"] in done:
+                part["decided"] += 1
+            else:
+                part["open"] += 1
             row = have.get(a["alert_id"])
             if row is None:
                 no_case += 1
                 continue
             lane, _ = effective_lane(_lane_report(row), decisions.get(a["alert_id"]))
             lanes[lane] += 1
+            part["lanes"][lane] += 1
         bench = _benchmark()
         return {
             "alerts": len(alerts),
@@ -139,6 +150,9 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
             "decided": len(done),
             "no_case": no_case,
             "lanes": lanes,
+            # detector alerts and injected evaluation cases are counted apart; the totals above
+            # are their sum and are kept for existing callers
+            **split,
             "detector": bench["kpi"]["detector"] if bench else None,
             "baseline": bench["kpi"]["baseline"] if bench else None,
             "synthetic": True,

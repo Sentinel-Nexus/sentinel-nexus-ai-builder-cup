@@ -21,14 +21,26 @@ async function parse(res) {
 
 const memo = new Map();
 
+/** Run an idempotent fetch; on a network error or a 5xx try once more after `delayMs`.
+ *  Exported for tests: `doFetch` returns a Response, `sleep` can be replaced. */
+export const RETRY_DELAY_MS = 400;
+export async function fetchRetry(doFetch, { delayMs = RETRY_DELAY_MS, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
+  for (let attempt = 0; ; attempt += 1) {
+    let res = null;
+    try {
+      res = await doFetch();
+    } catch {
+      if (attempt === 0) { await sleep(delayMs); continue; }
+      throw new ApiError(0, UNREACHABLE);
+    }
+    if (res.status >= 500 && attempt === 0) { await sleep(delayMs); continue; }
+    return res;
+  }
+}
+
 export async function get(path, { fresh = false } = {}) {
   if (!fresh && memo.has(path)) return memo.get(path);
-  let res;
-  try {
-    res = await fetch(path, { headers: { Accept: 'application/json' } });
-  } catch {
-    throw new ApiError(0, UNREACHABLE);
-  }
+  const res = await fetchRetry(() => fetch(path, { headers: { Accept: 'application/json' } }));
   const data = await parse(res);
   memo.set(path, data);
   return data;

@@ -151,7 +151,7 @@ export async function render(root, { args, keys }) {
       h('div', { class: 'grow' },
         h('h1', null, h('span', { class: 'mono' }, alert.alert_id), ' ', badge),
         h('div', { class: 'row', style: 'margin-top:6px' }, sevChip(alert.severity), statusChip(alert.status), scenarioChip(alert.scenario_hint),
-          h('span', { class: 'chip t-neutral' }, `ring ${alert.ring_id}`), h('span', { class: 'chip t-neutral' }, `score ${alert.score.toFixed(1)} / threshold ${alert.threshold}`),
+          h('span', { class: 'chip t-neutral' }, `ring ${alert.ring_id}`), h('span', { class: 'chip t-neutral' }, `score ${alert.score.toFixed(2)} / threshold ${alert.threshold}`),
           h('span', { class: 'chip t-neutral' }, `${alert.n_members} members`))),
       printMode ? printBar() : actionBar(report)),
     );
