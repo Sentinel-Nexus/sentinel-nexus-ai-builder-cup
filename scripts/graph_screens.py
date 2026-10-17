@@ -19,6 +19,7 @@ CASE = "AL_584807441a"
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default="http://localhost:8080")
+    ap.add_argument("--api-base", default="", help="answer API paths from another service")
     a = ap.parse_args()
     from playwright.sync_api import sync_playwright
 
@@ -27,6 +28,11 @@ def main() -> int:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 1440, "height": 1000})
         page.set_default_timeout(30000)
+        if a.api_base:
+            sys.path.insert(0, str(Path(__file__).parent))
+            from graph_overlap_check import proxy
+
+            proxy(page, a.base.rstrip("/"), a.api_base.rstrip("/"))
         page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
         page.on("pageerror", lambda e: errors.append(str(e)))
         page.goto(f"{a.base}/#/case/{CASE}")
@@ -51,6 +57,18 @@ def main() -> int:
         page.click("[data-layout=circle]")
         page.wait_for_timeout(700)
         card.screenshot(path=str(OUT / "ui_graph_toggled.png"))
+        # after the wheel test: a plain wheel scrolls the page, Ctrl + wheel zooms the graph
+        page.click("[data-layout=clusters]")
+        page.locator("#graph").scroll_into_view_if_needed()
+        box = page.locator("#graph").bounding_box()
+        page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        page.mouse.wheel(0, 120)
+        page.keyboard.down("Control")
+        page.mouse.wheel(0, -200)
+        page.keyboard.up("Control")
+        page.wait_for_timeout(600)
+        card.scroll_into_view_if_needed()
+        card.screenshot(path=str(OUT / "ui_graph_wheel.png"))
         browser.close()
     for e in errors:
         print("console error:", e[:200])

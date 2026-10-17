@@ -68,3 +68,12 @@ def test_no_banned_words_in_ui_or_docs():
         assert not banned.search(p.read_text(encoding="utf-8")), p
     for p in Path(__file__).resolve().parents[2].joinpath("docs").glob("*.md"):
         assert not banned.search(p.read_text(encoding="utf-8")), p
+
+
+def test_honest_limits_panel_has_both_lines():
+    js = (STATIC / "js" / "views" / "overview.js").read_text(encoding="utf-8")
+    assert "Synthetic data from one generator" in js
+    assert (
+        "On injected look-alike cases the AI agents were not consistent between runs. "
+        "That is why alerts come from the detector and an analyst makes every final call."
+    ) in js

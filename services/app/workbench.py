@@ -10,13 +10,14 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import json
+import os
 import re
 import threading
 from collections.abc import Callable
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from services.app.audit_read import DECISION_TYPES, MemoryAuditReader
@@ -24,6 +25,17 @@ from services.app.decisions import effective_lane, is_test_analyst, latest_visib
 from services.app.deps import Deps
 from services.app.models import LANES
 
+
+class NoCacheStatic(StaticFiles):
+    """/static is always revalidated (ETag), so a browser never runs JS from an older revision."""
+
+    async def get_response(self, path, scope):
+        resp = await super().get_response(path, scope)
+        resp.headers["Cache-Control"] = "no-cache"
+        return resp
+
+
+BUILD_ID = os.environ.get("BUILD_ID", "dev")  # short git sha, set at deploy
 STATIC = Path(__file__).resolve().parent / "static"
 TRADE_ROWS = 300  # rows returned for one account
 SEVERITY = ((60.0, "critical"), (50.0, "high"))  # score cut-offs; below is medium
@@ -490,9 +502,14 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
 
     @app.get("/", include_in_schema=False)
     def index():
-        return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
+        """The page with the build id filled in (footer and ?v= on the entry files)."""
+        html = (STATIC / "index.html").read_text(encoding="utf-8")
+        return HTMLResponse(
+            html.replace("__BUILD__", re.sub(r"[^\w.-]", "", BUILD_ID) or "dev"),
+            headers={"Cache-Control": "no-store"},
+        )
 
-    app.mount("/static", StaticFiles(directory=STATIC), name="static")
+    app.mount("/static", NoCacheStatic(directory=STATIC), name="static")
 
     def prefetch() -> None:
         """Fill the in-memory view caches for the cached cases (a few small reads)."""

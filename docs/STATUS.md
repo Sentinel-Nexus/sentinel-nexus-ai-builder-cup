@@ -323,6 +323,22 @@ Check with `gcloud run services describe sentinel-app` that `minScale` is gone o
   makes no API call (`overview_screens.py` against the live URL). Cached case median 308 ms from a laptop.
 - Local checks before the deploy: `ui_smoke --write` 73/73 (override moved EV_DG1 to escalated in the
   test view only; default lanes stayed escalated 7, agent-cleared 1, needs-analyst 0).
+- **Cache fix**: `/static/*` is served with `Cache-Control: no-cache` (ETag revalidation) and `/` with
+  `no-store`; `index.html` carries `?v=<build id>` on the CSS and JS entry files and a footer build id
+  (short git sha, set as env `BUILD_ID` by `infra/deploy_app.py`; `dev` locally). Cause of the earlier
+  stale pages: no cache headers on `/static`, so browsers applied heuristic caching to old JS.
+  Test: `tests/unit/test_workbench.py::test_cache_headers_and_build_id`; browser check:
+  `scripts/cache_check.py` (two visits in one context).
+- **Graph containment fix**: the edge tooltip (a long "traded both ways" line near the bottom of
+  `#graph`) was absolutely positioned at the pointer with no measuring or clamping and `#graph` did not
+  clip, so it painted over the legend; a plain wheel also zoomed the graph instead of scrolling the page.
+  Now `#graph` is `overflow: hidden; isolation: isolate`, the tooltip is measured, flipped and clamped
+  inside it and hidden on leave, zoom, pan and wheel, plain wheel scrolls the page, Ctrl/Cmd + wheel (and
+  touch pinch) zooms, `+`, `-` and Fit buttons and a hint are in the graph, and a ResizeObserver refits on
+  resize. Reproduced first with `scripts/graph_overlap_check.py` (before: tooltip left `#graph` on the
+  8-account case, and the wheel zoomed on all four case/size combinations; after: 0 problems on 8 and 25
+  accounts at 1280x800 and 390x844). Also run in pytest against recorded payloads
+  (`tests/unit/test_graph_browser.py`, fixtures in `tests/unit/fixtures/graph_cases`).
 - **Not done in this release**: the executable evidence standard (signal families) and the repeated
   3x evaluation. Agent decisions on injected decoys were unstable across runs; real alerts come from the
   detector, which flagged none of the decoys.

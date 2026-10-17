@@ -327,3 +327,15 @@ textarea { min-height: 84px; resize: vertical; }
 .gx-bar-track { height: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
 .gx-bar-fill { height: 100%; background: var(--accent); }
 @media (max-width: 760px) { #graph { height: 380px; } }
+
+body.ov-on .build-id { color: #c9ced6; }
+.build-id { text-align: center; padding: var(--s3) var(--s4) var(--s5); }
+
+/* ---- graph containment (gx-): nothing may paint outside #graph or over the legend ---- */
+#graph { overflow: hidden; isolation: isolate; }
+.gx-top, .gx-legend, .gx-list { position: relative; background: var(--surface); z-index: 1; }
+.gx-tip { max-width: min(260px, calc(100% - 8px)); width: max-content; box-sizing: border-box; overflow-wrap: anywhere; z-index: 5; }
+.gx-zoom { position: absolute; top: 8px; right: 8px; z-index: 6; display: flex; gap: 4px; }
+.gx-zbtn { min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text); font: 600 1rem/1 var(--font); cursor: pointer; }
+.gx-zbtn:hover { background: var(--surface-2); }
+.gx-hint { position: absolute; left: 8px; bottom: 8px; z-index: 4; pointer-events: none; font-size: 0.8rem; color: var(--text-2); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2px 8px; }

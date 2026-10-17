@@ -65,7 +65,7 @@ export function createGraph(container, graph, { onSelectNode, cited = [] } = {})
     layout: { name: 'grid' }, // replaced right below by the deterministic layout
     minZoom: 0.2,
     maxZoom: 3,
-    wheelSensitivity: 0.3,
+    wheelSensitivity: 0.3, // only reached with Ctrl or Cmd held (see wheelGuard)
     boxSelectionEnabled: false,
   });
 
@@ -87,25 +87,92 @@ export function createGraph(container, graph, { onSelectNode, cited = [] } = {})
   }
   setLayout('clusters');
 
-  // tooltip for hover facts (counts only, never colours alone)
+  // tooltip for hover facts (counts only, never colours alone). It is measured and clamped so it
+  // always stays inside the graph box: flipped above or left of the pointer near an edge.
   const tip = document.createElement('div');
   tip.className = 'gx-tip';
   tip.hidden = true;
   container.append(tip);
+  const hideTip = () => { tip.hidden = true; };
   const showTip = (ev, text) => {
     const p = ev.renderedPosition || { x: 0, y: 0 };
     tip.textContent = text;
+    tip.style.left = '0px';
+    tip.style.top = '0px';
     tip.hidden = false;
-    tip.style.left = `${Math.min(p.x + 12, container.clientWidth - 200)}px`;
-    tip.style.top = `${p.y + 12}px`;
+    const w = tip.offsetWidth;
+    const h = tip.offsetHeight;
+    const W = container.clientWidth;
+    const H = container.clientHeight;
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(v, hi));
+    let left = p.x + 12;
+    let top = p.y + 12;
+    if (left + w > W - 4) left = p.x - 12 - w;
+    if (top + h > H - 4) top = p.y - 12 - h;
+    tip.style.left = `${clamp(left, 4, Math.max(4, W - w - 4))}px`;
+    tip.style.top = `${clamp(top, 4, Math.max(4, H - h - 4))}px`;
   };
+
+  // A plain mouse wheel scrolls the page; only Ctrl or Cmd + wheel (and a touch pinch) zooms. The
+  // zoom is done here, not by cytoscape, which ignores a wheel for 250 ms after the page scrolled
+  // and would then let the browser zoom the whole page.
+  const wheelGuard = (e) => {
+    hideTip();
+    if (!container.contains(e.target)) return;
+    e.stopPropagation(); // cytoscape never sees a wheel event
+    if (!(e.ctrlKey || e.metaKey)) return; // the page scrolls
+    e.preventDefault();
+    const rect = container.getBoundingClientRect();
+    const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+    const level = Math.max(inst.minZoom(), Math.min(inst.maxZoom(), inst.zoom() * 1.002 ** -dy));
+    inst.zoom({ level, renderedPosition: { x: e.clientX - rect.left, y: e.clientY - rect.top } });
+  };
+  const guardHost = container.parentElement || container;
+  guardHost.addEventListener('wheel', wheelGuard, { capture: true, passive: false });
+  container.addEventListener('mouseleave', hideTip);
+  inst.on('pan zoom', hideTip);
+
+  // buttons and a hint inside the graph (keyboard reachable)
+  const zoomBy = (f) => {
+    const z = Math.max(inst.minZoom(), Math.min(inst.maxZoom(), inst.zoom() * f));
+    inst.zoom({ level: z, renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 } });
+  };
+  const mk = (label, text, id, fn) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'gx-zbtn';
+    b.id = id;
+    b.textContent = text;
+    b.setAttribute('aria-label', label);
+    b.title = label;
+    b.addEventListener('click', fn);
+    return b;
+  };
+  const tools = document.createElement('div');
+  tools.className = 'gx-zoom no-print';
+  tools.setAttribute('role', 'group');
+  tools.setAttribute('aria-label', 'Zoom');
+  tools.append(mk('Zoom in', '+', 'zoom-in-btn', () => zoomBy(1.25)), mk('Zoom out', '−', 'zoom-out-btn', () => zoomBy(0.8)),
+    mk('Fit the whole graph in view', 'Fit', 'fit-btn', () => inst.fit(undefined, 40)));
+  const hint = document.createElement('div');
+  hint.className = 'gx-hint no-print';
+  hint.textContent = 'Ctrl + scroll to zoom';
+  container.append(tools, hint);
+
+  // keep everything in view when the box changes size
+  let raf = 0;
+  const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(() => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { inst.resize(); inst.fit(undefined, 40); hideTip(); });
+  }) : null;
+  if (ro) ro.observe(container);
 
   inst.on('tap', 'node', (ev) => onSelectNode && onSelectNode(ev.target.data()));
   inst.on('tap', (ev) => { if (ev.target === inst) { clearFocus(); onSelectNode && onSelectNode(null); } });
   inst.on('mouseover', 'node', (ev) => { ev.target.addClass('hover'); showTip(ev, `${ev.target.data('type') === 'FundingSource' ? 'Funding source' : ev.target.data('type') === 'Device' ? 'Shared device' : 'Account'} ${ev.target.data('label')}`); });
-  inst.on('mouseout', 'node', (ev) => { ev.target.removeClass('hover'); tip.hidden = true; });
+  inst.on('mouseout', 'node', (ev) => { ev.target.removeClass('hover'); hideTip(); });
   inst.on('mouseover', 'edge', (ev) => { const t = ev.target.data('title') || pairTitle.get(ev.target.id()); if (t) showTip(ev, t); });
-  inst.on('mouseout', 'edge', () => { tip.hidden = true; });
+  inst.on('mouseout', 'edge', hideTip);
   // a small group has room for every name; a big one labels accounts when zoomed in or hovered
   const small = model.accounts.length <= 12;
   const relabel = () => {
@@ -151,6 +218,16 @@ export function createGraph(container, graph, { onSelectNode, cited = [] } = {})
     return hit.length;
   }
 
+  // read-only probe for the browser checks (scripts/graph_overlap_check.py)
+  container.gxDebug = {
+    zoom: () => inst.zoom(),
+    positions: () => inst.nodes(':visible').map((n) => [n.renderedPosition('x'), n.renderedPosition('y')]),
+    modelPositions: () => inst.nodes().map((n) => [n.position('x'), n.position('y')]),
+    visibleEdges: () => inst.edges(':visible').length,
+    focused: () => inst.elements('.focus').length,
+    edgePoints: () => inst.edges(':visible').map((e) => [e.renderedMidpoint().x, e.renderedMidpoint().y]),
+  };
+
   return {
     model,
     focus,
@@ -181,6 +258,12 @@ export function createGraph(container, graph, { onSelectNode, cited = [] } = {})
     restyle() { inst.style(styleSheet()); },
     fit() { inst.fit(undefined, 40); },
     resize() { inst.resize(); inst.fit(undefined, 40); },
-    destroy() { inst.destroy(); },
+    zoomBy,
+    destroy() {
+      if (ro) ro.disconnect();
+      cancelAnimationFrame(raf);
+      guardHost.removeEventListener('wheel', wheelGuard, { capture: true });
+      inst.destroy();
+    },
   };
 }

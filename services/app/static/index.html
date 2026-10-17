@@ -14,14 +14,14 @@
       document.documentElement.dataset.theme = t;
     } catch (e) {}
   </script>
-  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="/static/css/app.css?v=__BUILD__">
   <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js"
           integrity="sha384-IWROdLKRsN1UuJywMlWl7/blXQ8GEooN2n7dzTxfEPd7ybYIKCUJ2Ol/1Gpf3YV4"
           crossorigin="anonymous" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"
           integrity="sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t"
           crossorigin="anonymous" defer></script>
-  <script type="module" src="/static/js/app.js"></script>
+  <script type="module" src="/static/js/app.js?v=__BUILD__"></script>
 </head>
 <body>
   <a class="skip" href="#view">Skip to content</a>
@@ -41,6 +41,7 @@
   </header>
   <div class="banner" role="note">Synthetic data only. Every scenario, account and trade here is generated; agents recommend, analysts decide.</div>
   <main id="view" tabindex="-1" aria-live="polite"></main>
+  <footer class="build-id small muted" id="build-footer">Build <code id="build-id">__BUILD__</code></footer>
   <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
   <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
   <noscript><main><p>The workbench needs JavaScript.</p></main></noscript>

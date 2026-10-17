@@ -255,7 +255,8 @@ export async function render(root) {
       h('ul', null, h('li', null, 'The AI recommends.'), h('li', null, 'Analysts approve, reject or override, with a written reason.'), h('li', null, 'Every step is logged.')),
       h('a', { href: '#/governance' }, 'See the rules and limits')),
     h('div', { class: 'ov-card ov-panel ov-fade' }, h('h2', null, 'Honest limits'),
-      h('ul', null, h('li', null, 'Synthetic data from one generator, so results show the method works on that world, not on real markets.')),
+      h('ul', null, h('li', null, 'Synthetic data from one generator, so results show the method works on that world, not on real markets.'),
+        h('li', null, 'On injected look-alike cases the AI agents were not consistent between runs. That is why alerts come from the detector and an analyst makes every final call.')),
       h('a', { href: '#/benchmark' }, 'Read the limits on the Benchmark page')));
 
   const cs = charts(d);

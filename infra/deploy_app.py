@@ -100,6 +100,18 @@ def build(context: str, image: str, apply: bool) -> int:
     return 124
 
 
+def build_id() -> str:
+    """Short git sha of the commit being deployed; shown in the page footer."""
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], cwd=REPO, capture_output=True, text=True,
+            timeout=10, check=True,
+        )  # fmt: skip
+        return out.stdout.strip() or "dev"
+    except Exception:  # noqa: BLE001
+        return "dev"
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true", help="really build and deploy")
@@ -147,7 +159,7 @@ def main(argv: list[str]) -> int:
             print("build failed: not deploying")
             return rc
     env = (
-        f"PROJECT_ID={PROJECT},GCP_REGION={REGION},LIVE_PER_CLIENT_HOUR={a.live_per_client_hour},"
+        f"BUILD_ID={build_id()},PROJECT_ID={PROJECT},GCP_REGION={REGION},LIVE_PER_CLIENT_HOUR={a.live_per_client_hour},"
         f"LIVE_PER_HOUR={a.live_per_hour},LIVE_PER_DAY={a.live_per_day}"
     )
     rc = run(

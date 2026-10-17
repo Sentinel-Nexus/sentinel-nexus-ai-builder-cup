@@ -299,3 +299,20 @@ def test_summary_counts_detector_alerts_apart_from_evaluation_cases():
         assert sum(det["lanes"].values()) + sum(evl["lanes"].values()) == sum(s["lanes"].values())
         q = {a["alert_id"]: a for a in c.get("/queue").json()}
         assert q["EV_X"]["injected"] and not q["AL_W"]["injected"]
+
+
+def test_cache_headers_and_build_id(monkeypatch):
+    monkeypatch.setattr("services.app.workbench.BUILD_ID", "abc1234")
+    _, _, c = client_with_case()
+    with c:
+        page = c.get("/")
+        assert page.headers["cache-control"] == "no-store"
+        assert "abc1234" in page.text and "__BUILD__" not in page.text
+        assert "/static/css/app.css?v=abc1234" in page.text
+        assert "/static/js/app.js?v=abc1234" in page.text
+        for path in ("/static/js/app.js", "/static/css/app.css", "/static/data/overview.json"):
+            r = c.get(path)
+            assert r.status_code == 200 and r.headers["cache-control"] == "no-cache", path
+            assert r.headers.get("etag")
+            # revalidation with the ETag costs a 304, not a body
+            assert c.get(path, headers={"If-None-Match": r.headers["etag"]}).status_code == 304
