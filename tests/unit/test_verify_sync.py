@@ -25,6 +25,10 @@ def test_parse_ddl_columns_covers_all_live_tables():
         "risk_curated.case_reports",
         "audit.agent_events",
         "risk_curated.case_decisions",
+        "risk_raw.stream_accounts",
+        "risk_raw.stream_trades",
+        "risk_curated.stream_alerts",
+        "audit.stream_events",
     }
     assert ddl["risk_raw.trades"][0] == ("trade_id", "STRING")
     assert len(ddl["eval.benchmark_runs"]) == 8

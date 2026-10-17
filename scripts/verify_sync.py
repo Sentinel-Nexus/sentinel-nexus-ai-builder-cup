@@ -37,6 +37,10 @@ OUTPUT_TABLES = (
     "risk_curated.case_reports",  # P4 agents
     "audit.agent_events",
     "risk_curated.case_decisions",
+    "risk_raw.stream_accounts",  # P6 streaming path
+    "risk_raw.stream_trades",
+    "risk_curated.stream_alerts",
+    "audit.stream_events",
 )
 EXPECTED_TOPICS = {"trades", "trades-dlq"}
 EXPECTED_SUBS = {
