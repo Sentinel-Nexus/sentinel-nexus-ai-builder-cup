@@ -361,6 +361,10 @@ Check with `gcloud run services describe sentinel-app` that `minScale` is gone o
   gets `.ov-open`, one open at a time, Escape returns focus; the graph hides its tooltip on Escape and
   re-measures its container on mouse enter. Screenshots: `docs/img/ui_overview_glossary.png`,
   `ui_overview_evidence.png`.
+- **Deployed 2026-10-17: revision `sentinel-app-00009-lgx`, build id `4762cbd`** (traffic 100%; revisions
+  00001 to 00008 still exist, nothing deleted). Live: `scripts/browser_check.py` 16/16 screens clean
+  (8 screens at 1280x800 and 390x844), `e2e_smoke` (no `--write`, includes all `ui_smoke` checks) 71/71,
+  `cache_check.py` ok.
 - **Not done in this release**: the executable evidence standard (signal families) and the repeated
   3x evaluation. Agent decisions on injected decoys were unstable across runs; real alerts come from the
   detector, which flagged none of the decoys.
