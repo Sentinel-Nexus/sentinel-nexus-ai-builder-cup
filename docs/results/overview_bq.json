@@ -1,0 +1,30 @@
+{
+ "queried_at": "2026-10-17",
+ "rows": {
+  "mule_funding": {
+   "usd": 11900.0,
+   "n_trades": 108,
+   "n_accounts": 25
+  },
+  "wash_trading": {
+   "usd": 238019.5199999998,
+   "n_trades": 400,
+   "n_accounts": 8
+  },
+  "coordinated_accumulation": {
+   "usd": 112318.59999999999,
+   "n_trades": 31,
+   "n_accounts": 5
+  },
+  "__all_trades": {
+   "usd": 3014521.319999978,
+   "n_trades": 35116,
+   "n_accounts": 2039
+  },
+  "__accounts": {
+   "usd": 0.0,
+   "n_trades": 2039,
+   "n_accounts": 2039
+  }
+ }
+}

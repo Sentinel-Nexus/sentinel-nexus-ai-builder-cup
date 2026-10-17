@@ -22,8 +22,8 @@ export async function render(root, { keys }) {
       h('div', { class: 'grow' }, h('h1', null, 'Command centre'),
         h('p', null, 'Detector alerts, what the agents concluded, and what still needs an analyst.')),
       h('div', { class: 'row' },
-        h('button', { class: 'btn', type: 'button', disabled: true, 'aria-describedby': 'replay-note' }, 'Replay scenario'),
-        h('span', { id: 'replay-note', class: 'small muted' }, 'Disabled: streaming ships in the next phase.'))),
+        h('button', { class: 'btn', type: 'button', id: 'replay-btn', 'aria-describedby': 'replay-note' }, 'Replay a recorded investigation'),
+        h('span', { id: 'replay-note', class: 'small muted' }, 'Plays back the stored timeline of a cached case in your browser (recorded run, no new analysis).'))),
     page);
 
   let summary;
@@ -83,6 +83,40 @@ export async function render(root, { keys }) {
     paintEval = paint;
   }
 
+  // ---- replay of a recorded run: client-side animation of the stored timeline ----
+  let replayTimer = null;
+  const replaySlot = h('div');
+  page.prepend(replaySlot);
+  $('#replay-btn').addEventListener('click', async () => {
+    const withCase = queue.filter((a) => a.has_case && !a.injected);
+    if (!withCase.length) { replaySlot.replaceChildren(empty('Nothing to replay', 'No cached case exists yet.')); return; }
+    const id = withCase[0].alert_id;
+    clearInterval(replayTimer);
+    const list = h('ol', { class: 'timeline', style: 'max-height:260px;overflow:auto' });
+    const note = h('div', { class: 'small muted' }, 'Loading the stored timeline…');
+    replaySlot.replaceChildren(h('section', { class: 'card', 'aria-label': 'Recorded run replay', 'aria-live': 'polite' },
+      h('header', null, h('h2', null, `Replay of ${id}`), h('span', { class: 'badge cached', title: 'Stored events replayed in the browser' }, 'Recorded run')),
+      h('div', { class: 'body' }, note, list)));
+    let events = [];
+    try { events = (await get(`/cases/${encodeURIComponent(id)}/timeline`)).events; } catch (e) { note.textContent = `Could not load the timeline: ${e.message}`; return; }
+    const t0 = events.length ? new Date(events[0].ts) : null;
+    const quick = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let i = 0;
+    note.textContent = `Recorded run: ${events.length} stored events, shown one by one. Nothing is running now.`;
+    const tick = () => {
+      const batch = quick ? events.length : 1;
+      for (let k = 0; k < batch && i < events.length; k += 1, i += 1) {
+        const e = events[i];
+        const secs = t0 ? ((new Date(e.ts) - t0) / 1000).toFixed(1) : '';
+        list.append(h('li', { class: 'tl-item' }, h('span', { class: 't' }, secs ? `+${secs}s` : e.seq), h('span', null, `${e.agent}: ${e.summary || e.event_type}`)));
+      }
+      list.scrollTop = list.scrollHeight;
+      if (i >= events.length) { clearInterval(replayTimer); note.textContent = `Recorded run finished (${events.length} events).`; }
+    };
+    replayTimer = setInterval(tick, 250);
+    tick();
+  });
+
   let rows = [];
   let sel = -1;
   const open = (r) => { location.hash = `#/case/${encodeURIComponent(r.dataset.id)}`; };
@@ -106,4 +140,5 @@ export async function render(root, { keys }) {
   wire();
   if (paintEval) paintEval();
   keys.set({ j: () => select(sel + 1), k: () => select(sel - 1) });
+  return () => clearInterval(replayTimer);
 }

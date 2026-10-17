@@ -197,7 +197,36 @@ def run(base: str, write: bool = False, out: Checks | None = None) -> Checks:
                     "override is in the audit table",
                     s == 200 and any(e["test_record"] for e in tr["events"]),
                 )
+    overview_checks(base, c)
     return c
+
+
+def overview_checks(base: str, c: Checks) -> None:
+    """Overview screen: its static data, scripts and nav tab (added after the original checks)."""
+    s, ov, ms, _ = call(base, "/static/data/overview.json")
+    ok = s == 200 and isinstance(ov, dict) and ov.get("synthetic") is True
+    c.check("GET /static/data/overview.json", ok, f"{s}", ms)
+    if not ok:
+        return
+    _, bench, _, _ = call(base, "/benchmark")
+    _, summ, _, _ = call(base, "/summary")
+    det = bench["kpi"]["detector"]
+    c.check(
+        "overview KPIs match benchmark",
+        ov["kpi"]["caught"]["caught"] == det["tp"]
+        and ov["kpi"]["false_alarms"]["marketsentinel"] == det["fp"]
+        and ov["kpi"]["false_alarms"]["simple_rule"] == bench["kpi"]["baseline"]["fp"],
+    )
+    c.check(
+        "overview alert counts match /summary",
+        ov["summary"]["detector_alerts"]["alerts"] == summ["detector_alerts"]["alerts"]
+        and ov["summary"]["evaluation_cases"]["alerts"] == summ["evaluation_cases"]["alerts"],
+    )
+    for p in ("/static/js/views/overview.js", "/static/css/overview.css"):
+        s, _, ms, _ = call(base, p)
+        c.check(f"GET {p}", s == 200, f"{s}", ms)
+    s, page, ms, _ = call(base, "/")
+    c.check("nav has the Overview tab", s == 200 and b'href="#/overview"' in page, "", ms)
 
 
 def main() -> int:

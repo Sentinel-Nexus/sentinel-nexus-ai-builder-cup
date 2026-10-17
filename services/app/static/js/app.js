@@ -3,6 +3,7 @@ import { $, $$, clear, h } from './dom.js';
 import { closeDialog, dialog, errorState, loading, store } from './ui.js';
 
 const VIEWS = {
+  overview: () => import('./views/overview.js'),
   command: () => import('./views/command.js'),
   case: () => import('./views/case.js'),
   lanes: () => import('./views/lanes.js'),
@@ -61,7 +62,7 @@ const toggleTheme = () => setTheme(document.documentElement.dataset.theme === 'd
 
 export function showHelp() {
   const rows = [
-    ['g c / g l / g b / g g', 'Go to Command centre, Lanes, Benchmark, Governance'],
+    ['g o / g c / g l / g b / g g', 'Go to Overview, Command centre, Lanes, Benchmark, Governance'],
     ['j / k, Enter', 'Command centre: move through the queue, open the case'],
     ['a / r / e', 'Case: approve, reject or escalate (asks for a reason)'],
     ['i', 'Case: investigate live (asks first)'],
@@ -80,7 +81,7 @@ function onKey(e) {
   if (['input', 'textarea', 'select'].includes(tag) || e.target.isContentEditable) return;
   if ($('#dialog').open) { if (e.key === 'Escape') closeDialog(); return; }
   if (chord) {
-    const dest = { c: '#/', l: '#/lanes', b: '#/benchmark', g: '#/governance' }[e.key];
+    const dest = { o: '#/overview', c: '#/', l: '#/lanes', b: '#/benchmark', g: '#/governance' }[e.key];
     chord = null;
     if (dest) { location.hash = dest; e.preventDefault(); }
     return;
@@ -92,6 +93,8 @@ function onKey(e) {
   if (fn) { fn(e); }
 }
 
+// first load with an empty hash opens the Overview (the Command centre keeps #/)
+if (!location.hash) location.replace(`${location.pathname}${location.search}#/overview`);
 window.addEventListener('hashchange', route);
 window.addEventListener('keydown', onKey);
 $('#theme-btn').addEventListener('click', toggleTheme);
