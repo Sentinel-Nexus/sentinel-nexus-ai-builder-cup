@@ -317,6 +317,10 @@ Check with `gcloud run services describe sentinel-app` that `minScale` is gone o
   `evaluation_cases` apart (the old totals are kept).
 - **Idempotent GETs** retry once after 400 ms on a network error or 5xx
   (`tests/unit/test_ui_api_retry.py`). Detector scores show two decimals (43.01 vs 42.99).
+- **Deployed 2026-10-17: revision `sentinel-app-00006-pqv`** (`python infra/deploy_app.py --apply`; max 1
+  instance, min 1, startup probe unchanged; the old revisions were not deleted). `e2e_smoke` (no
+  `--write`) against the live URL: **71/71 passed**, including the new Overview checks; the Overview
+  makes no API call (`overview_screens.py` against the live URL). Cached case median 308 ms from a laptop.
 - Local checks before the deploy: `ui_smoke --write` 73/73 (override moved EV_DG1 to escalated in the
   test view only; default lanes stayed escalated 7, agent-cleared 1, needs-analyst 0).
 - **Not done in this release**: the executable evidence standard (signal families) and the repeated
