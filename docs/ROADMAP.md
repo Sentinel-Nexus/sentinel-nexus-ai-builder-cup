@@ -49,7 +49,7 @@ Schedule: P1 and P2 Oct 14, P3 and P4 Oct 15, P5 and P6 Oct 16, P7 Oct 17. Submi
     timeline, case report with evidence links, approve/reject written to audit.
   - Publicly reachable.
   - Status 2026-10-17: deployed as `sentinel-app` (URL, revision and settings in `docs/STATUS.md`);
-    `scripts/e2e_smoke.py` passes against the live URL. The replay control is disabled until P6.
+    `scripts/e2e_smoke.py` passes against the live URL. The replay control is now "Replay a recorded investigation" (client-side playback of a stored timeline); real streaming is P6.
 
 - [ ] **P6 streaming-governance** (Oct 16)
   - Replay script publishing synthetic trades to Pub/Sub.

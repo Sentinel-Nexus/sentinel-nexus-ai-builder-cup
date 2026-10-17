@@ -222,7 +222,7 @@ for the operator) and deploys. IAM: only what `--allow-unauthenticated` adds for
   stale lanes for up to the 30 s cache TTL, and the live ceiling would multiply by the instance count.
   One instance (1 vCPU, concurrency 40) handled 300 requests at concurrency 10 with no error
   (median 0.8 s from a laptop). The cost is no scale-out: more than about 40 simultaneous requests queue.
-- **Screens**: command centre (KPIs, queue, replay control disabled: streaming ships in P6), case
+- **Screens**: Overview (new first tab, `#/overview`, see "Overview, readable graph" below), command centre (detector-alert KPIs and queue, a "Replay a recorded investigation" control that animates a stored timeline in the browser), case
   (ring graph, timeline, draft report with evidence chips, Approve / Reject / Escalate with a required
   reason, Investigate live, JSON export, print view), lanes, benchmark (numbers parsed from
   `docs/benchmark.md` and `docs/agent-evals.md` by `scripts/build_ui_data.py`, caveats and limits shown),
@@ -293,6 +293,35 @@ Check with `gcloud run services describe sentinel-app` that `minScale` is gone o
   deployed revision before the change, so the 20-event report could not be reproduced; the ceiling is
   now enforced in the endpoint and covered by a test.
 - Injected review cases are stored: see the next section.
+
+## Overview, readable graph, evaluation cases (branch `feat/web-workbench`, 2026-10-17)
+
+- **Overview** (`#/overview`, first tab; an empty hash is replaced by it, `#/` is still the Command
+  centre). Static data in `services/app/static/data/overview.json`, built by
+  `python scripts/build_overview_data.py --base <service url> [--refresh-bq]` from `benchmark.json`,
+  the service's `/summary`, `/queue` and stored reports, `docs/results/cache_latency.json`, and **one**
+  capped BigQuery query (USD traded by flagged accounts per scenario, plus trade and account counts;
+  estimate printed first: 543,320 bytes, cap 50 MB; result cached in `docs/results/overview_bq.json`).
+  The page makes no BigQuery or Gemini call (`scripts/overview_screens.py` checks the requests).
+  Pre-computed from recorded runs; synthetic data; no savings, ROI or hours-saved figures.
+  Numbers are tied to their sources in `tests/unit/test_overview_data.py` and `ui_smoke`.
+- **Case graph**: plain-language caption, legend, edge toggles, Clusters/Circle layouts (deterministic),
+  node size by volume, glow on accounts the report cites, hubs always labelled, account labels when
+  zoomed or hovered (always for groups of 12 or fewer), side panel with plain facts, "Why this was
+  flagged" bars, "Walk me through it" (4 steps, Autoplay, Esc), collapsible list view. Screenshots
+  `docs/img/ui_graph_*.png` (`scripts/graph_screens.py`). Known limit: the graph payload has no per-pair
+  fill counts, so for rings over 40 edges the merged line per pair is thick when the pair traded both
+  ways and thin when one way; the hover says which.
+- **Evaluation cases**: injected cases are hidden by default behind a toggle on the Command centre and
+  Lanes and shown in a separate section; `/summary` now reports `detector_alerts` and
+  `evaluation_cases` apart (the old totals are kept).
+- **Idempotent GETs** retry once after 400 ms on a network error or 5xx
+  (`tests/unit/test_ui_api_retry.py`). Detector scores show two decimals (43.01 vs 42.99).
+- Local checks before the deploy: `ui_smoke --write` 73/73 (override moved EV_DG1 to escalated in the
+  test view only; default lanes stayed escalated 7, agent-cleared 1, needs-analyst 0).
+- **Not done in this release**: the executable evidence standard (signal families) and the repeated
+  3x evaluation. Agent decisions on injected decoys were unstable across runs; real alerts come from the
+  detector, which flagged none of the decoys.
 
 ## Injected review cases (stored 2026-10-17, source `eval_injected`)
 

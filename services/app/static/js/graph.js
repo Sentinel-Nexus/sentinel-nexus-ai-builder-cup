@@ -108,7 +108,11 @@ export function createGraph(container, graph, { onSelectNode, cited = [] } = {})
   inst.on('mouseout', 'edge', () => { tip.hidden = true; });
   // a small group has room for every name; a big one labels accounts when zoomed in or hovered
   const small = model.accounts.length <= 12;
-  const relabel = () => inst.nodes('[type = "Account"]').toggleClass('lbl', small || inst.zoom() >= LABEL_ZOOM);
+  const relabel = () => {
+    inst.nodes('[type = "Account"]').toggleClass('lbl', small || inst.zoom() >= LABEL_ZOOM);
+    // keep labels at least 11 px on screen whatever the zoom
+    inst.nodes().style('font-size', Math.min(30, Math.max(12, 12 / inst.zoom())));
+  };
   inst.on('zoom', relabel);
   relabel();
 
