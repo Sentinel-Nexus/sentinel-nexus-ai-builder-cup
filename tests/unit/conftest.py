@@ -1,4 +1,4 @@
-"""Run the workbench's ES modules in headless Chromium (no Node here). Tests skip if unavailable."""
+"""Shared fixture: run the workbench's ES modules in headless Chromium (no Node here)."""
 
 from __future__ import annotations
 

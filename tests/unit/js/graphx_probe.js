@@ -29,5 +29,6 @@ async () => {
     sizes: [X.nodeSize(0, 100), X.nodeSize(100, 100), X.nodeSize(5000, 100), X.nodeSize(1, 100)],
     layout: { same: JSON.stringify(l1) === JSON.stringify(l2), washMin: minDist(l1), muleMin: minDist(X.clusterLayout(mule)), circleMin: minDist(X.circleLayout(mule)), circleWash: minDist(X.circleLayout(wash)), all: Object.keys(l1).length },
     list: X.listRows(wash)[0],
+    cited: X.citedAccounts(['UsesDevice:W001>D0', 'TradedWith:W002>W003', 'TradedIn:W004>M1', 'T9', 'Account:ZZZ', 'R_X'], { T9: 'W005' }, wash.accounts),
   };
 }

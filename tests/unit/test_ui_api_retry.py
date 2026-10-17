@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from tests.unit.jsharness import js_page  # noqa: F401
-
 SCRIPT = """
 async () => {
   const { fetchRetry, RETRY_DELAY_MS } = await import('/static/js/api.js');
@@ -32,7 +30,7 @@ async () => {
 """
 
 
-def test_get_retries_once_on_network_error_or_5xx(js_page):  # noqa: F811
+def test_get_retries_once_on_network_error_or_5xx(js_page):
     r = js_page.evaluate(SCRIPT)
     assert r["delay"] == 400
     assert r["ok"] == {"out": 200, "calls": 1, "sleeps": []}

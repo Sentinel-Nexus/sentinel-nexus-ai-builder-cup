@@ -259,3 +259,20 @@ export function circleLayout(model) {
 }
 
 export const LAYOUTS = { clusters: clusterLayout, circle: circleLayout };
+
+/** Accounts a report cites: from account, link, trade-row and score ids (trade ids via the map). */
+export function citedAccounts(evidenceIds, tradeAccounts, accountKeys) {
+  const known = new Set(accountKeys);
+  const out = new Set();
+  const add = (k) => { if (known.has(k)) out.add(k); };
+  for (const id of evidenceIds || []) {
+    let m = /^Account:(.+)$/.exec(id);
+    if (m) { add(m[1]); continue; }
+    m = /^(?:UsesDevice|FundedBy|TradedWith):([^>]+)>(.+)$/.exec(id);
+    if (m) { add(m[1]); if (id.startsWith('TradedWith')) add(m[2]); continue; }
+    m = /^(?:TradedIn|Score):([^>]+)/.exec(id);
+    if (m) { add(m[1]); continue; }
+    if (tradeAccounts && tradeAccounts[id]) add(tradeAccounts[id]);
+  }
+  return [...out].sort();
+}

@@ -2,6 +2,8 @@
 import { ApiError, forget, get, post, stream } from '../api.js';
 import { $, clear, h, table } from '../dom.js';
 import { createGraph } from '../graph.js';
+import { accountFacts, citedAccounts, featureName, hubFacts } from '../graphx.js';
+import { controls, legend, listView, whyFlagged } from '../graphui.js';
 import {
   INJECTED_LABEL, closeDialog, dialog, download, empty, errorState, fmtMs, fmtN, fmtTime, laneChip, loading,
   scenarioChip, sevChip, sourceBadge, statusChip, store, toast,
@@ -181,6 +183,7 @@ export async function render(root, { args, keys }) {
     if (!printMode) left.append(trailCard());
 
     right.append(graphCard(report, alert));
+    right.append(whyFlagged(alert));
     right.append(h('div', { class: 'card', id: 'node-panel', 'aria-live': 'polite' },
       h('header', null, h('h2', null, 'Selection')), h('div', { class: 'state small' }, 'Click an account, device or funding source in the graph to see its trades and links.')));
 
@@ -291,12 +294,9 @@ export async function render(root, { args, keys }) {
   function graphCard(report, alert) {
     return h('section', { class: 'card', 'aria-label': 'Ring graph' },
       h('header', null, h('h2', null, 'Ring graph'), h('span', { id: 'graph-engine' }), h('button', { class: 'btn small ghost no-print', type: 'button', onclick: () => { if (g) { g.clearFocus(); g.fit(); st.pressed = null; $('[aria-pressed="true"]', page)?.setAttribute('aria-pressed', 'false'); } } }, 'Reset view')),
+      h('div', { id: 'gx-slot' }),
       h('div', { id: 'graph', role: 'img', 'aria-label': `Graph of ring ${alert.ring_id}: accounts, devices and funding sources` }, h('div', { class: 'state' }, 'Loading graph…')),
-      h('div', { class: 'legend' },
-        h('span', null, h('i', { style: 'border-radius:50%;color:var(--g-account)' }), 'Account (dashed: linked, not in alert)'),
-        h('span', null, h('i', { style: 'transform:rotate(45deg) scale(.8);color:var(--g-device)' }), 'Device'),
-        h('span', null, h('i', { style: 'border-radius:3px;color:var(--g-funding)' }), 'Funding source'),
-        h('span', null, 'Edges: solid uses-device, dashed funded-by, dotted traded-with. Thick edges are the detector evidence.')),
+      legend(),
       h('div', { class: 'body small muted', id: 'member-list' }));
   }
 
@@ -313,19 +313,45 @@ export async function render(root, { args, keys }) {
     $('#graph-engine', page).replaceWith(h('span', { id: 'graph-engine', class: 'chip t-med', title: gd.fallback_reason || 'Answered by the BigQuery graph' }, `${gd.engine === 'gql' ? 'GQL' : 'Fallback'}${gd.cached ? ' · cached' : ''}`));
     clear(box);
     try {
-      g = createGraph(box, { ...gd, members_alert: report.members_alert || gd.members_alert }, { onSelectNode: showNode });
+      const accountKeys = gd.nodes.filter((n) => n.type === 'Account').map((n) => n.key);
+      const ids = [...(report.evidence_table || []).flatMap((c) => c.evidence_ids || []), ...(report.clear_evidence_ids || [])];
+      g = createGraph(box, { ...gd, members_alert: report.members_alert || gd.members_alert },
+        { onSelectNode: showNode, cited: citedAccounts(ids, gd.trade_accounts, accountKeys) });
     } catch (e) {
       box.append(errorState(e));
       return;
     }
+    st.gx = controls(g, alert);
+    $('#gx-slot', page).append(st.gx.node);
+    cleanups.push(() => st.gx && st.gx.destroy());
+    loadVolumes(gd);
     const accts = gd.nodes.filter((n) => n.type === 'Account').map((n) => n.key).sort();
     const list = $('#member-list', page);
+    list.append(listView(g.model, (a) => g.selectAccount(a)));
     list.append(h('div', null, `${accts.length} accounts${gd.truncated ? ' (truncated)' : ''}: `), h('div', { class: 'row', style: 'margin-top:4px' }, accts.slice(0, 40).map((a) => h('button', { type: 'button', class: 'ev-chip', onclick: () => g.selectAccount(a) }, a)), accts.length > 40 ? `+${accts.length - 40} more` : null));
     st.chips.forEach((c) => {
       const ids = ids2graph(c.id);
       if (!ids.some((x) => g.resolves(x))) { c.el.classList.add('none'); c.el.title = `${c.id}: no matching element in the graph (a policy clause, market, trade or score row)`; }
     });
     if (printMode) setTimeout(printSnapshot, 600);
+  }
+
+  /** Node size by trading volume: one cached trades call per account, a few at a time. */
+  async function loadVolumes(gd) {
+    const keys = gd.nodes.filter((n) => n.type === 'Account').map((n) => n.key).slice(0, 60);
+    const vol = {};
+    let next = 0;
+    const worker = async () => {
+      while (next < keys.length) {
+        const k = keys[next]; next += 1;
+        try {
+          const t = await get(`/cases/${enc(alertId)}/trades?account=${enc(k)}`);
+          vol[k] = Number(t.summary?.total_usd) || t.trades.reduce((a, x) => a + Number(x.size_usd || 0), 0);
+        } catch { vol[k] = 0; }
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    if (g) g.setVolumes(vol);
   }
 
   function printSnapshot() {
@@ -360,23 +386,30 @@ export async function render(root, { args, keys }) {
   async function showNode(data) {
     const panel = $('#node-panel', page);
     if (!panel) return;
+    const chips = (list) => h('div', null, list.map((a) => h('button', { type: 'button', class: 'ev-chip', onclick: () => g.selectAccount(a) }, a)));
     if (!data) { clear(panel).append(h('header', null, h('h2', null, 'Selection')), h('div', { class: 'state small' }, 'Nothing selected.')); return; }
-    clear(panel).append(h('header', null, h('h2', null, `${data.type === 'FundingSource' ? 'Funding source' : data.type} ${data.label}`)), h('div', { class: 'body' }, loading(3)));
+    const model = g.model;
     if (data.type !== 'Account') {
       const who = g.neighbours(data.id);
-      clear(panel).append(h('header', null, h('h2', null, `${data.type === 'FundingSource' ? 'Funding source' : data.type} ${data.label}`)),
-        h('div', { class: 'body' }, h('p', null, `Shared by ${who.length} accounts in this ring:`), h('div', null, who.map((a) => h('button', { type: 'button', class: 'ev-chip', onclick: () => g.selectAccount(a) }, a)))));
+      clear(panel).append(h('header', null, h('h2', null, `${data.type === 'FundingSource' ? 'Funding source' : 'Device'} ${data.label}`)),
+        h('div', { class: 'body' }, h('p', null, hubFacts(model, data.id)), chips(who)));
       return;
     }
+    const { role, facts } = accountFacts(model, data.label);
+    clear(panel).append(h('header', null, h('h2', null, `Account ${data.label}`)), h('div', { class: 'body' }, h('p', null, role), loading(2)));
     try {
       const t = await get(`/cases/${enc(alertId)}/trades?account=${enc(data.label)}`);
-      const f = t.score?.contributions ? Object.entries(t.score.contributions).sort((a, b) => b[1] - a[1]).slice(0, 4) : [];
+      const usd = t.summary ? Math.round(t.summary.total_usd) : Math.round(t.trades.reduce((a, x) => a + Number(x.size_usd || 0), 0));
+      const f = t.score?.contributions ? Object.entries(t.score.contributions).sort((a, b) => b[1] - a[1]).slice(0, 3) : [];
       clear(panel).append(h('header', null, h('h2', null, `Account ${t.account_id}`), h('span', { class: 'chip t-neutral' }, `engine ${t.engine}`)),
         h('div', { class: 'body' },
-          t.score ? h('p', null, `Detector score ${t.score.score}`, f.length ? h('span', { class: 'small muted' }, ` (top: ${f.map(([k, v]) => `${k} ${v}`).join(', ')})`) : null) : null,
-          t.summary ? h('p', null, `${t.summary.n_trades} trades, $${fmtN(Math.round(t.summary.total_usd))} in ${t.market_id}`) : h('p', { class: 'muted' }, t.market_id ? `No trades in ${t.market_id}.` : 'No trades.'),
-          t.other_markets.length ? h('p', { class: 'small muted' }, `Markets: ${t.other_markets.map((m) => `${m.market_id} (${m.n_trades})`).join(', ')}`) : null,
-          t.trades.length ? table(['Time', 'Side', 'Out', ['Price', 'num'], ['USD', 'num']], t.trades.slice(0, 40).map((x) => [String(x.ts).slice(0, 19), x.side, x.outcome, Number(x.price).toFixed(2), fmtN(Math.round(x.size_usd))]), { dense: true, caption: 'Trades' }) : null,
+          h('p', null, role),
+          t.summary ? h('p', null, h('strong', null, `${fmtN(t.summary.n_trades)} trades`), ` worth $${fmtN(usd)} in ${t.market_id}.`) : h('p', { class: 'muted' }, t.market_id ? `No trades in ${t.market_id}.` : 'No trades.'),
+          facts.length ? h('ul', { class: 'gx-facts' }, facts.map((x) => h('li', null, x))) : h('p', { class: 'small muted' }, 'Shares no device or funding source with another account in this view.'),
+          t.score ? h('p', { class: 'small muted' }, `Detector score ${t.score.score.toFixed(2)}${f.length ? `. Strongest signals: ${f.map(([k]) => featureName(k)).join('; ')}` : ''}.`) : null,
+          t.other_markets.length ? h('p', { class: 'small muted' }, `Also traded: ${t.other_markets.map((m) => `${m.market_id} (${m.n_trades})`).join(', ')}`) : null,
+          t.trades.length ? h('details', null, h('summary', { class: 'small' }, `Show the ${Math.min(t.trades.length, 40)} latest trades`),
+            table(['Time', 'Side', 'Out', ['Price', 'num'], ['USD', 'num']], t.trades.slice(0, 40).map((x) => [String(x.ts).slice(0, 19), x.side, x.outcome, Number(x.price).toFixed(2), fmtN(Math.round(x.size_usd))]), { dense: true, caption: 'Trades' })) : null,
           t.truncated ? h('p', { class: 'small muted' }, 'More trades exist than are shown.') : null));
     } catch (e) {
       clear(panel).append(h('header', null, h('h2', null, `Account ${data.label}`)), errorState(e, () => showNode(data)));
