@@ -56,6 +56,7 @@ def main() -> int:
                 print(f"visit 2: {n304}/{len(static)} static files revalidated (304)")
             page.goto(base + "/#/")
             page.wait_for_selector("#replay-btn")
+            page.wait_for_selector(".kpis")
             text = page.inner_text("#view")
             for want in ("Replay a recorded investigation", "Open detector alerts"):
                 if want not in text:

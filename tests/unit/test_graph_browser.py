@@ -52,6 +52,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             f = FIX / f"{m[1]}_trades_{acct}.json"
             if f.exists():
                 return self._send(f.read_bytes(), "application/json")
+        if u.path in ("/summary", "/queue", "/lanes"):
+            return self._send((FIX / f"{u.path[1:]}.json").read_bytes(), "application/json")
+        if u.path == "/benchmark":
+            return self._send((STATIC / "data" / "benchmark.json").read_bytes(), "application/json")
         if u.path == "/audit":
             return self._send((FIX / "audit.json").read_bytes(), "application/json")
         self._send(json.dumps({"detail": "not in fixtures"}).encode(), "application/json", 404)
@@ -80,3 +84,43 @@ def test_graph_stays_inside_its_box_and_controls_work(server):
             pytest.skip("chromium not installed")
         raise
     assert problems == []
+
+
+def test_command_centre_and_the_other_screens_render_without_errors(server):
+    pytest.importorskip("playwright.sync_api")
+    from playwright.sync_api import sync_playwright
+
+    errors: list[str] = []
+    with sync_playwright() as p:
+        try:
+            browser = p.chromium.launch()
+        except Exception as e:  # noqa: BLE001
+            pytest.skip(f"chromium not available: {e}")
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.set_default_timeout(20000)
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(server + "/")
+        page.wait_for_selector(".ov-kpis")  # empty hash -> Overview
+        assert page.evaluate("location.hash") == "#/overview"
+        page.goto(server + "/#/")
+        page.wait_for_selector(".kpis")
+        text = page.inner_text("#view")
+        assert "Open detector alerts" in text and "Replay a recorded investigation" in text
+        assert "streaming" not in text.lower()
+        # injected cases are off by default and shown apart when asked
+        n_real = page.locator("tbody tr").count()
+        page.check("#eval-toggle")
+        page.wait_for_selector(".eval-section")
+        assert page.locator("tbody tr").count() > n_real
+        page.uncheck("#eval-toggle")
+        assert page.locator("tbody tr").count() == n_real
+        # replay of a recorded run is client-side and labelled
+        page.click("#replay-btn")
+        page.wait_for_selector("section[aria-label='Recorded run replay'] li")
+        assert "Recorded run" in page.inner_text("section[aria-label='Recorded run replay']")
+        for hash_ in ("#/lanes", "#/benchmark"):
+            page.goto(server + "/" + hash_)
+            page.wait_for_timeout(800)
+            assert "could not be loaded" not in page.inner_text("#view"), hash_
+        browser.close()
+    assert errors == []

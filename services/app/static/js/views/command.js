@@ -1,5 +1,5 @@
 import { get } from '../api.js';
-import { $$, h, table } from '../dom.js';
+import { $, $$, h, table } from '../dom.js';
 import { empty, errorState, evalCasesOn, evalToggle, fmtPct, injectedChip, laneChip, scenarioChip, sevChip, statusChip } from '../ui.js';
 
 export const title = 'Command centre';

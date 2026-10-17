@@ -339,6 +339,11 @@ Check with `gcloud run services describe sentinel-app` that `minScale` is gone o
   8-account case, and the wheel zoomed on all four case/size combinations; after: 0 problems on 8 and 25
   accounts at 1280x800 and 390x844). Also run in pytest against recorded payloads
   (`tests/unit/test_graph_browser.py`, fixtures in `tests/unit/fixtures/graph_cases`).
+- **Regression found and fixed**: revisions 00006 and 00007 shipped a Command centre that failed with
+  "$ is not defined" (the replay control used `$` without importing it; the API smoke suites cannot see
+  a browser error). Fixed in the next revision; `tests/unit/test_graph_browser.py` now loads the Command
+  centre, the evaluation toggle, the replay and Lanes/Benchmark in a browser, and `scripts/cache_check.py`
+  does the same against the live URL.
 - **Not done in this release**: the executable evidence standard (signal families) and the repeated
   3x evaluation. Agent decisions on injected decoys were unstable across runs; real alerts come from the
   detector, which flagged none of the decoys.
