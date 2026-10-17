@@ -344,6 +344,10 @@ Check with `gcloud run services describe sentinel-app` that `minScale` is gone o
   a browser error). Fixed in the next revision; `tests/unit/test_graph_browser.py` now loads the Command
   centre, the evaluation toggle, the replay and Lanes/Benchmark in a browser, and `scripts/cache_check.py`
   does the same against the live URL.
+- **Deployed 2026-10-17: revision `sentinel-app-00008-tbg`, build id `9383e7f`** (traffic 100%; revisions
+  00001 to 00007 still exist, nothing deleted). Live checks: `e2e_smoke` (no `--write`, includes all
+  `ui_smoke` checks) 71/71; `scripts/cache_check.py` (two visits, same context) ok with the build id in
+  the footer; `scripts/graph_overlap_check.py` against the live URL: see its last line below.
 - **Not done in this release**: the executable evidence standard (signal families) and the repeated
   3x evaluation. Agent decisions on injected decoys were unstable across runs; real alerts come from the
   detector, which flagged none of the decoys.
