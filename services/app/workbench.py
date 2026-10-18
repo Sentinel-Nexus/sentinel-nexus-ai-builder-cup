@@ -202,6 +202,25 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
                     "analyst_decision": done.get(a["alert_id"], {}).get("decision"),
                 }
             )
+        # streamed alerts of the latest run (STREAMING_ENABLED): flagged, and outside every count
+        for a in d().store.stream_alerts():
+            out.append(
+                {
+                    **{
+                        k: a[k]
+                        for k in ("alert_id", "ring_id", "status", "scenario_hint", "n_members")
+                    },
+                    "score": round(float(a["score"]), 2),
+                    "threshold": a.get("threshold"),
+                    "severity": severity(a),
+                    "injected": False,
+                    "streamed": True,
+                    "has_case": d().cases.get(a["alert_id"]) is not None,
+                    "lane": None,
+                    "agent_decision": None,
+                    "analyst_decision": None,
+                }
+            )
         order = {"critical": 0, "high": 1, "medium": 2, "review": 3}
         return sorted(out, key=lambda r: (order[r["severity"]], -r["score"]))
 
@@ -253,6 +272,8 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         view["score"] = round(float(a["score"]), 2)
         view["severity"] = severity(a)
         view["injected"] = bool(a.get("injected"))
+        if a.get("streamed"):
+            view["streamed"] = True
         try:
             view["top_features"] = json.loads(a["top_features"]) if a.get("top_features") else {}
         except (TypeError, ValueError):
@@ -451,6 +472,42 @@ def register(app: FastAPI, d: Callable[[], Deps], state: dict) -> None:
         }
 
     def _guards() -> list[dict]:
+        return _base_guards() + _stream_guards()
+
+    def _stream_guards() -> list[dict]:
+        ctl = state.get("stream")
+        if ctl is None:  # flag off: the list is exactly what it was
+            return []
+        st = ctl.settings
+        return [
+            {
+                "name": "Stream schema validation",
+                "status": "active",
+                "detail": "Every Pub/Sub message must match an exact schema (keys, types, ranges, "
+                "attributes). Anything else is malformed: nacked and logged, never written.",
+            },
+            {
+                "name": "Stream idempotency",
+                "status": "active",
+                "detail": "A duplicate delivery or a second replay is dropped by an in-memory set "
+                "and, behind it, by a BigQuery MERGE on the trade or account id.",
+            },
+            {
+                "name": "Retries, then dead-letter",
+                "status": "active",
+                "detail": "A malformed message is retried; after 5 delivery attempts Pub/Sub "
+                "forwards it to trades-dlq. The service records each attempt.",
+            },
+            {
+                "name": "Stream rate limits",
+                "status": "active",
+                "detail": f"{st.per_client_10min} per client per 10 minutes, {st.per_hour} per "
+                f"hour and {st.per_day} per day for the service (per instance). The burst is "
+                "fixed; no request body is accepted.",
+            },
+        ]
+
+    def _base_guards() -> list[dict]:
         return [
             {
                 "name": "Evidence ledger",

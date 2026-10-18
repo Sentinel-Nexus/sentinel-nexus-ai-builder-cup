@@ -42,6 +42,7 @@ from services.app.ratelimit import MESSAGES, ForceLimiter
 from services.app.runctx import now_iso
 from services.app.webhook import record_decision
 from services.app.workbench import client_id, register
+from services.stream.service import attach as attach_stream
 
 
 def default_deps(settings: Settings | None = None) -> Deps:
@@ -127,7 +128,12 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         slots_n = state["deps"].settings.run_concurrency
         state["slots"] = threading.BoundedSemaphore(slots_n)
         threading.Thread(target=warm, daemon=True).start()
+        if state.get("stream"):  # STREAMING_ENABLED: overlay, graph routing, pull consumer
+            state["stream_wire"]()
+            state["stream"].start()
         yield
+        if state.get("stream"):
+            state["stream"].stop()
         drain_all()  # queued audit inserts
 
     app = FastAPI(title="MarketSentinel agents", lifespan=lifespan)
@@ -156,6 +162,7 @@ def create_app(deps: Deps | None = None) -> FastAPI:
         return report
 
     register(app, d, state)
+    attach_stream(app, d, state)  # /stream/config always; the rest only with STREAMING_ENABLED
 
     def _invalidate() -> None:
         if d().audit_reader is not None:
