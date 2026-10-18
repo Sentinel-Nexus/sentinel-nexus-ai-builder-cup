@@ -25,7 +25,7 @@ in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 | Stream tables (P6) | `risk_raw.stream_accounts`, `risk_raw.stream_trades` (partitioned by day of `ts`, clustered by `account_id`), `risk_curated.stream_alerts`, `audit.stream_events`. DDL `sql/schema/60_stream.sql`; `sa-agent` has `roles/bigquery.dataEditor` on exactly these four tables (`sql/iam/sa_agent_stream_tables.sql`). Script: `infra/stream_setup.py` |
 | Service accounts | `sa-agent` (aiplatform.user, bigquery.dataViewer, bigquery.jobUser), `sa-ingest` (bigquery.dataEditor, bigquery.jobUser, pubsub.subscriber) |
 | Artifact Registry | `sentinel` (`sentinel-app` images, one per deploy), `cloud-run-source-deploy` (auto-created) |
-| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker). **`sentinel-app`** (P5, the workbench and agents API) at `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, revision `sentinel-app-00005-v85`, runs as `sa-agent`, **public**, min 1 / max 1 instance, 1Gi, 1 CPU always allocated, concurrency 40, request timeout 300 s, image in Artifact Registry `sentinel` |
+| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker). **`sentinel-app`** (P5, the workbench and agents API) at `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, **live revision `sentinel-app-00013-tek` since 2026-10-18 (P6 streaming, `STREAMING_ENABLED=true`; first deployed as 00005-v85)**, runs as `sa-agent`, **public**, min 1 / max 1 instance, 1Gi, 1 CPU always allocated, concurrency 40, request timeout 300 s, image in Artifact Registry `sentinel` |
 | Reservation | `gql-poc` (ENTERPRISE, 0 baseline slots, autoscale max 50), QUERY assignment to the whole project |
 | APIs | 35 enabled, listed in the inventory |
 
@@ -441,8 +441,9 @@ Caveats, said plainly:
 - Counters live in memory (one instance); events also go to `audit.stream_events`. A restart loses the live
   counters of a running run (the page then says the run was lost); alerts are re-read from
   `risk_curated.stream_alerts`.
-- An agent case for a streamed alert was **not** run, apart from the optional single live check listed below.
-  Its page shows the alert evidence and ring graph and says no agent case exists.
+- No agent case is stored for the streamed alert (live results are not persisted). One live investigation
+  was run on it as the final check (below); the alert page shows its evidence and ring graph and says no
+  stored agent case exists.
 
 **Cloud changes applied** (all by script, dry run printed and approved first):
 
@@ -472,6 +473,14 @@ detector alerts); a race in the browser check (it read the previous run's "Finis
 idle, running, finished, rate-limited and error are stubbed; the real streamed case page was opened),
 `scripts/e2e_smoke.py` 71/71, `scripts/ui_smoke.py` 71/71, `stream_eval.py` replay PASS and poison PASS on 00013,
 second replay PASS on 00012 (same code; the only change in 00013 is static data). `ruff` clean, 256 tests passed (5 live-only skipped).
+
+**Promoted 2026-10-18 (after approval)**: `python infra/deploy_app.py --apply --promote` moved 100% of traffic to
+**`sentinel-app-00013-tek`**. Rollback target: `sentinel-app-00009-lgx`. On the public URL afterwards: `/health` ready,
+`browser_check.py` 18/18 screens clean, `e2e_smoke.py` 71/71. The one Gemini call of this phase: a live
+investigation of the streamed alert `AL_ae208df261` through the existing path, `ok`, 28,178 tokens, 3 tool
+calls, 24.2 s, graph engine `fallback` (the stream tables), decision escalate (confidence 0.61), members the 6
+ring accounts, 2 claims kept and 3 removed by the evidence checks; not stored (live results are not persisted),
+about $0.01 to $0.02. The cost of the evaluation itself: BigQuery only, 3 replays plus a local run, no other model call.
 
 **Cut or not done**:
 
