@@ -339,3 +339,12 @@ body.ov-on .build-id { color: #c9ced6; }
 .gx-zbtn { min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--surface); color: var(--text); font: 600 1rem/1 var(--font); cursor: pointer; }
 .gx-zbtn:hover { background: var(--surface-2); }
 .gx-hint { position: absolute; left: 8px; bottom: 8px; z-index: 4; pointer-events: none; font-size: 0.8rem; color: var(--text-2); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2px 8px; }
+
+/* Pipeline card (streaming) */
+.stream-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--s3); }
+.stream-stat { border: 1px solid var(--border); border-radius: 8px; padding: var(--s2) var(--s3); background: var(--surface); }
+.stream-stat .label { font-size: 0.8rem; color: var(--text-2); }
+.stream-stat .value { font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stream-bar { height: 10px; border-radius: 6px; background: var(--neutral-bg); overflow: hidden; border: 1px solid var(--border); }
+.stream-bar .fill { height: 100%; width: 0; background: var(--accent); }
+@media (prefers-reduced-motion: no-preference) { .stream-bar .fill { transition: width 0.4s ease; } }

@@ -52,6 +52,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
             f = FIX / f"{m[1]}_trades_{acct}.json"
             if f.exists():
                 return self._send(f.read_bytes(), "application/json")
+        if u.path == "/stream/config":
+            cfg = {"enabled": True, "measured_seconds": 40, "latest_run": None, "active_run": None}
+            return self._send(json.dumps(cfg).encode(), "application/json")
         if u.path in ("/summary", "/queue", "/lanes", "/governance"):
             return self._send((FIX / f"{u.path[1:]}.json").read_bytes(), "application/json")
         if u.path == "/benchmark":
@@ -106,7 +109,8 @@ def test_command_centre_and_the_other_screens_render_without_errors(server):
         page.wait_for_selector(".kpis")
         text = page.inner_text("#view")
         assert "Open detector alerts" in text and "Replay a recorded investigation" in text
-        assert "streaming" not in text.lower()
+        assert "real-time" not in text.lower().replace("near-real-time", "")
+        assert "live monitoring" not in text.lower()
         # injected cases are off by default and shown apart when asked
         n_real = page.locator("tbody tr").count()
         page.check("#eval-toggle")
@@ -138,4 +142,4 @@ def test_every_screen_and_overlay_is_clean_in_a_browser(server):
             pytest.skip("chromium not installed")
         raise
     bad = {k: v for k, v in res.items() if v}
-    assert len(res) == 16 and not bad, bad
+    assert len(res) == 18 and not bad, bad

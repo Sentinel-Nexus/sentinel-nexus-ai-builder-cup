@@ -63,7 +63,7 @@ def test_overview_tokens_meet_aa():
 
 
 def test_no_banned_words_in_ui_or_docs():
-    banned = re.compile(r"real-time|live monitoring", re.I)
+    banned = re.compile(r"(?<!near-)real-time|live monitoring", re.I)  # near-real-time is the claim
     for p in [*STATIC.rglob("*.js"), *STATIC.rglob("*.html"), *STATIC.rglob("*.css")]:
         assert not banned.search(p.read_text(encoding="utf-8")), p
     for p in Path(__file__).resolve().parents[2].joinpath("docs").glob("*.md"):
