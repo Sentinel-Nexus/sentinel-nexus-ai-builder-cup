@@ -68,7 +68,7 @@ export async function mountStream({ page, refreshQueue }) {
       barBox, text, msgBox,
       h('p', { class: 'small muted', id: 'stream-modes' },
         h('strong', null, 'Stream a scenario'), ' publishes a fresh burst with new ids every time, so it ingests new rows and raises a new alert. ',
-        h('strong', null, 'Replay the same burst'), ' re-sends the previous burst's exact ids to show idempotency: nothing new is ingested, every message is dropped as a duplicate, and the alert id stays the same.')));
+        h('strong', null, 'Replay the same burst'), ' re-sends the exact ids of the previous burst to show idempotency: nothing new is ingested, every message is dropped as a duplicate, and the alert id stays the same.')));
   page.insertBefore(card, page.firstChild);
 
   let timer = null;

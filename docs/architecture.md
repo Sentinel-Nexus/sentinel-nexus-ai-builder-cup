@@ -22,7 +22,8 @@ A near-real-time micro-batch path. It is additive: with the flag off the service
 revision `sentinel-app-00009-lgx`, and no batch table, count or KPI is touched.
 
 ```
-POST /stream/replay            fixed burst (data/stream/burst_01.jsonl, 310 events, no request body)
+POST /stream/replay            fixed burst under a fresh id suffix per run (data/stream/burst_01.jsonl, 310 events, no request body);
+                               ?same=true re-sends the previous run's exact ids (idempotency demo)
   -> Pub/Sub topic trades       attributes: event_type, run_id
   -> subscription trades-sub    pull, ack 60 s, dead-letter to trades-dlq after 5 attempts
   -> streaming-pull thread in sentinel-app (min = max = 1 instance, CPU always allocated)
@@ -32,7 +33,7 @@ POST /stream/replay            fixed burst (data/stream/burst_01.jsonl, 310 even
   -> when the run has everything (or goes quiet): ONE scoring query
        frozen detector SQL (det_10..det_40) over the stream tables, as TEMP tables
        -> frozen weights and threshold (services/detector/scoring.py, threshold.json)
-       -> MERGE into risk_curated.stream_alerts (alert_id stable across replays)
+       -> MERGE into risk_curated.stream_alerts (alert_id stable for the same burst, new for a fresh one)
   -> GET /queue marks them "streamed": true; case detail and graph use the existing endpoints
   -> audit.stream_events: published, ingested, duplicate_dropped, malformed, retry,
      dead_letter_candidate, scored, alert_raised

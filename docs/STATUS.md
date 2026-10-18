@@ -2,7 +2,7 @@
 
 Live state of GCP and the repo. Update in the same commit as any cloud change.
 
-Last updated: 2026-10-18 (P6 streaming path, branch `feat/streaming`)
+Last updated: 2026-10-18 (P6 streaming path; fresh-burst change on branch `feat/stream-fresh`, not deployed)
 
 ## Live GCP resources
 
@@ -392,9 +392,13 @@ Model Armor and PII redaction stay "not deployed" on the Governance screen (P6 c
 ## P6 streaming (`services/stream`, branch `feat/streaming`)
 
 **Rollback (put first on purpose).** If the streaming revision misbehaves, send all traffic back to the
-last revision from before this phase (flag off, no consumer):
+last known good revision (the live one, `sentinel-app-00013-tek`; the fresh-burst candidate below, if ever
+promoted, is rolled back to it):
 
-    gcloud run services update-traffic sentinel-app --project project-f8544066-3df8-4f99-8ed --region us-central1 --to-revisions sentinel-app-00009-lgx=100
+    gcloud run services update-traffic sentinel-app --project project-f8544066-3df8-4f99-8ed --region us-central1 --to-revisions sentinel-app-00013-tek=100
+
+To go back further, to the revision from before the streaming phase (flag off, no consumer), use
+`--to-revisions sentinel-app-00009-lgx=100`.
 
 Alternatively redeploy with `python infra/deploy_app.py --apply --streaming off`. Nothing was deleted, so
 revision 00009 still exists.
@@ -481,6 +485,46 @@ investigation of the streamed alert `AL_ae208df261` through the existing path, `
 calls, 24.2 s, graph engine `fallback` (the stream tables), decision escalate (confidence 0.61), members the 6
 ring accounts, 2 claims kept and 3 removed by the evidence checks; not stored (live results are not persisted),
 about $0.01 to $0.02. The cost of the evaluation itself: BigQuery only, 3 replays plus a local run, no other model call.
+
+**Fresh bursts and the same-burst replay (branch `feat/stream-fresh`, code and tests only; NOT deployed, NOT promoted).**
+The live revision `sentinel-app-00013-tek` still replays one fixed burst, so every Cloud Run replay is a pure duplicate
+replay ("ingested 0, duplicates dropped 310"). The branch changes two things and nothing in the frozen detector (its
+SQL, weights and threshold 43.0 are untouched):
+
+- `POST /stream/replay` ("Stream a scenario") publishes a **fresh** burst each time: every account, device,
+  funding-source and trade id gets a run suffix `-<8 hex>` at publish time (`services/stream/service.py::namespace`),
+  so each run ingests new rows and raises a new alert (the alert key is `stream:burst_01:<suffix>`). Two runs share
+  no account, device, funding source or trade, so they cannot link. Scoring is scoped to the run's accounts and trades
+  (two TEMP tables filtered by the suffix, then the same frozen det_10..det_40 script, still one job, same 500 MB cap),
+  and the graph overlay holds only the newest run's rows. The newest run's alerts replace the previous run's in the queue.
+- `POST /stream/replay?same=true` ("Replay the same burst") re-publishes the previous fresh run's exact ids
+  (same suffix, same message bodies). Expected: ingested 0, duplicates dropped 310, no new row in any stream table, the same
+  alert id. It has its own rate-limit counter with the same numbers (1 per client per 10 minutes, 6 per hour, 30 per day)
+  and answers 409 until a fresh burst exists (after a restart the suffix is recovered from the newest streamed alert).
+  The Pipeline card explains each mode in one sentence.
+
+**Worst-case rows added per day under the rate limits** (30 fresh runs a day service-wide, nothing is deleted):
+
+| Table | Per fresh run | Worst case per day |
+|---|---|---|
+| `risk_raw.stream_accounts` | 40 | 1,200 |
+| `risk_raw.stream_trades` | 270 | 8,100 |
+| `risk_curated.stream_alerts` | 1 (the household and background accounts raise none) | 30 |
+| `audit.stream_events` | about 622 (310 published, 310 ingested, scored, alert raised) | about 18,700, plus the same-burst runs: 30 x about 622 = about 18,700, plus the bad-message demo (at most 30 x about 7) |
+
+That is **9,330 data rows per day** (at most 30 fresh runs; same-burst runs add 0 data rows, they only update the
+existing alert row) and roughly **37,600 event-log rows per day** in the worst case. Scoring jobs: at most 60 a day
+(30 fresh and 30 same-burst), each about 350 MB billed, under the flat-rate reservation. The tables only grow while the
+service is public; the Nov 6 teardown deletes them.
+
+Checks on this branch so far: `ruff` clean and the unit tests (new ones cover the id namespacing, two fresh runs that
+do not collide, the same-burst replay adding no rows with the same alert id, its separate rate-limit counter, and the
+run-scoped scoring script). The scoped script was dry-run against BigQuery (valid, 0 bytes processed). **Not yet run:**
+`scripts/stream_eval.py --phase full` (fresh A, same burst, fresh B), `browser_check.py` with both buttons,
+`ui_smoke.py` and `e2e_smoke.py` against a candidate revision, because the candidate deploy was not approved.
+No measured latency or eval result exists for the fresh path yet; the 35 s figure above is from the earlier fixed burst.
+To finish: `python infra/deploy_app.py --apply --streaming on --no-traffic --tag candidate`, run the checks against
+the tagged URL, then `--promote` only if every one passes.
 
 **Cut or not done**:
 
