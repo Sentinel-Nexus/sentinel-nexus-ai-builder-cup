@@ -51,11 +51,14 @@ Schedule: P1 and P2 Oct 14, P3 and P4 Oct 15, P5 and P6 Oct 16, P7 Oct 17. Submi
   - Status 2026-10-17: deployed as `sentinel-app` (URL, revision and settings in `docs/STATUS.md`);
     `scripts/e2e_smoke.py` passes against the live URL. The replay control is now "Replay a recorded investigation" (client-side playback of a stored timeline); real streaming is P6.
 
-- [ ] **P6 streaming-governance** (Oct 16)
-  - Replay script publishing synthetic trades to Pub/Sub.
-  - Idempotent consumer into BigQuery with the DLQ.
-  - Model Armor or equivalent prompt guard, PII redaction.
-  - Budget alert documented.
+- [ ] **P6 streaming-governance** (Oct 16; streaming done Oct 18, prompt guard cut)
+  - Replay publishing synthetic trades to Pub/Sub: done (`POST /stream/replay`, fixed burst, rate limited).
+  - Idempotent consumer into BigQuery with the DLQ: done (MERGE, retries, dead-letter after 5 attempts).
+  - Near-real-time micro-batch scoring with the frozen detector, streamed alerts in the queue: done;
+    measured delay from last publish to alert about 35 s; ring flagged, household not.
+  - Model Armor or equivalent prompt guard, PII redaction: **not done** (stage C cut). Governance shows both as not deployed.
+  - Budget alert documented: not done.
+  - Box stays unticked until the guard is built or the criterion is dropped; see `docs/STATUS.md`.
 
 - [ ] **P7 release** (Oct 17)
   - GitHub Actions CI and tag-based deploy via Workload Identity Federation.
