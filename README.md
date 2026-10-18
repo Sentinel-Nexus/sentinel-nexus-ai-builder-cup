@@ -85,7 +85,7 @@ flowchart LR
   SUB --> STR["Stream tables"]
   STR --> SCORE["Scoring, frozen detector"]
   SCORE --> APP
-  EVAL["BigQuery eval, ground truth"] -.-> DET
+  DET -.->|"scored offline"| EVAL["BigQuery eval, ground truth"]
 ```
 
 The generator fills BigQuery. A property graph links accounts by device, funding source and trades; if the
@@ -93,7 +93,7 @@ graph query engine is unavailable a SQL plus NetworkX fallback answers the same 
 scores accounts and raises alerts. ADK agents on Gemini 2.5 Flash investigate an alert with read-only graph tools;
 the Critic and evidence ledger drop unsupported claims; the analyst approves or rejects in the workbench and every step
 is written to the audit dataset. The stream path publishes a synthetic burst to Pub/Sub, validates and ingests it
-idempotently, and scores it with the same detector. The eval dataset holds ground truth and is read only by evaluation code.
+idempotently, and scores it with the same detector. The eval dataset holds ground truth; only evaluation code reads it, never the detector.
 More: [docs/architecture.md](docs/architecture.md).
 
 ## How Google Cloud and Gemini are used

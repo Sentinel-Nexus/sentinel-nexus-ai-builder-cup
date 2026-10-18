@@ -2,7 +2,7 @@
 
 Live state of GCP and the repo. Update in the same commit as any cloud change.
 
-Last updated: 2026-10-18 (P6 streaming path, branch `feat/streaming`)
+Last updated: 2026-10-18 (P7 release, branch `chore/release`; no cloud change in P7)
 
 ## Live GCP resources
 
@@ -493,6 +493,24 @@ about $0.01 to $0.02. The cost of the evaluation itself: BigQuery only, 3 replay
 
 **Teardown additions (Nov 6)**: also delete the four stream tables, and remove the two Pub/Sub grants
 (`gcloud pubsub topics remove-iam-policy-binding trades ...`, `subscriptions remove-iam-policy-binding trades-sub ...`).
+
+## P7 release (branch `chore/release`, 2026-10-18)
+
+No deploy, no cloud change, no Gemini call, no BigQuery query job. Repo, documentation and hygiene only.
+
+- Removed 11 stale `.gitkeep` files (`services/agents`, `services/risk` and folders that now have content). `sql/views/.gitkeep`
+  stays: `infra/deploy_app.py` stages `sql/views` verbatim, and the staged context was verified unchanged
+  (85 files, identical hashes, identical Dockerfile) before and after. `services/web` stays and now has a README.
+- Added `scripts/check_repo.py` (CI; `--release` also fails on placeholder tokens), `.github/workflows/ci.yml`, `LICENSE` (MIT),
+  `docs/repo-map.md`, `docs/setup.md`, `docs/demo-script.md`, `docs/pitch-outline.md`, `docs/submission-checklist.md`,
+  `docs/ci-deploy.md` (Workload Identity deploy, documented and not applied), a rewritten `README.md`, and live screenshots
+  (`scripts/release_screens.py`, `docs/img/live_*`, 1920x1080 and 390x844).
+- Fixed: `pip install -e .` failed on a clean clone (setuptools package discovery); `pyproject.toml` now sets `py-modules = []`.
+- Verified from a fresh clone and venv: install, `pip check`, `ruff`, `pytest` (245 passed, 16 skipped). Local app run with the
+  author's table cache: `/health` ready in 21.9 s (query jobs blocked, so graph and audit pages were not exercised).
+  The earlier "local BigQuery reads hung" report was not reproduced; see `docs/setup.md`.
+- Scans: gitleaks 8.30.1 over the whole history (89 commits) and the tracked tree: no leaks. Personal-detail grep: see the release summary.
+- Not done: the Workload Identity deploy, the tag `v1.0.0-submission`, the video and the deck. ROADMAP P7 stays unticked.
 
 ## Known risks
 

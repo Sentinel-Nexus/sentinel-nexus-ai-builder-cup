@@ -17,6 +17,7 @@ Fails on:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -154,6 +155,33 @@ def check_numbers() -> list[str]:
     return errs
 
 
+ROWS = {
+    "All scenarios": "all_scenarios",
+    "Wash trading": "wash_trading",
+    "Coordinated buying": "coordinated_accumulation",
+    "Mule funding": "mule_funding",
+}
+
+
+def check_results_table() -> list[str]:
+    """Each row of the README results table must equal benchmark.json (seed 42), digit for digit."""
+    bench = json.loads((ROOT / "services/app/static/data/benchmark.json").read_text("utf-8"))
+    cell = {(r["group"], r["method"].split()[0]): r for r in bench["seed42"]}  # Flat / Detector
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    errs = []
+    for label, group in ROWS.items():
+        m = re.search(rf"^\| {label} \| ([^|]+) \| ([^|]+) \|", readme, re.M)
+        if not m:
+            errs.append(f"README.md: results row '{label}' not found")
+            continue
+        for got, who in ((m.group(1), "Flat"), (m.group(2), "Detector")):
+            r = cell[(group, who)]
+            want = f"{r['precision']:.0f}% / {r['recall']:.0f}% / {r['f1']:.0f}%"
+            if got.strip() != want:
+                errs.append(f"README.md: row '{label}' {who}: has '{got.strip()}', stored '{want}'")
+    return errs
+
+
 PLACEHOLDER = re.compile(
     r"\b[A-Z][A-Z0-9_]*_TODO\b|\bTBD\b|\bTODO_[A-Z_]+\b|\bXXX\b|<[A-Z_]*URL[A-Z_]*>"
 )
@@ -182,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
         "no .gitkeep-only directories": check_gitkeep(tracked()),
         "Markdown links and images resolve": check_links(paths),
         "banned wording": check_wording(paths),
-        "README numbers trace to stored results": check_numbers(),
+        "README numbers trace to stored results": check_numbers() + check_results_table(),
     }
     if a.release:
         results["no unresolved placeholders"] = check_placeholders(paths)

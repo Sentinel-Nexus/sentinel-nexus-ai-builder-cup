@@ -65,3 +65,6 @@ Schedule: P1 and P2 Oct 14, P3 and P4 Oct 15, P5 and P6 Oct 16, P7 Oct 17. Submi
   - README with architecture diagram, `docs/setup.md`, `docs/demo-script.md`, benchmark chart.
   - gitleaks over the full history.
   - Tag `v1.0.0-submission`.
+  - Status 2026-10-18 (branch `chore/release`): CI workflow, README, `docs/setup.md`, `docs/demo-script.md`, `docs/architecture.md`,
+    gitleaks scan (no findings) and MIT licence done. **Not done:** Workload Identity deploy (documented in `docs/ci-deploy.md`,
+    not applied), the tag, the video and the deck. Box stays unticked.
