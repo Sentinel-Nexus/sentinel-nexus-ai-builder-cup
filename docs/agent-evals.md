@@ -107,3 +107,34 @@ Service-side time of a cache hit over 100 repeats: median 0.066 ms, worst 0.212 
 | Run 1 (`docs/results/agent_evals_run1.json`) | Flash critic, 12 evidence rows | 8 cases + adversarial; recall 12/39 |
 | Partial run | Critic sees all edge ids | 7 of 9 cases, stopped by the operator; recall 29/39 |
 | Final | deterministic members; DG3 and adversarial added; 4 real alerts re-run | 8 cases + adversarial (3 claims) complete |
+
+## Streaming path (P6): what it proves and what it does not
+
+No Gemini call is made by the streaming path or by its evaluation (`scripts/stream_eval.py`). The
+agents never see a streamed alert unless an analyst clicks "Investigate live", which is the existing
+rate-limited path. Results and method: `docs/STATUS.md` (section "P6 streaming") and
+`docs/results/stream_eval.json`.
+
+**It proves**
+
+- The frozen detector, unchanged (same SQL, weights and threshold 43.0), also works on events that
+  arrive as Pub/Sub messages and are scored in micro-batches: on a held-out burst from a new seed
+  (6001), the 6-account wash ring is flagged as one alert and the 4-account innocent household is not.
+- The pipeline is idempotent: replaying the same burst adds no trade, account or alert row, and a
+  duplicate delivery is dropped.
+- A malformed message is retried and ends in the dead-letter topic after 5 attempts; it is never written.
+- The measured delay from the last publish to the alert, and how it splits (publish, micro-batches,
+  one scoring query of roughly 25 to 30 seconds).
+
+**It does not prove**
+
+- Detection quality in general. It is one small burst (1 ring, 1 household, 30 background accounts).
+  The ring scored 44.37 against the 43.0 threshold, a thin margin of the same kind `docs/benchmark.md`
+  reports for the batch detector. One burst cannot give precision or recall.
+- Scale or low latency. This is a near-real-time micro-batch path: the delay is dominated by one
+  BigQuery scoring script (about 20 statements), measured at roughly half a minute for 40 accounts.
+  A larger stream would need a different scoring design.
+- Agent behaviour on streamed alerts. No agent case was run on one for this phase.
+- Exactly-once delivery. Pub/Sub delivers at least once; idempotence comes from the in-memory set and
+  the MERGE on the natural key. Delivery order is not guaranteed and nothing depends on it.
+- Anything about real traders: all accounts, devices and trades are synthetic.

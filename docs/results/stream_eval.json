@@ -91,7 +91,73 @@
     "arrived_in_trades_dlq": true,
     "arrived_note": "the script's peek compared base64 text and reported false; checked by hand with gcloud pubsub subscriptions pull + base64 decode: POISON-1 is in trades-dlq-sub, CloudPubSubDeadLetterSourceDeliveryCount 5. Script fixed afterwards."
    }
+  },
+  {
+   "ts": "2026-10-18T04:25:36+00:00",
+   "base": "https://candidate---sentinel-app-tipo5b3mpa-uc.a.run.app",
+   "phase": "second",
+   "run_id": "r-20261018042545-82e927",
+   "alerts": [
+    "AL_ae208df261"
+   ],
+   "ring_flagged": [
+    "SW01",
+    "SW02",
+    "SW03",
+    "SW04",
+    "SW05",
+    "SW06"
+   ],
+   "ring_all_flagged": true,
+   "household_flagged": [],
+   "household_not_flagged": true,
+   "alert_scores": {
+    "AL_ae208df261": 44.37
+   },
+   "threshold": 43.0,
+   "last_publish_to_alert_s": 34.31,
+   "publish_s": 0.14,
+   "total_s": 34.46,
+   "counters": {
+    "published": 310,
+    "ingested": 0,
+    "duplicates_dropped": 310,
+    "retried": 0,
+    "malformed": 0,
+    "dead_letter": 0,
+    "alerts_raised": 1
+   },
+   "bq_before": {
+    "trades": {
+     "rows": 270,
+     "distinct": 270
+    },
+    "accounts": {
+     "rows": 40,
+     "distinct": 40
+    },
+    "alerts": {
+     "rows": 1,
+     "distinct": 1
+    }
+   },
+   "bq_after": {
+    "trades": {
+     "rows": 270,
+     "distinct": 270
+    },
+    "accounts": {
+     "rows": 40,
+     "distinct": 40
+    },
+    "alerts": {
+     "rows": 1,
+     "distinct": 1
+    }
+   },
+   "second_replay_added_no_rows": true,
+   "no_duplicate_keys": true
   }
  ],
- "measured_seconds": 30.0
+ "measured_seconds": 35.0
 }
