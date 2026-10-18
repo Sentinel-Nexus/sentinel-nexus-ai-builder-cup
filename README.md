@@ -5,8 +5,7 @@ language with evidence, and leaves the final decision to a human analyst. Built 
 Builder Cup 2026 (BFSI track). **All data is synthetic.**
 
 - Live app: https://sentinel-app-578558579917.us-central1.run.app
-- Video: VIDEO_URL_TODO
-- Slides: DECK_URL_TODO
+- Video: https://youtu.be/M2YoFWt6Zus
 
 **60-second tour** (open the live app):
 
