@@ -1,14 +1,17 @@
 """Evaluate the near-real-time micro-batch path against a running service.
 
-    python scripts/stream_eval.py --base https://...        # one replay, measured and checked
-    python scripts/stream_eval.py --base URL --phase second  # a second replay (needs the 10-minute
-                                                             # per-client limit to have passed)
+    python scripts/stream_eval.py --base URL --phase fresh   # one fresh burst, measured and checked
+    python scripts/stream_eval.py --base URL --phase same    # replay the previous burst's ids
+    python scripts/stream_eval.py --base URL --phase full --wait-cap 700 --write
+        # fresh burst A, the same burst again, then fresh burst B (waits out the 10-minute limit)
     python scripts/stream_eval.py --base URL --poison        # one malformed message -> DLQ
-    python scripts/stream_eval.py --base URL --write     # append to docs/results/stream_eval.json
 
-Reports: messages published and ingested, duplicates dropped, seconds from the last publish to the
-alert, whether the streamed ring is flagged and the innocent household is NOT, and for a second
-replay that no trade, account or alert row was added. It reads the labels
+A fresh burst carries new account, device, funding-source and trade ids, so it must ingest every
+message, raise a NEW streamed alert (flagging the ring and not the household) and report the delay
+from the last publish to the alert. The same-burst replay must ingest 0, drop every message as a
+duplicate, add no row to any stream table and keep the alert id. Two fresh bursts back to back must
+add their own rows and raise two different alerts with disjoint ids; only the newest alert is in
+the queue. It reads the labels
 (evals/stream/burst_01_truth.json) only here; the service and the detector never do. A miss is
 reported as a miss. No Gemini call is made. Every wait has a cap and prints progress.
 """
@@ -60,9 +63,10 @@ def wait_until_idle(base: str, cap: float) -> None:
         time.sleep(2)
 
 
-def run_replay(base: str, poll_cap: float, wait_cap: float) -> dict:
+def run_replay(base: str, poll_cap: float, wait_cap: float, same: bool = False) -> dict:
     wait_until_idle(base, 60)
-    code, body, hdr = call(base, "/stream/replay", "POST")
+    path = "/stream/replay" + ("?same=true" if same else "")
+    code, body, hdr = call(base, path, "POST")
     if code == 429:
         retry = int(hdr.get("Retry-After") or body.get("retry_after") or 0)
         if retry and retry <= wait_cap:
@@ -70,7 +74,7 @@ def run_replay(base: str, poll_cap: float, wait_cap: float) -> dict:
             for left in range(retry, 0, -30):
                 print(f"  {left}s left", flush=True)
                 time.sleep(min(30, left))
-            code, body, hdr = call(base, "/stream/replay", "POST")
+            code, body, hdr = call(base, path, "POST")
         if code == 429:
             return {
                 "ok": False,
@@ -103,8 +107,12 @@ def judge(base: str, truth: dict, status: dict) -> dict:
         _, d, _ = call(base, f"/cases/{a['alert_id']}/detail")
         members |= set(d["alert"]["member_accounts"])
     ring, house = set(truth["expected"]["flag"]), set(truth["expected"]["do_not_flag"])
+    suffixes = {m.rsplit("-", 1)[1] for m in members if "-" in m}
+    members = {m.rsplit("-", 1)[0] if "-" in m else m for m in members}  # drop the burst suffix
     t = status.get("timings", {})
     return {
+        "mode": status.get("mode"),
+        "suffixes": sorted(suffixes),
         "alerts": sorted(ids),
         "ring_flagged": sorted(ring & members),
         "ring_all_flagged": ring <= members,
@@ -179,14 +187,53 @@ def peek_dlq() -> bool | None:
 
 
 def seconds_for(history: list[dict]) -> float | None:
-    vals = [r["last_publish_to_alert_s"] for r in history if r.get("last_publish_to_alert_s")]
+    """Median delay, rounded up to 5 s, over fresh bursts (older entries have no mode)."""
+    runs = [r for r in history if r.get("last_publish_to_alert_s") and r.get("mode") != "same"]
+    fresh = [r for r in runs if r.get("mode") == "fresh"]
+    vals = [r["last_publish_to_alert_s"] for r in fresh or runs]
     return float(5 * math.ceil(statistics.median(vals) / 5)) if vals else None
+
+
+def one_run(a, truth: dict, same: bool) -> tuple[dict | None, bool]:
+    """Run one burst; -> (result entry, checks passed)."""
+    before = bq_counts()
+    r = run_replay(a.base, a.poll_cap, a.wait_cap, same)
+    if not r["ok"]:
+        print("RUN FAILED:", json.dumps(r, default=str)[:600])
+        return None, False
+    j = judge(a.base, truth, r["status"])
+    after = bq_counts()
+    c = j["counters"]
+    label = "same burst" if same else "fresh burst"
+    added = {k: after[k]["rows"] - before[k]["rows"] for k in before}
+    print(f"[{label}] published {c['published']}, ingested {c['ingested']}, duplicates dropped "
+          f"{c['duplicates_dropped']}, alerts {c['alerts_raised']}")  # fmt: skip
+    print(f"[{label}] seconds from last publish to alert: {j['last_publish_to_alert_s']} "
+          f"(publish {j['publish_s']} s, total {j['total_s']} s)")  # fmt: skip
+    print(f"[{label}] ring flagged: {j['ring_all_flagged']} {j['ring_flagged']}; household NOT "
+          f"flagged: {j['household_not_flagged']} {j['household_flagged']}")  # fmt: skip
+    print(f"[{label}] alert scores {j['alert_scores']} vs frozen threshold {j['threshold']}")
+    print(f"[{label}] BigQuery rows added {added} (now {after})")
+    entry = {"run_id": r["run_id"], **j, "rows_added": added, "bq_after": after}
+    entry["no_duplicate_keys"] = all(v["rows"] == v["distinct"] for v in after.values())
+    detect = j["ring_all_flagged"] and j["household_not_flagged"] and len(j["alerts"]) == 1
+    n = c["published"]
+    if same:
+        ok = (detect and c["ingested"] == 0 and c["duplicates_dropped"] == n
+              and not any(added.values()))  # fmt: skip
+    else:
+        ok = (detect and c["ingested"] == n and c["duplicates_dropped"] == 0
+              and added["alerts"] == 1 and added["trades"] > 0
+              and added["accounts"] > 0)  # fmt: skip
+    ok = ok and entry["no_duplicate_keys"]
+    print(f"[{label}] {'ok' if ok else 'MISS'}")
+    return entry, ok
 
 
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--base", required=True)
-    ap.add_argument("--phase", choices=["first", "second"], default="first")
+    ap.add_argument("--phase", choices=["fresh", "same", "full"], default="fresh")
     ap.add_argument("--poison", action="store_true")
     ap.add_argument("--poll-cap", type=float, default=240.0)
     ap.add_argument("--wait-cap", type=float, default=0.0, help="seconds to wait out a 429")
@@ -205,43 +252,44 @@ def main(argv: list[str]) -> int:
         print(json.dumps(result["poison"], indent=1))
         ok = result["poison"]["ok"]
     else:
-        before = bq_counts()
-        r = run_replay(a.base, a.poll_cap, a.wait_cap)
-        if not r["ok"]:
-            print("RUN FAILED:", json.dumps(r, default=str)[:600])
-            return 1
-        j = judge(a.base, truth, r["status"])
-        after = bq_counts()
-        result.update(phase=a.phase, run_id=r["run_id"], **j, bq_before=before, bq_after=after)
-        c = j["counters"]
-        print(f"published {c['published']}, ingested {c['ingested']}, duplicates dropped "
-              f"{c['duplicates_dropped']}, alerts {c['alerts_raised']}")  # fmt: skip
-        print(f"seconds from last publish to alert: {j['last_publish_to_alert_s']} "
-              f"(publish took {j['publish_s']} s, run total {j['total_s']} s)")  # fmt: skip
-        print(f"streamed ring flagged: {j['ring_all_flagged']} {j['ring_flagged']}; household NOT "
-              f"flagged: {j['household_not_flagged']} {j['household_flagged']}")  # fmt: skip
-        print(f"alert scores {j['alert_scores']} vs frozen threshold {j['threshold']}")
-        print(f"BigQuery rows before {before} after {after}")
-        ok = j["ring_all_flagged"] and j["household_not_flagged"]
-        if a.phase == "second":
-            same = all(before[k]["rows"] == after[k]["rows"] for k in before)
-            unique = all(v["rows"] == v["distinct"] for v in after.values())
-            result["second_replay_added_no_rows"] = same
-            result["no_duplicate_keys"] = unique
-            print(f"second replay added no rows: {same}; no duplicate keys: {unique}")
-            ok = ok and same and unique and len(j["alerts"]) == 1
+        plan = {"fresh": [False], "same": [True], "full": [False, True, False]}[a.phase]
+        entries, ok = [], True
+        for same in plan:
+            entry, good = one_run(a, truth, same)
+            if entry is None:
+                return 1
+            entries.append(entry)
+            ok = ok and good
+        fresh = [e for e in entries if e["mode"] == "fresh"]
+        if a.phase == "full":
+            x, y = fresh
+            same_run = next(e for e in entries if e["mode"] == "same")
+            checks = {
+                "same_burst_kept_the_alert_id": same_run["alerts"] == x["alerts"],
+                "fresh_bursts_raised_different_alerts": set(x["alerts"]).isdisjoint(y["alerts"]),
+                "fresh_bursts_used_different_ids": set(x["suffixes"]).isdisjoint(y["suffixes"]),
+                "each_fresh_burst_added_its_own_rows": all(
+                    e["rows_added"]["trades"] > 0 for e in fresh
+                ),
+            }
+            result["checks"] = checks
+            print("checks:", json.dumps(checks))
+            ok = ok and all(checks.values())
+        result["runs"] = entries
     print("RESULT:", "PASS" if ok else "MISS (reported as is; nothing was tuned)")
     if a.write:
         RESULTS.parent.mkdir(parents=True, exist_ok=True)
         hist = json.loads(RESULTS.read_text(encoding="utf-8")) if RESULTS.exists() else {"runs": []}
+        result.update(phase=a.phase, passed=ok)
         hist["runs"].append(result)
-        sec = seconds_for([x for x in hist["runs"] if x.get("last_publish_to_alert_s")])
+        flat = [e for r in hist["runs"] for e in (r.get("runs") or [r])]
+        sec = seconds_for([x for x in flat if x.get("last_publish_to_alert_s")])
         hist["measured_seconds"] = sec
         RESULTS.write_text(
             json.dumps(hist, indent=1, default=str) + "\n", encoding="utf-8", newline="\n"
         )
         if sec:
-            MEASURED.write_text(json.dumps({"seconds": sec, "n_runs": len(hist["runs"])}) + "\n",
+            MEASURED.write_text(json.dumps({"seconds": sec, "n_runs": len(flat)}) + "\n",
                                 encoding="utf-8", newline="\n")  # fmt: skip
     return 0 if ok else 1
 

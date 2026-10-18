@@ -32,7 +32,7 @@ def stub(route, status, body, headers=None):
     )
 
 
-def status_handler(run_id, kind, steps):
+def status_handler(run_id, kind, steps, mode=None):
     """A /stream/status handler that walks through ``steps`` (state, active, progress, counters)."""
     calls = {"n": 0}
 
@@ -53,6 +53,7 @@ def status_handler(run_id, kind, steps):
             {
                 "run_id": run_id,
                 "kind": kind,
+                "mode": mode,
                 "state": state,
                 "active": active,
                 "expected": 310 if kind == "replay" else 1,
@@ -110,6 +111,15 @@ def run_stream_checks(pg, real: bool = False) -> None:
         pg.bad(f"unexpected first state {p.inner_text('#stream-state')!r}")
     if not p.locator("#stream-bad-btn").is_visible():
         pg.bad("'Send a bad message' button missing")
+    if not p.locator("#stream-same-btn").is_visible():
+        pg.bad("'Replay the same burst' button missing")
+    elif p.locator("#stream-same-btn").is_disabled() == bool(cfg.get("can_replay_same")):
+        pg.bad("'Replay the same burst' is not enabled exactly when an earlier burst exists")
+    modes = p.inner_text("#stream-modes")
+    for want in ("Stream a scenario", "fresh burst", "new ids", "Replay the same burst",
+                 "idempotency", "dropped as a duplicate", "alert id stays the same"):  # fmt: skip
+        if want not in modes:
+            pg.bad(f"the Pipeline card does not explain the modes ({want!r} missing)")
 
     # rate-limited
     pg.expected = {429}
@@ -154,7 +164,7 @@ def run_stream_checks(pg, real: bool = False) -> None:
         "**/stream/replay",
         lambda r: stub(r, 200, {"run_id": "r-stub", "total": 310, "state": "publishing"}),
     )
-    p.route("**/stream/status?run_id=r-stub", status_handler("r-stub", "replay", steps))
+    p.route("**/stream/status?run_id=r-stub", status_handler("r-stub", "replay", steps, "fresh"))
     p.route("**/queue", queue_handler)
     p.click("#stream-btn")
     p.wait_for_function(
@@ -175,10 +185,58 @@ def run_stream_checks(pg, real: bool = False) -> None:
         pg.bad("finished counters wrong")
     if "33.4" not in p.inner_text("#stream-caption"):
         pg.bad("the finished caption does not state the measured seconds")
+    if "310 new rows were ingested" not in p.inner_text("#stream-caption"):
+        pg.bad("the fresh-run caption does not say new rows were ingested")
     if fake and not p.locator("#queue-holder .chip", has_text="Streamed").count():
         pg.bad("a streamed alert in the queue has no Streamed chip")
     for pattern in ("**/queue", "**/stream/replay", "**/stream/status?run_id=r-stub"):
         p.unroute(pattern)
+
+    # "Replay the same burst": enabled after a fresh run, rate-limited, then idempotent (stubbed)
+    if p.locator("#stream-same-btn").is_disabled():
+        pg.bad("'Replay the same burst' stays disabled after a fresh run")
+    same_url = re.compile(r"/stream/replay\?same=true")
+    pg.expected = {429}
+    p.route(same_url, lambda r: stub(r, 429, {"detail": LIMIT_TEXT}, {"Retry-After": "540"}))
+    p.click("#stream-same-btn")
+    p.wait_for_selector("#stream-limit")
+    if "Rate limited" not in p.inner_text("#stream-state"):
+        pg.bad("the same-burst replay does not show the rate-limited state")
+    if p.locator("#stream-same-btn").is_disabled() or p.locator("#stream-btn").is_disabled():
+        pg.bad("buttons stay disabled after a same-burst 429")
+    p.unroute(same_url)
+    pg.expected = set()
+    same_steps = [
+        ("ingesting", True, 0.5, {"published": 310, "duplicates_dropped": 150}),
+        ("finished", False, 1.0, {"published": 310, "duplicates_dropped": 310, "alerts_raised": 1}),
+    ]
+    p.route(
+        same_url,
+        lambda r: stub(r, 200, {"run_id": "r-same", "total": 310, "state": "publishing",
+                                "mode": "same"}),
+    )  # fmt: skip
+    p.route(
+        "**/stream/status?run_id=r-same", status_handler("r-same", "replay", same_steps, "same")
+    )
+    p.click("#stream-same-btn")
+    p.wait_for_function(
+        "document.querySelector('#stream-caption')?.textContent.includes('no new rows')",
+        timeout=20000,
+    )
+    cap = p.inner_text("#stream-caption")
+    if (
+        "310 dropped as duplicates" not in cap
+        or "0 ingested" not in cap
+        or "did not change" not in cap
+    ):
+        pg.bad(f"the same-burst caption is wrong: {cap!r}")
+    if (
+        p.inner_text("[data-k=ingested]").strip() != "0"
+        or p.inner_text("[data-k=duplicates_dropped]").strip() != "310"
+    ):
+        pg.bad("same-burst counters should read ingested 0, duplicates dropped 310")
+    p.unroute(same_url)
+    p.unroute("**/stream/status?run_id=r-same")
 
     # the bad-message demo (stubbed) ends in the dead-letter queue
     bad = ("finished", False, 1.0, {"published": 1, "malformed": 1, "retried": 4, "dead_letter": 1})
@@ -217,7 +275,20 @@ def run_stream_checks(pg, real: bool = False) -> None:
             "document.querySelector('#stream-state')?.textContent)",
             timeout=240000,
         )
-        print("  real run state:", p.inner_text("#stream-state"))
+        print("  real fresh run state:", p.inner_text("#stream-state"))
+        if p.inner_text("#stream-state") == "Finished":
+            if "new rows were ingested" not in p.inner_text("#stream-caption"):
+                pg.bad("the real fresh run did not ingest new rows")
+            p.click("#stream-same-btn")  # the real same-burst replay (its own rate-limit slot)
+            p.wait_for_function(
+                "['Finished','Error','Stalled','Rate limited'].includes("
+                "document.querySelector('#stream-state')?.textContent)"
+                " && document.querySelector('#stream-caption')?.textContent.includes('Same')",
+                timeout=240000,
+            )
+            print("  real same-burst state:", p.inner_text("#stream-state"))
+            if p.inner_text("[data-k=ingested]").strip() != "0":
+                pg.bad("the real same-burst replay ingested rows")
 
     # Governance lists the stream guards
     p.goto(pg.base + "/#/governance")
