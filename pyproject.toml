@@ -9,6 +9,11 @@ dependencies = ["google-cloud-bigquery", "networkx"]
 dev = ["ruff", "pytest", "pre-commit", "flask", "matplotlib", "httpx"]
 app = ["google-adk==2.12.0", "fastapi", "uvicorn[standard]", "pydantic"]
 
+[tool.setuptools]
+# This is an application repo, not a library: install the dependencies only. Without this line
+# setuptools' automatic discovery refuses to build (several top-level folders: services, sql, ...).
+py-modules = []
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"

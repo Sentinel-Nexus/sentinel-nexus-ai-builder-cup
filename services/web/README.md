@@ -1,7 +1,9 @@
 # services/web
 
-Starting point imported from the live `sentinel-hello` Cloud Run service (deployed from
-Cloud Shell with `gcloud run deploy --source`). Flask app served by gunicorn via `Procfile`
-(buildpacks, no Dockerfile). P5 turns this into the analyst workbench.
+The `sentinel-hello` Cloud Run service: a Flask health check that returns
+`{"status": "ok", "service": "marketsentinel"}`, deployed from Cloud Shell with
+`gcloud run deploy --source` (buildpacks via `Procfile`, no Dockerfile).
 
-Deploy: see `infra/gcp/setup.sh` (last step).
+This is **not** the analyst workbench. The workbench is `services/app` (service `sentinel-app`).
+`services/web` is kept because `infra/gcp/setup.sh` (step 7) deploys it, `scripts/verify_sync.py`
+checks the live body against it and `tests/unit/test_web.py` tests it.

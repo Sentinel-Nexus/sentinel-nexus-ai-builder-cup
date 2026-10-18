@@ -1,7 +1,52 @@
 # Architecture
 
 MarketSentinel finds manipulation in prediction-market data, explains it with evidence, and leaves
-every consequential decision to a human analyst. All data is synthetic.
+every consequential decision to a human analyst. All data is synthetic (there is no real market feed).
+
+## Layers
+
+| Layer | What it is | Where |
+|---|---|---|
+| Data | Synthetic generator (seed 42: 2,039 accounts, 35,116 trades, 39 planted attackers, 23 decoy accounts) loaded into BigQuery datasets `risk_raw`, `risk_curated`, `risk_graph`, `eval`, `audit` | `services/ingest/synth`, `sql/schema` |
+| Graph | BigQuery property graph `market_graph` queried with GQL; automatic SQL plus NetworkX fallback when GQL is unavailable | `sql/graph`, `services/graph` |
+| Detection | Frozen linear score over nine scenario-agnostic features, threshold 43.0, written to `risk_curated.account_scores` and `risk_curated.alerts` | `sql/views`, `services/detector` |
+| Agents | Google ADK agents on Gemini 2.5 Flash (Investigator, Critic, Drafter) behind a tool-call ledger | `services/app` |
+| Workbench | FastAPI service serving the analyst UI, the cached cases, approvals and the audit log | `services/app` (`static/`) |
+| Streaming | Pub/Sub topic, subscription and dead-letter queue into stream tables, scored by the frozen detector | `services/stream` |
+
+## Identities
+
+- **`sa-agent`** is the runtime identity of both Cloud Run services (`sentinel-app`, `sentinel-hello`).
+  Roles on the project: `aiplatform.user`, `bigquery.dataViewer`, `bigquery.jobUser`. Write access is
+  table-level only: `bigquery.dataEditor` on the three agent tables (`audit.agent_events`,
+  `risk_curated.case_reports`, `risk_curated.case_decisions`) and on the four stream tables;
+  `pubsub.publisher` on topic `trades` and `pubsub.subscriber` on subscription `trades-sub` only.
+  `risk_curated.alerts` is read-only for it.
+- **`sa-ingest`** exists for ingestion (`bigquery.dataEditor`, `bigquery.jobUser`, `pubsub.subscriber`).
+- Both Cloud Run services are public (`allUsers` invoker); the service holds no secret and exposes no write
+  path to account data. Analyst names on approvals are free text: there is no sign-in.
+
+Sources: `docs/STATUS.md` (live state), `sql/iam/`, `infra/stream_setup.py`.
+
+## Guards
+
+Active: evidence ledger (a claim survives only if every evidence id came from a tool call in the same run),
+number check, LLM Critic with one send-back, escalation guard (two supported claims and named accounts, else
+downgraded to uncertain), analyst approval with a written reason, audit of every step, read-only SQL guard for
+graph queries, stream schema validation, idempotent consumer, rate limits, token and tool-call caps. Not built:
+Model Armor or any prompt-injection guard, PII redaction, Vertex AI Search retrieval (retrieval is keyword-based).
+The outbound webhook is a mock that never leaves the process.
+
+## Cost controls
+
+- Every BigQuery job goes through one runner with a read-only guard, a byte cap (100 MB; 500 MB for the single
+  stream scoring script, see below) and a timeout. Reads of whole tables use `list_rows`, which is free.
+- The reservation `gql-poc` is assigned to the whole project, so every query uses slots.
+- Per run: at most 8 tool calls, 60,000 tokens (investigator 40,000, critic 14,000, drafter 8,000) and a 120 s
+  wall clock. Live investigations: 3 per client per hour, 20 per hour and 120 per day for the instance.
+- Cached cases are served from memory; the four real alerts and four evaluation cases were precomputed.
+- One instance only (`max-instances 1`), because the limits and caches are per instance.
+- Teardown after Nov 6: `docs/submission-checklist.md`.
 
 ## Batch path (the detector's home)
 
