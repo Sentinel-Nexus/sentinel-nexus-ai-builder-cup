@@ -30,7 +30,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TRUTH = ROOT / "evals" / "stream" / "burst_01_truth.json"
 RESULTS = ROOT / "docs" / "results" / "stream_eval.json"
-MEASURED = ROOT / "data" / "stream" / "measured.json"
+MEASURED = ROOT / "services" / "app" / "static" / "data" / "stream.json"
 PROJECT = "project-f8544066-3df8-4f99-8ed"
 
 

@@ -3,9 +3,12 @@
     python infra/deploy_app.py              # dry run: prints the plan and the commands
     python infra/deploy_app.py --apply      # build the image, deploy, print the URL
     python infra/deploy_app.py --apply --teardown         # Nov 6: stop idle billing
+    python infra/deploy_app.py --apply --no-traffic       # candidate: 0% traffic, tagged URL
+    python infra/deploy_app.py --apply --promote          # then move 100% of traffic to it
 
 Image: us-central1-docker.pkg.dev/<project>/sentinel/sentinel-app:<tag> (built by Cloud Build from a
-staged context: only services/app, services/graph, data/policies). Runs as sa-agent, public,
+staged context: the app, graph, detector and stream services, sql/views and the data they read).
+Runs as sa-agent, public,
 max 1 instance (caches and live limits are per instance), 1Gi, min 1 instance with CPU always
 allocated for the judging window (`--teardown` on Nov 6 sets min 0 and request-only CPU), startup
 probe on /health. It deletes
@@ -47,8 +50,14 @@ def stage(dest: Path) -> int:
     shutil.copy(REPO / "infra" / "app" / "Dockerfile", dest / "Dockerfile")
     (dest / "services").mkdir()
     shutil.copy(REPO / "services" / "__init__.py", dest / "services" / "__init__.py")
-    for rel in ("services/app", "services/graph", "data/policies"):
+    for rel in (
+        "services/app", "services/graph", "services/detector", "services/stream",
+        "data/policies", "data/stream", "sql/views",
+    ):  # fmt: skip
         shutil.copytree(REPO / rel, dest / rel, ignore=ignore)
+    (dest / "scripts").mkdir()
+    for name in ("__init__.py", "run_sql.py"):  # the detector renders its SQL with run_sql
+        shutil.copy(REPO / "scripts" / name, dest / "scripts" / name)
     shutil.copy(REPO / "data" / "injected_alerts.json", dest / "data" / "injected_alerts.json")
     return sum(1 for p in dest.rglob("*") if p.is_file())
 
@@ -100,6 +109,16 @@ def build(context: str, image: str, apply: bool) -> int:
     return 124
 
 
+LIVE_REVISION_BEFORE_STREAMING = "sentinel-app-00009-lgx"  # the rollback target
+
+
+def rollback_command(revision: str) -> str:
+    return (
+        f"gcloud run services update-traffic {SERVICE} --project {PROJECT} "
+        f"--region {REGION} --to-revisions {revision}=100"
+    )
+
+
 def build_id() -> str:
     """Short git sha of the commit being deployed; shown in the page footer."""
     try:
@@ -126,6 +145,27 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--live-per-hour", type=int, default=20)
     ap.add_argument("--live-per-day", type=int, default=120)
     ap.add_argument(
+        "--streaming",
+        choices=["on", "off"],
+        default="on",
+        help="STREAMING_ENABLED for this revision (the code default is off)",
+    )
+    ap.add_argument("--stream-per-client-10min", type=int, default=1)
+    ap.add_argument("--stream-per-hour", type=int, default=6)
+    ap.add_argument("--stream-per-day", type=int, default=30)
+    ap.add_argument(
+        "--no-traffic",
+        action="store_true",
+        help="deploy a candidate revision that gets no traffic, only a tagged URL",
+    )
+    ap.add_argument("--revision-tag", default="candidate", help="traffic tag of --no-traffic")
+    ap.add_argument(
+        "--promote",
+        action="store_true",
+        help="send 100%% of traffic to the tagged candidate (no build, no deploy)",
+    )
+    ap.add_argument("--rollback-to", default=LIVE_REVISION_BEFORE_STREAMING)
+    ap.add_argument(
         "--teardown",
         action="store_true",
         help="stop idle billing: min instances 0 and CPU only during requests (no build)",
@@ -138,6 +178,14 @@ def main(argv: list[str]) -> int:
         return run(
             ["gcloud", "run", "services", "update", SERVICE, "--project", PROJECT,
              "--region", REGION, "--min-instances", "0", "--cpu-throttling", "--quiet"],
+            DEPLOY_TIMEOUT_S, a.apply,
+        )  # fmt: skip
+    if a.promote:
+        print(f"mode: {'APPLY' if a.apply else 'DRY-RUN (nothing is changed)'} (promote)")
+        print(f"rollback if needed: {rollback_command(a.rollback_to)}")
+        return run(
+            ["gcloud", "run", "services", "update-traffic", SERVICE, "--project", PROJECT,
+             "--region", REGION, "--to-tags", f"{a.revision_tag}=100", "--quiet"],
             DEPLOY_TIMEOUT_S, a.apply,
         )  # fmt: skip
     image = f"{REGION}-docker.pkg.dev/{PROJECT}/sentinel/{SERVICE}:{a.tag}"
@@ -160,21 +208,35 @@ def main(argv: list[str]) -> int:
             return rc
     env = (
         f"BUILD_ID={build_id()},PROJECT_ID={PROJECT},GCP_REGION={REGION},LIVE_PER_CLIENT_HOUR={a.live_per_client_hour},"
-        f"LIVE_PER_HOUR={a.live_per_hour},LIVE_PER_DAY={a.live_per_day}"
+        f"LIVE_PER_HOUR={a.live_per_hour},LIVE_PER_DAY={a.live_per_day},"
+        f"STREAMING_ENABLED={'true' if a.streaming == 'on' else 'false'},"
+        f"STREAM_PER_CLIENT_10MIN={a.stream_per_client_10min},"
+        f"STREAM_PER_HOUR={a.stream_per_hour},STREAM_PER_DAY={a.stream_per_day}"
     )
+    traffic_flags = ["--no-traffic", "--tag", a.revision_tag] if a.no_traffic else []
     rc = run(
         ["gcloud", "run", "deploy", SERVICE, "--image", image, "--project", PROJECT,
          "--region", REGION, "--service-account", SA, "--allow-unauthenticated",
          "--min-instances", str(a.min_instances), "--max-instances", str(a.max_instances),
          "--memory", "1Gi", "--cpu", "1", "--concurrency", "40", "--timeout", "300",
          "--no-cpu-throttling", "--cpu-boost", "--startup-probe", STARTUP_PROBE,
-         "--set-env-vars", env, "--quiet"],
+         "--set-env-vars", env, *traffic_flags, "--quiet"],
         DEPLOY_TIMEOUT_S, a.apply,
     )  # fmt: skip
     if rc == 0 and a.apply:
         run(["gcloud", "run", "services", "describe", SERVICE, "--project", PROJECT,
              "--region", REGION, "--format", "value(status.url,status.latestReadyRevisionName)"],
             60, True)  # fmt: skip
+        if a.no_traffic:
+            run(["gcloud", "run", "services", "describe", SERVICE, "--project", PROJECT,
+                 "--region", REGION, "--format",
+                 f"value(status.traffic.filter(tag:{a.revision_tag}).url)"], 60, True)  # fmt: skip
+            print(
+                "the candidate has 0% traffic; promote with: infra/deploy_app.py --apply --promote"
+            )
+            print(f"rollback: {rollback_command(a.rollback_to)}")
+    if a.no_traffic and not a.apply:
+        print(f"(dry run) the candidate would get 0% traffic and the tag {a.revision_tag!r}")
     return rc
 
 

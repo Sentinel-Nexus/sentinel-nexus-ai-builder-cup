@@ -204,6 +204,8 @@ def attach(app: FastAPI, d, state: dict) -> StreamController | None:
             "messages_in_burst": len(c.burst()) if c else None,
             "limits": c.replay_limiter.status() if c else None,
             "consumer_ok": bool(c and c.pull_error is None),
+            "latest_run": c.runtime.latest if c else None,
+            "active_run": (c.runtime.active_run().run_id if c and c.runtime.active_run() else None),
             "measured_seconds": _measured_seconds() if settings.enabled else None,
         }
 
@@ -264,12 +266,13 @@ def attach(app: FastAPI, d, state: dict) -> StreamController | None:
 
 MEASURED: dict = {}
 FACTORY = None  # tests replace this with a controller built on fakes
-MEASURED_FILE = BURST_FILE.with_name("measured.json")
+MEASURED_FILE = Path(__file__).resolve().parents[1] / "app" / "static" / "data" / "stream.json"
 
 
 def _measured_seconds() -> float | None:
     """Seconds from the last publish to the alert, from the recorded measurement
-    (data/stream/measured.json, written by scripts/stream_eval.py). None until measured."""
+    (services/app/static/data/stream.json, written by scripts/stream_eval.py).
+    None until measured."""
     try:
         return float(json.loads(MEASURED_FILE.read_text(encoding="utf-8"))["seconds"])
     except (OSError, ValueError, KeyError):

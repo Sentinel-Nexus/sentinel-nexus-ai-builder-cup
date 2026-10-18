@@ -6,3 +6,4 @@ uvicorn[standard]==0.54.0
 pydantic==2.14.1
 google-cloud-bigquery==3.46.1
 networkx==3.7
+google-cloud-pubsub==2.43.0
