@@ -238,6 +238,108 @@ def test_limits_per_client_hour_and_day():
     assert StreamLimiter(0, 1, 1).check("x")[2] == "disabled"
 
 
+# ---------- fresh bursts and the same-burst replay ----------
+
+
+def run_and_wait(c, path="/stream/replay"):
+    r = c.post(path)
+    assert r.status_code == 200, r.text
+    rid = r.json()["run_id"]
+    assert wait(
+        lambda: c.get("/stream/status", params={"run_id": rid}).json()["state"] == "finished"
+    )
+    return c.get("/stream/status", params={"run_id": rid}).json()
+
+
+def test_namespace_suffixes_every_id_and_nothing_else():
+    msgs = svc.load_burst()
+    a, b = svc.namespace(msgs, "aaaaaaaa"), svc.namespace(msgs, "bbbbbbbb")
+    assert a == svc.namespace(msgs, "aaaaaaaa")  # deterministic: the same suffix, the same bodies
+    keys = svc.NAMESPACED
+    ids = lambda burst: {m[k] for m in burst for k in keys if k in m}  # noqa: E731
+    assert ids(a).isdisjoint(ids(b)) and len(ids(a)) == len(ids(msgs))
+    assert all(m[k].endswith("-aaaaaaaa") for m in a for k in keys if k in m)
+    for m0, m1 in zip(msgs, a, strict=True):  # market, side, price, size and time are untouched
+        assert {k: v for k, v in m0.items() if k not in keys} == {
+            k: v for k, v in m1.items() if k not in keys
+        }
+    for m in a:
+        parse_message(
+            __import__("json").dumps(m).encode(), {"event_type": m["event_type"], "run_id": "r"}
+        )
+
+
+def test_two_fresh_runs_each_ingest_everything_and_do_not_collide(monkeypatch):
+    c, holder, _ = app_client(monkeypatch, True, per_client_10min=5, per_hour=50, per_day=50)
+    with c:
+        first = run_and_wait(c)
+        second = run_and_wait(c)
+        for st in (first, second):
+            k = st["counters"]
+            assert st["mode"] == "fresh" and k["ingested"] == 17 and k["duplicates_dropped"] == 0
+            assert len(st["alert_ids"]) == 1
+        assert first["alert_ids"] != second["alert_ids"]
+        store = holder["store"]
+        assert len(store.accounts) == 14 and len(store.trades) == 20  # 7 + 7 accounts, 10 + 10
+        # the newest run's alert replaces the previous one in the queue
+        streamed = [a for a in c.get("/queue").json() if a.get("streamed")]
+        assert [a["alert_id"] for a in streamed] == second["alert_ids"]
+        # no device or funding source is shared across runs
+        by_run = {}
+        for a in store.accounts.values():
+            by_run.setdefault(a["run_id"], set()).update((a["device_id"], a["funding_source_id"]))
+        sets = list(by_run.values())
+        assert len(sets) == 2 and sets[0].isdisjoint(sets[1])
+        # and each run was scored over its own accounts only
+        assert holder["store"].score_calls == 2
+
+
+def test_same_burst_adds_no_rows_and_raises_the_same_alert(monkeypatch):
+    c, holder, _ = app_client(monkeypatch, True, per_client_10min=5, per_hour=50, per_day=50)
+    with c:
+        assert c.get("/stream/config").json()["can_replay_same"] is False
+        assert c.post("/stream/replay", params={"same": "true"}).status_code == 409
+        fresh = run_and_wait(c)
+        assert c.get("/stream/config").json()["can_replay_same"] is True
+        store = holder["store"]
+        rows = (len(store.accounts), len(store.trades), len(store.alerts))
+        same = run_and_wait(c, "/stream/replay?same=true")
+        k = same["counters"]
+        assert same["mode"] == "same" and k["ingested"] == 0 and k["duplicates_dropped"] == 17
+        assert (len(store.accounts), len(store.trades), len(store.alerts)) == rows
+        assert same["alert_ids"] == fresh["alert_ids"]
+        q = [a["alert_id"] for a in c.get("/queue").json() if a.get("streamed")]
+        assert q == fresh["alert_ids"]
+
+
+def test_same_burst_has_its_own_rate_limit_counter(monkeypatch):
+    c, _, _ = app_client(monkeypatch, True)  # 1 per client per 10 minutes
+    with c:
+        run_and_wait(c)
+        assert c.post("/stream/replay").status_code == 429  # a second fresh burst: limited
+        assert run_and_wait(c, "/stream/replay?same=true")["mode"] == "same"
+        r = c.post("/stream/replay", params={"same": "true"})
+        assert r.status_code == 429 and int(r.headers["Retry-After"]) > 0
+
+
+def test_the_scoring_script_is_scoped_to_the_run():
+    script = S.build_script("proj-123456", "0123abcd")
+    B.assert_scoring_script(script)
+    assert "ENDS_WITH(account_id, '-0123abcd')" in script
+    assert "`run_trades`" in script and "`run_accounts`" in script
+    assert "`proj-123456.risk_raw.stream_trades`" not in script.split("det_features")[-1]
+    with pytest.raises(ValueError):
+        S.build_script("proj-123456", "x'); DROP TABLE t; --")
+    assert S.suffix_of("SW01-0123abcd") == "0123abcd" and S.suffix_of("SW01") is None
+    a, _ = S.alerts_from_features(
+        features([account("SW01-0123abcd")], []), "r-1", suffix="0123abcd"
+    )
+    b, _ = S.alerts_from_features(
+        features([account("SW01-4567abcd")], []), "r-2", suffix="4567abcd"
+    )
+    assert a == [] or a[0]["alert_id"] != b[0]["alert_id"]
+
+
 # ---------- app: flag off, flag on ----------
 
 
@@ -306,8 +408,12 @@ def test_replay_end_to_end_with_loopback(monkeypatch):
         assert d["alert"]["streamed"] is True and d["cached"] is False
         g = c.get(f"/cases/{aid}/graph")
         assert g.status_code == 200 and g.json()["engine"] == "fallback"
-        assert {n["key"] for n in g.json()["nodes"] if n["type"] == "Account"} >= {"SW01", "SW06"}
-        t = c.get(f"/cases/{aid}/trades", params={"account": "SW01"})
+        sfx = holder["ctl"].last_suffix
+        assert {n["key"] for n in g.json()["nodes"] if n["type"] == "Account"} >= {
+            f"SW01-{sfx}",
+            f"SW06-{sfx}",
+        }
+        t = c.get(f"/cases/{aid}/trades", params={"account": f"SW01-{sfx}"})
         assert t.status_code == 200 and t.json()["score"]["flagged"] is True
         # a newer run replaces the streamed alerts while it is running
         assert any(

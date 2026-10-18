@@ -230,12 +230,14 @@ class Consumer:
         try:
             with self.rt.lock:
                 run.scoring_queries += 1
-            features = self.store.score_features(S.build_script(self.project))
-            alerts, scores = S.alerts_from_features(features, run_id)
+            features = self.store.score_features(S.build_script(self.project, run.suffix))
+            alerts, scores = S.alerts_from_features(features, run_id, suffix=run.suffix)
             if alerts:
                 self.store.merge_alerts(alerts)
             if self.overlay is not None:
-                self.overlay.set_tables(self.store.read_accounts(), self.store.read_trades())
+                self.overlay.set_tables(
+                    *S.scoped(self.store.read_accounts(), self.store.read_trades(), run.suffix)
+                )
                 self.overlay.set_alerts(alerts, scores)
             with self.rt.lock:
                 run.alerts_raised = len(alerts)

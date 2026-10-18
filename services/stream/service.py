@@ -11,12 +11,14 @@ from __future__ import annotations
 
 import json
 import threading
+import uuid
 from collections.abc import Callable
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
 
 from services.stream import config as C
+from services.stream import scoring as S
 from services.stream.bq import BigQueryStreamStore
 from services.stream.consumer import Consumer
 from services.stream.limits import MESSAGES, StreamLimiter
@@ -30,6 +32,22 @@ POISON_BODY = {"event_type": "trade", "trade_id": "POISON-1", "price": "not-a-nu
 def load_burst(path: Path = BURST_FILE) -> list[dict]:
     """The fixed burst, in event-time order. There is no user-supplied body anywhere."""
     return [json.loads(ln) for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
+
+
+NO_EARLIER_BURST = "There is no earlier burst to replay yet. Stream a scenario first."
+NAMESPACED = ("account_id", "device_id", "funding_source_id", "trade_id")
+
+
+def new_suffix() -> str:
+    return uuid.uuid4().hex[:8]
+
+
+def namespace(msgs: list[dict], suffix: str) -> list[dict]:
+    """The burst with every account, device, funding-source and trade id suffixed ``-<suffix>``.
+
+    Deterministic: the same suffix gives the very same message bodies (the idempotency replay),
+    and two suffixes share no account, device, funding source or trade, so two runs cannot link."""
+    return [{k: (f"{v}-{suffix}" if k in NAMESPACED else v) for k, v in m.items()} for m in msgs]
 
 
 class PubSubPublisher:
@@ -64,10 +82,14 @@ class StreamController:
         self.replay_limiter = StreamLimiter(
             settings.per_client_10min, settings.per_hour, settings.per_day
         )
+        self.same_limiter = StreamLimiter(
+            settings.per_client_10min, settings.per_hour, settings.per_day
+        )
         self.poison_limiter = StreamLimiter(
             settings.per_client_10min, settings.per_hour, settings.per_day
         )
         self.graph: StreamGraph | None = None
+        self.last_suffix: str | None = None  # the newest fresh burst; "same" replays it
         self.pull_error: str | None = None
         self._future = None
         self._sub_client = None
@@ -88,12 +110,16 @@ class StreamController:
     def _hydrate(self) -> None:
         """Rebuild the overlay from the stream tables (free list_rows reads) after a restart."""
         try:
-            self.overlay.set_tables(self.store.read_accounts(), self.store.read_trades())
             alerts, scores = [], {}
             for row in self.store.latest_alerts():
                 alert, member_scores = self.overlay.hydrate_alert(row)
                 alerts.append(alert)
                 scores.update(member_scores)
+            if alerts and self.last_suffix is None:  # a restart: the newest burst is in the alerts
+                self.last_suffix = S.suffix_of(alerts[0]["member_accounts"][0])
+            self.overlay.set_tables(
+                *S.scoped(self.store.read_accounts(), self.store.read_trades(), self.last_suffix)
+            )
             self.overlay.set_alerts(alerts, scores)
         except Exception as e:  # noqa: BLE001
             print(f"stream: hydrate failed: {type(e).__name__}: {str(e)[:160]}", flush=True)
@@ -125,9 +151,20 @@ class StreamController:
             self._burst = load_burst()
         return self._burst
 
-    def start_replay(self):
-        msgs = self.burst()
-        run = self.runtime.start_run("replay", len(msgs))
+    def start_replay(self, same: bool = False):
+        """A fresh burst (new suffix, new rows, new alert) or, with ``same``, the previous burst's
+        exact ids again (all duplicates, no new rows, the same alert)."""
+        if same:
+            if self.last_suffix is None:
+                raise LookupError(NO_EARLIER_BURST)
+            suffix = self.last_suffix
+        else:
+            suffix = new_suffix()
+        msgs = namespace(self.burst(), suffix)
+        run = self.runtime.start_run(
+            "replay", len(msgs), mode="same" if same else "fresh", suffix=suffix
+        )
+        self.last_suffix = suffix
         threading.Thread(target=self._publish, args=(run, msgs), daemon=True).start()
         return run
 
@@ -203,6 +240,7 @@ def attach(app: FastAPI, d, state: dict) -> StreamController | None:
             "mode": "near-real-time micro-batch",
             "messages_in_burst": len(c.burst()) if c else None,
             "limits": c.replay_limiter.status() if c else None,
+            "can_replay_same": bool(c and c.last_suffix),
             "consumer_ok": bool(c and c.pull_error is None),
             "latest_run": c.runtime.latest if c else None,
             "active_run": (c.runtime.active_run().run_id if c and c.runtime.active_run() else None),
@@ -236,12 +274,15 @@ def attach(app: FastAPI, d, state: dict) -> StreamController | None:
             raise HTTPException(409, f"A stream run ({run.run_id}) is still in progress.")
 
     @app.post("/stream/replay")
-    def replay(request: Request):
-        """Publish the fixed synthetic burst (no request body is read)."""
+    def replay(request: Request, same: bool = Query(default=False)):
+        """Publish the fixed synthetic burst under a fresh id suffix, or with ``same=true`` the
+        previous burst's exact ids again (no request body is read)."""
         busy()
-        refuse(ctl.replay_limiter, request)
-        run = ctl.start_replay()
-        return {"run_id": run.run_id, "total": run.expected, "state": run.state}
+        if same and ctl.last_suffix is None:
+            raise HTTPException(409, NO_EARLIER_BURST)
+        refuse(ctl.same_limiter if same else ctl.replay_limiter, request)
+        run = ctl.start_replay(same)
+        return {"run_id": run.run_id, "total": run.expected, "state": run.state, "mode": run.mode}
 
     @app.post("/stream/poison")
     def poison(request: Request):

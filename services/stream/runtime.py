@@ -28,6 +28,8 @@ def new_run_id() -> str:
 class Run:
     run_id: str
     kind: str  # replay | poison | external
+    mode: str = ""  # replay runs only: fresh (new ids) | same (the previous burst's exact ids)
+    suffix: str | None = None  # the burst's id suffix; scoring is scoped to it
     expected: int = 0  # messages the publisher will send
     state: str = "publishing"  # publishing | ingesting | scoring | finished | error | stalled
     published: int = 0
@@ -88,9 +90,12 @@ class StreamRuntime:
 
     # ---- runs ----
 
-    def start_run(self, kind: str, expected: int, run_id: str | None = None) -> Run:
+    def start_run(
+        self, kind: str, expected: int, run_id: str | None = None, *, mode: str = "",
+        suffix: str | None = None,
+    ) -> Run:  # fmt: skip
         with self.lock:
-            run = Run(run_id or new_run_id(), kind, expected=expected)
+            run = Run(run_id or new_run_id(), kind, expected=expected, mode=mode, suffix=suffix)
             self.runs[run.run_id] = run
             self.order.append(run.run_id)
             for old in self.order[:-20]:  # keep the last 20 runs
@@ -167,6 +172,7 @@ class StreamRuntime:
             return {
                 "run_id": run.run_id,
                 "kind": run.kind,
+                "mode": run.mode or None,
                 "state": run.state,
                 "active": run.active,
                 "expected": run.expected,

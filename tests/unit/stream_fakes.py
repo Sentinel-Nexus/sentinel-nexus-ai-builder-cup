@@ -47,10 +47,11 @@ def msg(body: dict | bytes, run_id="r-1", mid="m1", attempt=1, **attrs) -> FakeM
 def features(accounts, trades):
     """Stand-in for the SQL step: the ring (SW*) looks like a ring, everyone else does not."""
     out = []
+    seed = min((a["account_id"] for a in accounts if a["account_id"].startswith("SW")), default="")
     for a in accounts:
         ring = a["account_id"].startswith("SW")
         out.append(dict(
-            account_id=a["account_id"], ring_id="R_SW01" if ring else "R_" + a["account_id"],
+            account_id=a["account_id"], ring_id="R_" + (seed if ring else a["account_id"]),
             comp_size=6 if ring else 1, comp_density=1.0 if ring else 0.0,
             fill_n=14 if ring else 0, recip=1.0 if ring else 0.0,
             fresh_fanin=4 if ring else 0, age_first_trade_h=48.0 if ring else 5000.0,

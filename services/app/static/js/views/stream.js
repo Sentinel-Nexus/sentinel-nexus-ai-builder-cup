@@ -30,9 +30,9 @@ function caption(st) {
   if (st.state === 'scoring') return 'Every message is in BigQuery. The frozen detector is now scoring the streamed accounts (one query; this is the slow step).';
   if (st.state === 'finished') {
     const secs = t.last_publish_to_alert_s;
-    const dup = k.ingested === 0 && k.duplicates_dropped > 0
-      ? ' This burst is already in BigQuery from an earlier run, so every message was dropped as a duplicate; scoring still ran and no second alert or row was created.' : '';
-    return `Done${secs != null ? `: ${secs} s from the last publish to the alert` : ''}. ${k.alerts_raised} alert(s) now in the queue with a Streamed chip.${dup}`;
+    const done = `Done${secs != null ? `: ${secs} s from the last publish to the alert` : ''}. ${k.alerts_raised} alert(s) now in the queue with a Streamed chip.`;
+    if (st.mode === 'same') return `${done} Same message ids as the previous burst: ${fmtN(k.duplicates_dropped)} dropped as duplicates, ${fmtN(k.ingested)} ingested, no new rows, and the alert id did not change.`;
+    return `${done} Every message carried new ids, so ${fmtN(k.ingested)} new rows were ingested.`;
   }
   if (st.state === 'stalled') return `The run did not finish in time (${st.error || 'no completion'}). Counters show where it stopped.`;
   return st.error ? `The run failed: ${st.error}` : '';
@@ -45,12 +45,14 @@ export async function mountStream({ page, refreshQueue }) {
 
   const secs = cfg.measured_seconds;
   const btn = h('button', { class: 'btn primary', type: 'button', id: 'stream-btn', 'aria-describedby': 'stream-note' }, 'Stream a scenario');
+  const same = h('button', { class: 'btn small', type: 'button', id: 'stream-same-btn', 'aria-describedby': 'stream-same-note', disabled: !cfg.can_replay_same, title: cfg.can_replay_same ? '' : 'Stream a scenario first' }, 'Replay the same burst');
   const bad = h('button', { class: 'btn small', type: 'button', id: 'stream-bad-btn', 'aria-describedby': 'stream-bad-note' }, 'Send a bad message');
   const note = h('span', { id: 'stream-note', class: 'small muted' },
     `Publishes a synthetic burst to Pub/Sub; alerts appear within about ${secs != null ? `${secs} seconds` : 'a measured number of seconds (not measured yet)'} (micro-batches).`);
+  const sameNote = h('span', { id: 'stream-same-note', class: 'small muted' }, 'Re-sends the previous burst with the very same ids to show idempotency.');
   const badNote = h('span', { id: 'stream-bad-note', class: 'small muted' }, 'Publishes one malformed message to show retries and the dead-letter queue.');
   const replay = document.getElementById('replay-btn');
-  if (replay) replay.parentElement.append(btn, note, bad, badNote);
+  if (replay) replay.parentElement.append(btn, note, same, sameNote, bad, badNote);
 
   const stats = Object.fromEntries(STATS.map(([k, label, hint]) => [k, h('div', { class: 'value', 'data-k': k }, '0')]));
   const bar = h('div', { class: 'fill' });
@@ -63,13 +65,17 @@ export async function mountStream({ page, refreshQueue }) {
       h('span', { class: 'small muted' }, 'Near-real-time micro-batches: Pub/Sub, BigQuery, frozen detector. Synthetic burst.')),
     h('div', { class: 'body stack' },
       h('div', { class: 'stream-grid' }, STATS.map(([k, label, hint]) => h('div', { class: 'stream-stat', title: hint }, h('div', { class: 'label' }, label), stats[k]))),
-      barBox, text, msgBox));
+      barBox, text, msgBox,
+      h('p', { class: 'small muted', id: 'stream-modes' },
+        h('strong', null, 'Stream a scenario'), ' publishes a fresh burst with new ids every time, so it ingests new rows and raises a new alert. ',
+        h('strong', null, 'Replay the same burst'), ' re-sends the previous burst's exact ids to show idempotency: nothing new is ingested, every message is dropped as a duplicate, and the alert id stays the same.')));
   page.insertBefore(card, page.firstChild);
 
   let timer = null;
   let runId = null;
   let t0 = 0;
   let errors = 0;
+  let canSame = !!cfg.can_replay_same;
 
   const setBadge = (label, tone) => { badge.textContent = label; badge.className = `chip ${tone}`; };
   const paint = (st) => {
@@ -92,7 +98,7 @@ export async function mountStream({ page, refreshQueue }) {
     }
   };
 
-  const stop = () => { clearInterval(timer); timer = null; btn.disabled = false; bad.disabled = false; };
+  const stop = () => { clearInterval(timer); timer = null; btn.disabled = false; bad.disabled = false; same.disabled = !canSame; };
 
   async function poll() {
     try {
@@ -128,6 +134,7 @@ export async function mountStream({ page, refreshQueue }) {
     errors = 0;
     btn.disabled = true;
     bad.disabled = true;
+    same.disabled = true;
     clearInterval(timer);
     timer = setInterval(poll, POLL_MS);
     poll();
@@ -137,6 +144,7 @@ export async function mountStream({ page, refreshQueue }) {
     msgBox.replaceChildren();
     try {
       const r = await post(path);
+      if (path.startsWith('/stream/replay')) { canSame = true; same.title = ''; }
       setBadge(label, 't-med');
       text.textContent = 'Starting…';
       await refreshQueue(); // a newer run replaces the streamed alerts
@@ -159,6 +167,7 @@ export async function mountStream({ page, refreshQueue }) {
   }
 
   btn.addEventListener('click', () => start('/stream/replay', 'Publishing'));
+  same.addEventListener('click', () => start('/stream/replay?same=true', 'Publishing'));
   bad.addEventListener('click', () => start('/stream/poison', 'Publishing'));
 
   // show the last run, and resume it if it is still going (no request when nothing has run)

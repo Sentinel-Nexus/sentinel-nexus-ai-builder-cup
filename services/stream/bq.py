@@ -331,7 +331,14 @@ class MemoryStore:
         self.score_calls += 1
         if self.scorer is None:
             return []
-        return self.scorer(list(self.accounts.values()), list(self.trades.values()))
+        accounts, trades = list(self.accounts.values()), list(self.trades.values())
+        m = re.search(r"ENDS_WITH\(account_id, '-([0-9a-f]{8})'\)", script)
+        if m:  # the run-scoped script reads only that run's accounts and trades
+            accounts, trades = (
+                [r for r in rows if r["account_id"].endswith(f"-{m.group(1)}")]
+                for rows in (accounts, trades)
+            )
+        return self.scorer(accounts, trades)
 
 
 def now_s() -> float:
