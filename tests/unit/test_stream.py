@@ -439,3 +439,12 @@ def test_burst_file_shape_and_validity():
     ids = [m.get("trade_id") or m["account_id"] for m in msgs]
     assert len(ids) == len(set(ids))
     assert workbench.client_id  # imported for the app tests above
+
+
+def test_config_answers_before_anything_was_measured(monkeypatch):
+    """stream.json holds null until stream_eval measured a run: /stream/config must still be 200."""
+    c, _, _ = app_client(monkeypatch, True)
+    with c:
+        body = c.get("/stream/config")
+        assert body.status_code == 200 and body.json()["enabled"] is True
+        assert svc._measured_seconds() is None or svc._measured_seconds() > 0

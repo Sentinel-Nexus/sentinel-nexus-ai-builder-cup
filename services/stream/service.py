@@ -275,7 +275,7 @@ def _measured_seconds() -> float | None:
     None until measured."""
     try:
         return float(json.loads(MEASURED_FILE.read_text(encoding="utf-8"))["seconds"])
-    except (OSError, ValueError, KeyError):
+    except (OSError, ValueError, KeyError, TypeError):  # missing file, or null before a measurement
         return None
 
 
