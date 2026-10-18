@@ -43,6 +43,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if f.is_file():
                 ctype = {".js": "text/javascript", ".css": "text/css", ".json": "application/json"}
                 return self._send(f.read_bytes(), ctype.get(f.suffix, "application/octet-stream"))
+        m = re.fullmatch(r"/cases/AL_STREAMTEST/(detail|graph|trades)", u.path)
+        if m:  # a streamed alert: the wash ring's graph and trades, no agent case
+            src = "AL_584807441a"
+            if m[1] == "trades":
+                acct = parse_qs(u.query).get("account", [""])[0]
+                return self._send(
+                    (FIX / f"{src}_trades_{acct}.json").read_bytes(), "application/json"
+                )
+            body = json.loads((FIX / f"{src}_{m[1]}.json").read_text(encoding="utf-8"))
+            if m[1] == "detail":
+                body.update(cached=False, report=None)
+                body["alert"].update(alert_id="AL_STREAMTEST", streamed=True)
+            return self._send(json.dumps(body).encode(), "application/json")
         m = re.fullmatch(r"/cases/(\w+)/(detail|graph|timeline)", u.path)
         if m and (FIX / f"{m[1]}_{m[2]}.json").exists():
             return self._send((FIX / f"{m[1]}_{m[2]}.json").read_bytes(), "application/json")

@@ -188,8 +188,9 @@ def run_stream_checks(pg, real: bool = False) -> None:
     )
     p.route("**/stream/status?run_id=r-bad", status_handler("r-bad", "poison", [bad]))
     p.click("#stream-bad-btn")
-    p.wait_for_function(
-        "document.querySelector('#stream-state')?.textContent === 'Finished'", timeout=15000
+    p.wait_for_function(  # the caption of THIS run (the badge may still say Finished from before)
+        "document.querySelector('#stream-caption')?.textContent.includes('dead-letter queue')",
+        timeout=15000,
     )
     if "dead-letter" not in p.inner_text("#stream-caption"):
         pg.bad("the bad-message caption does not mention the dead-letter queue")

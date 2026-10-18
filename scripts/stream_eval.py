@@ -16,6 +16,7 @@ reported as a miss. No Gemini call is made. Every wait has a cap and prints prog
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
 import json
 import math
@@ -165,7 +166,13 @@ def peek_dlq() -> bool | None:
         )  # fmt: skip
         if out.returncode:
             return None
-        if "POISON-1" in out.stdout:
+        try:  # gcloud prints the body base64-encoded
+            bodies = [
+                base64.b64decode(m["message"]["data"]).decode() for m in json.loads(out.stdout)
+            ]
+        except (ValueError, KeyError, TypeError):
+            bodies = []
+        if any("POISON-1" in b for b in bodies):
             return True
         time.sleep(5)
     return False
