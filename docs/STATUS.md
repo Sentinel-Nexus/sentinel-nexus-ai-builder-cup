@@ -2,7 +2,7 @@
 
 Live state of GCP and the repo. Update in the same commit as any cloud change.
 
-Last updated: 2026-10-17 (P5 web workbench + first deploy, branch `feat/web-workbench`)
+Last updated: 2026-10-18 (P6 streaming path, branch `feat/streaming`)
 
 ## Live GCP resources
 
@@ -21,10 +21,11 @@ in Cloud Shell; `infra/gcp/setup.sh` and `sql/` are the reproducible record.
 | Detector outputs | `risk_curated.account_scores` (2,039), `risk_curated.alerts` (4 alerts, 38 accounts, columns `status` and `n_flagged` added by `sql/migrations/p2h_10_alerts_status.sql`), intermediates `risk_curated.det_*` and `baseline_flags`; old alerts kept as `risk_curated.alerts_legacy` (39) |
 | Validation | dataset `eval_val`: `s7_*`, `s11_*`, `s23_*` inputs plus `s<seed>_det_*` and `s<seed>_baseline_flags` (threshold selection only) |
 | Robustness | dataset `eval_val`: `s101_*` to `s108_*` (same layout, varied generator parameters from `evals/robustness_profiles.json`); scored only, never used for tuning |
-| Pub/Sub | topics `trades`, `trades-dlq`; subs `trades-sub` (DLQ, 5 attempts, ack 60 s), `trades-dlq-sub` |
+| Pub/Sub | topics `trades`, `trades-dlq`; subs `trades-sub` (DLQ, 5 attempts, ack 60 s), `trades-dlq-sub`. P6 grants to `sa-agent`: `roles/pubsub.publisher` on topic `trades` only, `roles/pubsub.subscriber` on subscription `trades-sub` only |
+| Stream tables (P6) | `risk_raw.stream_accounts`, `risk_raw.stream_trades` (partitioned by day of `ts`, clustered by `account_id`), `risk_curated.stream_alerts`, `audit.stream_events`. DDL `sql/schema/60_stream.sql`; `sa-agent` has `roles/bigquery.dataEditor` on exactly these four tables (`sql/iam/sa_agent_stream_tables.sql`). Script: `infra/stream_setup.py` |
 | Service accounts | `sa-agent` (aiplatform.user, bigquery.dataViewer, bigquery.jobUser), `sa-ingest` (bigquery.dataEditor, bigquery.jobUser, pubsub.subscriber) |
 | Artifact Registry | `sentinel` (`sentinel-app` images, one per deploy), `cloud-run-source-deploy` (auto-created) |
-| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker). **`sentinel-app`** (P5, the workbench and agents API) at `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, revision `sentinel-app-00005-v85`, runs as `sa-agent`, **public**, min 1 / max 1 instance, 1Gi, 1 CPU always allocated, concurrency 40, request timeout 300 s, image in Artifact Registry `sentinel` |
+| Cloud Run | `sentinel-hello` at `https://sentinel-hello-tipo5b3mpa-uc.a.run.app`, runs as `sa-agent`, **public** (`allUsers` invoker). **`sentinel-app`** (P5, the workbench and agents API) at `https://sentinel-app-tipo5b3mpa-uc.a.run.app`, **live revision `sentinel-app-00013-tek` since 2026-10-18 (P6 streaming, `STREAMING_ENABLED=true`; first deployed as 00005-v85)**, runs as `sa-agent`, **public**, min 1 / max 1 instance, 1Gi, 1 CPU always allocated, concurrency 40, request timeout 300 s, image in Artifact Registry `sentinel` |
 | Reservation | `gql-poc` (ENTERPRISE, 0 baseline slots, autoscale max 50), QUERY assignment to the whole project |
 | APIs | 35 enabled, listed in the inventory |
 
@@ -386,8 +387,112 @@ and no case was re-run to get a different mix. Override was checked on the live 
 `smoke-test` on EV_DG1: it moved to escalated in the test view (`/lanes?include_test=true`), was audited,
 and the default view still showed it agent-cleared (the test reset is the exclusion of test records).
 
-Pending for P6: the replay control, Model Armor and PII redaction (shown as "not deployed" on the
-Governance screen).
+Model Armor and PII redaction stay "not deployed" on the Governance screen (P6 cut that part, see the next section).
+
+## P6 streaming (`services/stream`, branch `feat/streaming`)
+
+**Rollback (put first on purpose).** If the streaming revision misbehaves, send all traffic back to the
+last revision from before this phase (flag off, no consumer):
+
+    gcloud run services update-traffic sentinel-app --project project-f8544066-3df8-4f99-8ed --region us-central1 --to-revisions sentinel-app-00009-lgx=100
+
+Alternatively redeploy with `python infra/deploy_app.py --apply --streaming off`. Nothing was deleted, so
+revision 00009 still exists.
+
+A **near-real-time micro-batch** path (Pub/Sub, BigQuery, the frozen detector). It is feature-flagged
+(`STREAMING_ENABLED`, off in code, `true` in the deployed service) and additive: with the flag off the
+app answers exactly like revision 00009 (`/stream/config` says `enabled: false`, no other `/stream/*`
+route exists, `/queue`, `/governance` and the UI are unchanged; covered by
+`tests/unit/test_stream.py::test_flag_off_has_no_stream_routes_and_the_queue_is_unchanged`).
+Architecture: `docs/architecture.md`. What it proves and does not: `docs/agent-evals.md`.
+
+**Measured result** (`scripts/stream_eval.py`, `docs/results/stream_eval.json`; synthetic burst
+`data/stream/burst_01.jsonl` from a new seed, 6001: one wash ring of 6 new accounts, one innocent household
+of 4 accounts, 30 background accounts, 310 events, 270 trades; labels only in `evals/stream/burst_01_truth.json`):
+
+| | Result |
+|---|---|
+| Streamed ring flagged | yes, one alert `R_SW01`, all 6 accounts, score **44.37 against the frozen threshold 43.0** (a thin margin) |
+| Household flagged | no (0 of 4); no background account flagged |
+| Delay, last publish to alert | 27.2 s, 34.3 s and 30.9 s on Cloud Run (3 replays, 3 candidate revisions); 33.4 s for the first local run. The UI says "about 35 seconds" (median rounded up to 5 s). Publishing takes about 0.2 s; most of the delay is the single scoring script (about 20 BigQuery statements) |
+| Messages | 310 published, 310 ingested (the first, local run) |
+| Second replay | adds no row: BigQuery stays at 270 trades, 40 accounts, 1 alert (all rows distinct); 310 messages dropped as duplicates; the alert id is the same |
+| Poison message | malformed once, retried 4 times, dead-letter candidate on attempt 5; found in `trades-dlq-sub` with delivery count 5; never written |
+| Detector counts | unchanged: `/summary` and the KPIs do not include streamed alerts |
+
+Caveats, said plainly:
+
+- **The "ingested 310" figure is from my local validation run** (a script on the operator's laptop using the
+  real topic, subscription and tables, 2026-10-18). Because that run loaded the burst, every Cloud Run
+  replay is a pure duplicate replay: `ingested 0`, `duplicates dropped 310`, and the scoring query still runs
+  and re-raises the same alert. That is what the second-replay requirement asks for, but it means a
+  public visitor will always see 0 ingested. The UI card says so. I did not delete the rows to re-demo a
+  fresh load (nothing is deleted).
+- One burst cannot give precision or recall. The margin over the threshold is 1.37 points.
+- The scoring job is capped at **500 MB billed, not 100 MB**: the frozen script is one job of about 20
+  statements and BigQuery bills a minimum of 10 MB per table per statement, so it bills about 350 MB although it
+  processes under 5 MB (measured on the live tables: 346 MB billed, 4.7 MB processed). All other
+  stream jobs (MERGEs, reads) keep the 100 MB cap. Each job is dry-run first. The scoring script is checked
+  to create only TEMP tables; MERGEs may only target the four stream tables.
+- Delivery order is not guaranteed (ordering is not enabled on the existing subscription, which was not
+  modified). Nothing depends on it; there is a test with out-of-order events.
+- The scoring rewrite (output tables as TEMP tables) was checked by running the frozen script on the live
+  tables: 2,039 of 2,039 scores equal the stored `account_scores`, 38 flagged both ways.
+- Counters live in memory (one instance); events also go to `audit.stream_events`. A restart loses the live
+  counters of a running run (the page then says the run was lost); alerts are re-read from
+  `risk_curated.stream_alerts`.
+- No agent case is stored for the streamed alert (live results are not persisted). One live investigation
+  was run on it as the final check (below); the alert page shows its evidence and ring graph and says no
+  stored agent case exists.
+
+**Cloud changes applied** (all by script, dry run printed and approved first):
+
+1. `python infra/stream_setup.py --apply` (2026-10-18): four new tables (`CREATE TABLE IF NOT EXISTS`), table-level
+   `roles/bigquery.dataEditor` for `sa-agent` on those four tables, `roles/pubsub.publisher` on topic `trades`,
+   `roles/pubsub.subscriber` on subscription `trades-sub`. Read back afterwards with
+   `python infra/stream_setup.py --verify`. No project-level role, nothing deleted or modified, the
+   `gql-poc` reservation untouched.
+2. Cloud Run revisions `sentinel-app-00010-yef`, `00011-yum`, `00012-zeg` and `00013-tek` were deployed with
+   `--no-traffic --tag candidate` (three earlier candidates each found a real problem, below). Env added:
+   `STREAMING_ENABLED=true`, `STREAM_PER_CLIENT_10MIN=1`, `STREAM_PER_HOUR=6`, `STREAM_PER_DAY=30`.
+3. Rows were written to the four stream tables by the local validation run and by the evaluation replays.
+
+**Rate limits** (per instance; one instance): replay and the bad-message demo each 1 per client per 10
+minutes, 6 per hour, 30 per day; a refusal is HTTP 429 with a message and `Retry-After`; a second run cannot
+start while one is active (409).
+
+**Problems the candidate checks found, all fixed before promotion**: `/stream/config` returned 500 because the
+measured latency was `null` (fixture-based tests had not covered the unmeasured file); a streamed alert's page
+drew no graph because the case page needs a stored agent case; the DLQ check in `stream_eval.py` compared
+base64 text and reported a message missing that was there (verified by hand, script fixed, result annotated);
+`ui_smoke` compared `/alerts` with `/queue`, which now also lists streamed alerts (the check now compares
+detector alerts); a race in the browser check (it read the previous run's "Finished" badge).
+
+**Checks on the final candidate (`sentinel-app-00013-tek`, tag `candidate`, 0% traffic)**:
+`scripts/browser_check.py` 18/18 screens clean (9 screens at 1280x800 and 390x844, the new Pipeline states
+idle, running, finished, rate-limited and error are stubbed; the real streamed case page was opened),
+`scripts/e2e_smoke.py` 71/71, `scripts/ui_smoke.py` 71/71, `stream_eval.py` replay PASS and poison PASS on 00013,
+second replay PASS on 00012 (same code; the only change in 00013 is static data). `ruff` clean, 256 tests passed (5 live-only skipped).
+
+**Promoted 2026-10-18 (after approval)**: `python infra/deploy_app.py --apply --promote` moved 100% of traffic to
+**`sentinel-app-00013-tek`**. Rollback target: `sentinel-app-00009-lgx`. On the public URL afterwards: `/health` ready,
+`browser_check.py` 18/18 screens clean, `e2e_smoke.py` 71/71. The one Gemini call of this phase: a live
+investigation of the streamed alert `AL_ae208df261` through the existing path, `ok`, 28,178 tokens, 3 tool
+calls, 24.2 s, graph engine `fallback` (the stream tables), decision escalate (confidence 0.61), members the 6
+ring accounts, 2 claims kept and 3 removed by the evidence checks; not stored (live results are not persisted),
+about $0.01 to $0.02. The cost of the evaluation itself: BigQuery only, 3 replays plus a local run, no other model call.
+
+**Cut or not done**:
+
+- **Stage C (prompt-injection guard) was cut** for time. There is no Model Armor and no local guard in this
+  phase. Governance still lists "Model Armor prompt guard" and "PII redaction" as **not deployed**; the docs
+  claim nothing more.
+- No PR was opened (as instructed).
+- The Cloud Run dependency pins now include `google-cloud-pubsub==2.43.0`; the local dev environment shows a pip
+  conflict note between `google-adk` and `opentelemetry` versions, while the image resolves cleanly.
+
+**Teardown additions (Nov 6)**: also delete the four stream tables, and remove the two Pub/Sub grants
+(`gcloud pubsub topics remove-iam-policy-binding trades ...`, `subscriptions remove-iam-policy-binding trades-sub ...`).
 
 ## Known risks
 

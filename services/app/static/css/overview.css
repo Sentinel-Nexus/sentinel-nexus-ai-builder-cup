@@ -25,6 +25,8 @@ body.ov-on .nav a[aria-current="page"] { background: #1a2740; color: #aecbff; }
 /* hero */
 .ov-hero { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px 40px; align-items: center; }
 .ov-hero-main { display: grid; gap: 14px; }
+.ov-hero-side { display: grid; gap: 10px; }
+.ov-stream-line { margin: 0; font-size: 0.9rem; color: var(--ov-text-2); }
 .ov-spark { width: 30px; height: 30px; }
 .ov-hero h1 { font-size: clamp(1.5rem, 2.6vw, 2.25rem); line-height: 1.18; font-weight: 600; max-width: 30ch; margin: 0; }
 .ov-hero h1::after { content: ""; display: block; height: 5px; width: min(420px, 60%); margin-top: 14px; border-radius: 3px; background: var(--ov-grad); }

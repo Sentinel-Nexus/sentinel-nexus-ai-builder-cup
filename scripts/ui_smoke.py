@@ -74,7 +74,12 @@ def run(base: str, write: bool = False, out: Checks | None = None) -> Checks:
     ok, queue, ms, _, s = get("/queue")
     c.check("GET /queue", ok and len(queue) >= 1, f"{len(queue)} alerts", ms)
     ok, al, ms, _, s = get("/alerts")
-    c.check("GET /alerts", ok and len(al) == len(queue), "", ms)
+    c.check(
+        "GET /alerts",
+        ok and len(al) == len([a for a in queue if not a.get("streamed")]),
+        "detector alerts only: streamed alerts are in /queue, not here",
+        ms,
+    )
     ok, lanes, ms, _, s = get("/lanes")
     c.check(
         "GET /lanes", ok and set(lanes) == {"escalated", "agent_cleared", "needs_analyst"}, "", ms

@@ -3,7 +3,9 @@
     python scripts/browser_check.py --base https://<service-url>
 
 For each size (1280x800 and 390x844) it visits the Overview (all popovers), the Command centre
-(evaluation toggle, replay, shortcuts dialog), a case with its graph walk-through, tooltip and
+(evaluation toggle, replay, shortcuts dialog), the streaming controls and every state of the
+Pipeline card (idle, running, finished, rate-limited, error; stubbed, nothing is published), a
+case with its graph walk-through, tooltip and
 dialogs, Lanes (evaluation toggle, Override dialog), Benchmark, Governance and an unknown case (the
 one intentional 404). It fails on a console error, an uncaught exception, a failed request, a 4xx or
 5xx response (except that probe) or a missing static file. Every popover, tooltip and dialog it can
@@ -19,6 +21,10 @@ import argparse
 import sys
 from collections import defaultdict
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.browser_stream_check import run_stream_checks  # noqa: E402
 
 SIZES = [(1280, 800), (390, 844)]
 CASE = "AL_584807441a"
@@ -37,6 +43,7 @@ class Page:
         self.page = self.ctx.new_page()
         self.page.set_default_timeout(45000)
         self.screen = "start"
+        self.expected: set[int] = set()  # statuses a stubbed response is meant to return
         self.problems: dict[str, list[str]] = defaultdict(list)
         self.screens: list[str] = []
         self.page.on("console", self._console)
@@ -51,6 +58,10 @@ class Page:
         if m.type == "error":
             if self.screen.startswith("Unknown case") and "status of 404" in m.text:
                 return  # the browser's own note about the intentional probe
+            if "Failed to load resource" in m.text and any(
+                f"status of {c}" in m.text for c in self.expected
+            ):
+                return  # the browser's note about a stubbed 429 or 500
             self.bad(f"console error: {m.text[:160]}")
 
     def _response(self, r) -> None:
@@ -58,6 +69,8 @@ class Page:
             return
         if r.url.endswith(PROBE_404) and r.status == 404:
             return  # the intentional probe
+        if r.status in self.expected:
+            return  # a response this check stubbed on purpose
         what = "missing static file" if "/static/" in r.url else "bad response"
         self.bad(f"{what}: {r.status} {r.url[:120]}")
 
@@ -119,6 +132,12 @@ def overview(pg: Page) -> None:
             != label
         ):
             pg.bad(f"{label}: focus did not return to the trigger")
+    secs = p.evaluate("fetch('/static/data/stream.json').then(r => r.json()).then(j => j.seconds)")
+    line = p.locator("#ov-stream-line")
+    if secs is not None and not (line.count() and f"about {secs:g} seconds" in line.inner_text()):
+        pg.bad("the Overview is missing the measured streaming line")
+    if secs is None and line.count():
+        pg.bad("the Overview shows a streaming delay that was never measured")
     # click outside closes
     triggers.first.click()
     p.mouse.click(5, 5)
@@ -224,7 +243,7 @@ def simple(pg: Page, name: str, hash_: str, wait: str) -> None:
         pg.bad("the screen shows an error state")
 
 
-def run(base: str, sizes=None) -> dict[str, list[str]]:
+def run(base: str, sizes=None, real_stream: bool = False) -> dict[str, list[str]]:
     """{'<screen> <size>': [problems]} for every screen visited."""
     from playwright.sync_api import sync_playwright
 
@@ -236,6 +255,7 @@ def run(base: str, sizes=None) -> dict[str, list[str]]:
             tag = f"{size[0]}x{size[1]}"
             overview(pg)
             command(pg)
+            run_stream_checks(pg, real_stream)
             case(pg)
             lanes(pg)
             simple(pg, "Benchmark", "#/benchmark", "canvas")
@@ -259,8 +279,9 @@ def run(base: str, sizes=None) -> dict[str, list[str]]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True)
+    ap.add_argument("--real-stream", action="store_true", help="also click the real button once")
     a = ap.parse_args()
-    res = run(a.base.rstrip("/"))
+    res = run(a.base.rstrip("/"), real_stream=a.real_stream)
     failed = 0
     for screen, problems in res.items():
         print(f"{'ok  ' if not problems else 'FAIL'} {screen}")

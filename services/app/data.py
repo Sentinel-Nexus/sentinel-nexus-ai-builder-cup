@@ -56,6 +56,9 @@ class DataStore:
         self._tables: dict[str, list[dict]] = {}
         self._idx: dict[str, object] = {}
         self._lock = threading.RLock()
+        self.overlay = (
+            None  # streamed data (services.stream.overlay), set only when streaming is on
+        )
 
     # ---- loading ----
 
@@ -132,11 +135,23 @@ class DataStore:
         return a
 
     def get_alert(self, alert_id: str) -> dict | None:
-        return next((a for a in self.alerts() if a["alert_id"] == alert_id), None)
+        found = next((a for a in self.alerts() if a["alert_id"] == alert_id), None)
+        if found is None and self.overlay is not None:
+            found = self.overlay.get_alert(alert_id)
+        return found
+
+    def stream_alerts(self) -> list[dict]:
+        """Streamed alerts of the latest run; never part of alerts() or the detector counts."""
+        return self.overlay.alerts() if self.overlay is not None else []
+
+    def _streamed(self, account_id: str) -> bool:
+        return self.overlay is not None and self.overlay.has_account(account_id)
 
     # ---- per-entity lookups ----
 
     def score_of(self, account_id: str) -> dict | None:
+        if self._streamed(account_id):
+            return self.overlay.score_of(account_id)
         row = self._by("scores", "account_id").get(account_id)
         if row is None:
             return None
@@ -153,9 +168,13 @@ class DataStore:
         return self._by("markets", "market_id").get(market_id)
 
     def account(self, account_id: str) -> dict | None:
+        if self._streamed(account_id):
+            return self.overlay.account(account_id)
         return self._by("accounts", "account_id").get(account_id)
 
     def markets_of(self, account_id: str) -> list[dict]:
+        if self._streamed(account_id):
+            return self.overlay.markets_of(account_id)
         rows = self._traded().get(account_id, [])
         return sorted(rows, key=lambda r: -float(r["total_usd"]))
 
@@ -164,6 +183,8 @@ class DataStore:
         returned: generated ids can leak how the data was built."""
         dev_of, dev_n = self._sharers("uses_device", "device_id")
         fund_of, fund_n = self._sharers("funded_by", "funding_source_id")
+        if self._streamed(account_id):
+            return self.overlay.sharing(account_id)
         d, f = dev_of.get(account_id), fund_of.get(account_id)
         return {
             "device_shared_by": dev_n[d] if d else 0,
@@ -182,7 +203,7 @@ class DataStore:
     def dominant_market(self, members: list[str]) -> str | None:
         total: dict[str, float] = defaultdict(float)
         for a in members:
-            for r in self._traded().get(a, []):
+            for r in self.markets_of(a):
                 total[r["market_id"]] += float(r["total_usd"])
         return max(total, key=total.get) if total else None
 

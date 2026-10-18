@@ -165,6 +165,19 @@ export async function render(root, { args, keys }) {
     }
     if (live) page.append(liveNotice());
     if (!report) {
+      if (alert.streamed) {
+        // a streamed alert has no agent case yet, but its evidence and ring graph are real
+        page.append(h('div', { class: 'notice', role: 'note' }, h('strong', null, 'Streamed alert. '),
+          'Raised by the frozen detector over a streamed synthetic burst (Pub/Sub, micro-batches). No agent case has been run for it; "Investigate live" would start one (limited).'));
+        const bare = { evidence_table: [], clear_evidence_ids: [], members_alert: alert.member_accounts || [] };
+        const side = h('div', { class: 'stack' }, graphCard(bare, alert), whyFlagged(alert),
+          h('div', { class: 'card', id: 'node-panel', 'aria-live': 'polite' },
+            h('header', null, h('h2', null, 'Selection')), h('div', { class: 'state small' }, 'Click an account, device or funding source in the graph to see its trades and links.')));
+        page.append(h('div', { class: 'case-layout' }, card('Alert evidence', evidenceOnly(alert)), side));
+        loadGraph(bare, alert);
+        keys.set(shortcuts(null));
+        return;
+      }
       page.append(empty('No cached case yet', 'No case is stored for this alert. Use "Investigate live" to run one (limited).'));
       page.append(card('Alert evidence', evidenceOnly(alert)));
       return;

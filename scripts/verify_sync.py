@@ -37,6 +37,10 @@ OUTPUT_TABLES = (
     "risk_curated.case_reports",  # P4 agents
     "audit.agent_events",
     "risk_curated.case_decisions",
+    "risk_raw.stream_accounts",  # P6 streaming path
+    "risk_raw.stream_trades",
+    "risk_curated.stream_alerts",
+    "audit.stream_events",
 )
 EXPECTED_TOPICS = {"trades", "trades-dlq"}
 EXPECTED_SUBS = {
@@ -79,7 +83,10 @@ def expected_graph_rows(data) -> dict[str, int]:
 def parse_ddl_columns(sql: str) -> dict[str, list[tuple[str, str]]]:
     """{'dataset.table': [(column, TYPE), ...]} from CREATE TABLE statements."""
     out = {}
-    pattern = r"CREATE TABLE IF NOT EXISTS\s+`__P__\.([\w]+)\.([\w]+)`\s*\((.*?)\n\);"
+    pattern = (
+        r"CREATE TABLE IF NOT EXISTS\s+`__P__\.([\w]+)\.([\w]+)`\s*\((.*?)\n\)"
+        r"(?:\s*PARTITION BY[^;]*)?;"
+    )
     for m in re.finditer(pattern, sql, re.S):
         cols = []
         for line in m.group(3).strip().splitlines():

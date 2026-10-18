@@ -1,5 +1,6 @@
 import { get } from '../api.js';
 import { $, $$, h, table } from '../dom.js';
+import { mountStream, streamedChip } from './stream.js';
 import { empty, errorState, evalCasesOn, evalToggle, fmtPct, injectedChip, laneChip, scenarioChip, sevChip, statusChip } from '../ui.js';
 
 export const title = 'Command centre';
@@ -50,22 +51,27 @@ export async function render(root, { keys }) {
       h('div', { class: 'sub' }, `${d.tp} of 39 attackers; synthetic data`)) : null));
 
   const COLS = ['Severity', 'Alert', 'Ring', 'Scenario hint', ['Score', 'num'], ['Members', 'num'], 'Detector', 'Agent lane'];
-  const rowOf = (a) => [sevChip(a.severity), h('span', null, h('a', { href: `#/case/${encodeURIComponent(a.alert_id)}`, class: 'mono' }, a.alert_id), a.injected ? [' ', injectedChip()] : null),
+  const rowOf = (a) => [sevChip(a.severity), h('span', null, h('a', { href: `#/case/${encodeURIComponent(a.alert_id)}`, class: 'mono' }, a.alert_id), a.injected ? [' ', injectedChip()] : null, a.streamed ? [' ', streamedChip()] : null),
     h('span', { class: 'mono' }, a.ring_id), scenarioChip(a.scenario_hint), a.score.toFixed(2), a.n_members,
     statusChip(a.status), a.analyst_decision ? h('span', null, laneChip(a.lane), ' ', h('span', { class: 'chip t-neutral' }, a.analyst_decision)) : laneChip(a.lane)];
   const queueTable = (list, caption) => table(COLS, list.map(rowOf),
     { caption, rowAttrs: (i) => ({ class: 'row-link', 'data-id': list[i].alert_id, tabindex: 0 }) });
 
-  const real = queue.filter((a) => !a.injected);
+  const queueHolder = h('div', { id: 'queue-holder' });
+  const paintQueue = () => {
+    const real = queue.filter((a) => !a.injected);
+    const nStreamed = real.filter((a) => a.streamed).length;
+    const body = real.length === 0
+      ? empty('No alerts', 'The detector has not produced any alert.')
+      : queueTable(real, 'Alert queue');
+    queueHolder.replaceChildren(h('section', { class: 'card', 'aria-label': 'Alert queue' },
+      h('header', null, h('h2', null, 'Alert queue'),
+        h('span', { class: 'small muted' }, `Detector alerts. Severity is a display rule on the detector score (critical 60+, high 50+); threshold ${queue[0]?.threshold ?? ''}.${nStreamed ? ' Alerts marked Streamed come from a streamed synthetic burst scored by the same frozen detector; they are not in the counts above.' : ''}`)),
+      body));
+    wire();
+  };
   const evalCases = queue.filter((a) => a.injected);
-  const body = real.length === 0
-    ? empty('No alerts', 'The detector has not produced any alert.')
-    : queueTable(real, 'Alert queue');
-
-  page.append(h('section', { class: 'card', 'aria-label': 'Alert queue' },
-    h('header', null, h('h2', null, 'Alert queue'),
-      h('span', { class: 'small muted' }, `Detector alerts only. Severity is a display rule on the detector score (critical 60+, high 50+); threshold ${queue[0]?.threshold ?? ''}`)),
-    body));
+  page.append(queueHolder);
 
   let paintEval = null;
   if (evalCases.length) {
@@ -137,8 +143,12 @@ export async function render(root, { keys }) {
       r.addEventListener('keydown', (e) => { if (e.key === 'Enter') open(r); });
     });
   }
-  wire();
+  paintQueue();
   if (paintEval) paintEval();
+  const refreshQueue = async () => {
+    try { queue = await get('/queue', { fresh: true }); paintQueue(); } catch { /* the queue keeps its last view */ }
+  };
+  const unmountStream = await mountStream({ page, refreshQueue });
   keys.set({ j: () => select(sel + 1), k: () => select(sel - 1) });
-  return () => clearInterval(replayTimer);
+  return () => { clearInterval(replayTimer); unmountStream(); };
 }

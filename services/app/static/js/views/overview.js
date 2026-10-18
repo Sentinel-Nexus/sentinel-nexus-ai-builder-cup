@@ -261,6 +261,8 @@ export async function render(root) {
   let d;
   try { d = await get('/static/data/overview.json'); } catch (e) { root.append(errorState(e, () => location.reload())); return () => document.body.classList.remove('ov-on'); }
   const k = d.kpi;
+  let streamSecs = null;
+  try { streamSecs = (await get('/static/data/stream.json')).seconds; } catch { /* optional */ }
   const gloss = pop('Hatched or solid bars compare two ways of finding manipulation. "Simple rule" flags any group sharing one funding source. "Caught" is the share of planted manipulators that were flagged.', 'Glossary: simple rule and caught', { wide: true });
 
   const hero = h('header', { class: 'ov-hero ov-fade' }, h('div', { class: 'ov-hero-main' }, sparkle(),
@@ -269,9 +271,10 @@ export async function render(root) {
     h('div', { class: 'ov-cta' },
       h('a', { class: 'ov-btn ov-primary', href: d.top_alert ? `#/case/${encodeURIComponent(d.top_alert)}` : '#/' }, 'Open a flagged case'),
       h('a', { class: 'ov-btn ov-ghost', href: '#/benchmark' }, 'See how we measured this'))),
-    h('ol', { class: 'ov-steps', 'aria-label': 'How it works' },
+    h('div', { class: 'ov-hero-side' }, h('ol', { class: 'ov-steps', 'aria-label': 'How it works' },
       [['trades', 'Trades arrive'], ['map', 'We map who is connected to whom'], ['ai', 'AI investigates and shows its evidence'], ['analyst', 'An analyst decides']]
-        .map(([ic, t]) => h('li', null, svg('0 0 32 32', ICONS[ic]), h('strong', null, t)))));
+        .map(([ic, t]) => h('li', null, svg('0 0 32 32', ICONS[ic]), h('strong', null, t)))),
+    streamSecs != null ? h('p', { class: 'ov-stream-line', id: 'ov-stream-line' }, `A synthetic burst can be streamed through Pub/Sub; alerts appear within about ${streamSecs} seconds.`) : null));
 
   const kpis = h('section', { class: 'ov-kpis', 'aria-label': 'Key results' },
     kpi({ label: 'Hidden manipulators caught', big: k.caught.caught, unit: `of ${k.caught.total}`, delay: 0,

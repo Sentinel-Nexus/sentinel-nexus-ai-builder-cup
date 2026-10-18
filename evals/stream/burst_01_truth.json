@@ -1,0 +1,71 @@
+{
+  "background": [
+    "SB01",
+    "SB02",
+    "SB03",
+    "SB04",
+    "SB05",
+    "SB06",
+    "SB07",
+    "SB08",
+    "SB09",
+    "SB10",
+    "SB11",
+    "SB12",
+    "SB13",
+    "SB14",
+    "SB15",
+    "SB16",
+    "SB17",
+    "SB18",
+    "SB19",
+    "SB20",
+    "SB21",
+    "SB22",
+    "SB23",
+    "SB24",
+    "SB25",
+    "SB26",
+    "SB27",
+    "SB28",
+    "SB29",
+    "SB30"
+  ],
+  "burst_id": "burst_01",
+  "counts": {
+    "account_registered": 40,
+    "events": 310,
+    "trade": 270
+  },
+  "expected": {
+    "do_not_flag": [
+      "SH01",
+      "SH02",
+      "SH03",
+      "SH04"
+    ],
+    "flag": [
+      "SW01",
+      "SW02",
+      "SW03",
+      "SW04",
+      "SW05",
+      "SW06"
+    ]
+  },
+  "innocent_household": [
+    "SH01",
+    "SH02",
+    "SH03",
+    "SH04"
+  ],
+  "seed": 6001,
+  "wash_ring": [
+    "SW01",
+    "SW02",
+    "SW03",
+    "SW04",
+    "SW05",
+    "SW06"
+  ]
+}
